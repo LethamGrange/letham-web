@@ -1,0 +1,53 @@
+<div class="title-header-wrapper" webc:root>
+  <div class="header-image">
+    <!-- eleventy-image will automatically optimize this file path -->
+    <img
+      :src="src || '/images/logo-high.png'"
+      width="75"
+      height="75"
+      alt="Club title logo"
+    />
+  </div>
+  <h1 class="page-title" @text="title"></h1>
+</div>
+
+<style>
+  /* 1. Flex layout wrapper centered nicely inside our grid content track */
+  .title-header-wrapper {
+    grid-column: content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(
+      --size-5
+    ); /* Swapped margin-right for uniform Open Props gap spacing */
+    padding-block: var(--size-6);
+    margin-block-end: var(--size-5);
+  }
+
+  .header-image {
+    flex-shrink: 0; /* Prevents logo from crushing smaller on tighter viewports */
+  }
+
+  /* Force the logo image tag to scale responsively if needed */
+  .header-image img {
+    height: auto;
+    max-width: var(--size-10); /* Roughly 75-80px maximum target width */
+  }
+
+  /* 2. Fluid typography scales perfectly from mobile screens up to your desktop window */
+  .page-title {
+    line-height: var(--font-lineheight-1);
+    margin: 0;
+
+    /* Pulls your vibrant light/dark blue brand token automatically */
+    color: var(--brand);
+
+    /* Open Props font tokens fall back gracefully to native system fallbacks */
+    font-family: 'Montserrat', var(--font-sans);
+    font-weight: var(--font-weight-7);
+
+    /* Fluid typography step scale: automatically stays small on phones, grows to massive on desktop */
+    font-size: var(--font-size-fluid-3);
+  }
+</style>
