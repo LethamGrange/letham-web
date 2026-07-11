@@ -1,0 +1,96 @@
+<button
+  id="theme-toggle"
+  class="theme-toggle"
+  title="Toggles light and dark"
+  aria-live="polite"
+  webc:root="override"
+>
+  <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+    <mask id="moon">
+      <rect x="0" y="0" width="100%" height="100%" fill="white" />
+      <circle cx="40" cy="8" r="11" fill="black" />
+    </mask>
+    <circle id="sun" cx="12" cy="12" r="11" mask="url(#moon)" />
+    <g id="sun-beams">
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </g>
+  </svg>
+</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.querySelector("#theme-toggle");
+    if (!btn) return;
+
+    // Read what the head script computed
+    let currentTheme = document.documentElement.getAttribute("data-theme");
+    btn.setAttribute("aria-label", currentTheme);
+
+    btn.addEventListener("click", () => {
+      const nextTheme = currentTheme === "light" ? "dark" : "light";
+
+      document.documentElement.setAttribute("data-theme", nextTheme);
+      localStorage.setItem("theme-preference", nextTheme);
+      btn.setAttribute("aria-label", nextTheme);
+
+      currentTheme = nextTheme;
+    });
+  });
+</script>
+
+<style>
+  .theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--size-2);
+  }
+
+  #moon,
+  #sun {
+    fill: var(--nav-icon);
+    stroke: none;
+    transition: fill 0.2s ease;
+  }
+
+  /* Corrected Nesting Syntax */
+  .theme-toggle:hover #sun,
+  .theme-toggle:hover #sun-beams {
+    fill: var(--nav-icon-hover);
+    stroke: var(--nav-icon-hover);
+  }
+
+  #sun {
+    transition: transform 0.5s var(--ease-4);
+    transform-origin: center center;
+  }
+
+  #sun-beams {
+    stroke: var(--nav-icon);
+    stroke-width: 2px;
+    transform-origin: center center;
+    transition:
+      transform 0.5s var(--ease-elastic-out-4),
+      opacity 0.15s var(--ease-3);
+  }
+
+  [data-theme="light"] #sun {
+    transform: scale(0.5);
+  }
+  [data-theme="light"] #sun-beams {
+    transform: rotateZ(0.25turn);
+  }
+  [data-theme="dark"] #moon > circle {
+    transform: translateX(-20px);
+  }
+  [data-theme="dark"] #sun-beams {
+    opacity: 0;
+  }
+</style>

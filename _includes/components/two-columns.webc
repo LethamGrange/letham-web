@@ -1,0 +1,31 @@
+<div class="split-grid">
+  <!-- Slot 1 captures the first chunk of text -->
+  <div class="col-left">
+    <slot name="left"></slot>
+  </div>
+
+  <!-- Slot 2 captures the second chunk of text or image -->
+  <div class="col-right">
+    <slot name="right"></slot>
+  </div>
+</div>
+
+<style>
+  .split-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  @media (min-width: 48rem) {
+    .split-grid {
+      flex-direction: row;
+      align-items: center; /* Keeps things vertically aligned nicely */
+    }
+    .col-left,
+    .col-right {
+      flex: 1;
+    }
+  }
+</style>

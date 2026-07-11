@@ -1,0 +1,160 @@
+<nav class="navigation-lane">
+  <!-- Mobile Menu Hamburger Button -->
+  <button
+    id="menu-toggle"
+    class="menu-button"
+    aria-expanded="false"
+    aria-controls="nav-links-box"
+    aria-label="Toggle navigation menu"
+  >
+    <svg
+      class="hamburger-icon"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      stroke="currentColor"
+      stroke-width="2.5"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <line class="line-top" x1="3" y1="12" x2="21" y2="12"></line>
+      <line class="line-mid" x1="3" y1="6" x2="21" y2="6"></line>
+      <line class="line-bot" x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <!-- Content Links Target Wrapper -->
+  <div id="nav-links-box" class="nav-links">
+    <a href="/" :class="pageurl === '/' ? 'active' : ''">Home</a>
+    <a href="/about/" :class="pageurl === '/about/' ? 'active' : ''">About</a>
+    <a href="/membership/" :class="pageurl === '/membership/' ? 'active' : ''"
+      >Membership</a
+    >
+    <a href="/facilities/" :class="pageurl === '/facilities/' ? 'active' : ''"
+      >Facilties</a
+    >
+    <a href="/news/" :class="pageurl.includes('/news/') ? 'active' : ''"
+      >News</a
+    >
+  </div>
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.querySelector("#menu-toggle");
+    const linksContainer = document.querySelector("#nav-links-box");
+
+    if (!toggleBtn || !linksContainer) return;
+
+    toggleBtn.addEventListener("click", () => {
+      const isExpanded = toggleBtn.getAttribute("aria-expanded") === "true";
+
+      // Update state for accessibility and visual layout engine hooks
+      toggleBtn.setAttribute("aria-expanded", !isExpanded);
+      linksContainer.classList.toggle("open", !isExpanded);
+    });
+
+    // Close mobile drawer automatically if user resizes back up to desktop viewports
+    window.matchMedia("(min-width: 768px)").addEventListener("change", (e) => {
+      if (e.matches) {
+        toggleBtn.setAttribute("aria-expanded", "false");
+        linksContainer.classList.remove("open");
+      }
+    });
+  });
+</script>
+
+<style>
+  .navigation-lane {
+    display: flex;
+    align-items: center;
+  }
+
+  /* 1. Desktop Defaults */
+  .menu-button {
+    display: none; /* Hidden completely on widescreen desktops */
+    background: none;
+    border: none;
+    color: var(--header-text);
+    cursor: pointer;
+    padding: var(--size-2);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--size-5);
+  }
+
+  .nav-links a {
+    color: var(--header-text);
+    text-decoration: none;
+    font-weight: var(--font-weight-6);
+    padding-block: var(--size-2);
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    border-color: var(--accent);
+  }
+
+  /* 2. Responsive Mobile Styles Layout Overrides */
+  @media (max-width: 767px) {
+    .menu-button {
+      display: block; /* Show the button when screen goes tight */
+      z-index: 100;
+    }
+
+    /* Transform the links panel into an absolute vertical panel wrapper drawer */
+    .nav-links {
+      display: none; /* Hide closed drawer natively */
+      flex-direction: column;
+      position: absolute;
+      top: 100%; /* Drops cleanly directly below header bar line */
+      left: 0;
+      right: 0;
+      background: var(--header-bg);
+      padding: var(--size-4) var(--size-5);
+      border-top: 1px solid var(--border-color);
+      box-shadow: var(--elevation);
+      gap: var(--size-2);
+      z-index: 90;
+    }
+
+    /* When toggled open, reset active status rules */
+    .nav-links.open {
+      display: flex;
+    }
+
+    .nav-links a {
+      padding-block: var(--size-3);
+      width: 100%;
+      border-bottom: none;
+      border-left: 4px solid transparent;
+      padding-left: var(--size-3);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      border-left-color: var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Fun CSS micro-animation: Turn hamburger lines into an 'X' close indicator when expanded */
+    .menu-button[aria-expanded="true"] .line-mid {
+      opacity: 0;
+    }
+    .menu-button[aria-expanded="true"] .line-top {
+      transform: translateY(6px) rotate(45deg);
+      transform-origin: center;
+      transition: transform 0.2s ease;
+    }
+    .menu-button[aria-expanded="true"] .line-bot {
+      transform: translateY(-6px) rotate(-45deg);
+      transform-origin: center;
+      transition: transform 0.2s ease;
+    }
+  }
+</style>

@@ -1,0 +1,28 @@
+<header class="site-header">
+  <div class="header-container">
+    <!-- Pass Eleventy's global page URL directly down into the tracker prop -->
+    <site-nav :@pageurl="page.url"></site-nav>
+    <theme-toggle></theme-toggle>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background-color: var(--header-bg);
+    box-shadow: var(--elevation);
+    grid-column: full-width;
+    display: grid;
+    grid-template-columns: inherit;
+
+    /* Crucial parameter anchor so mobile menu doesn't fly off screen edges */
+    position: relative;
+  }
+
+  .header-container {
+    grid-column: content;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: var(--size-4);
+  }
+</style>

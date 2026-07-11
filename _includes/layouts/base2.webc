@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><template webc:type="11ty" 11ty:type="liquid">{{ title }}</template></title>
+
+  <!-- Global Open Props Styles -->
+  <link rel="stylesheet" href="/css/global.css">
+
+  <!-- WebC automatically aggregates and injects all component CSS here -->
+  <style webc:keep @raw="getBundle('css')"></style>
+</head>
+<body>
+
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about/">About</a>
+      <a href="/membership/">Membership</a>
+      <a href="/news/">News</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Your Markdown content drops perfectly right here -->
+    <template webc:type="11ty" 11ty:type="liquid">
+      {{ content }}
+    </template>
+  </main>
+
+  <footer>
+    <p>&copy; Community Sports Club</p>
+  </footer>
+
+  <!-- WebC automatically injects component JavaScript here if needed -->
+  <script webc:keep @raw="getBundle('js')"></script>
+</body>
+</html>
+

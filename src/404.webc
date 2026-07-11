@@ -1,0 +1,31 @@
+---
+layout: base
+permalink: 404.html
+---
+
+<div class="c-simple-wrapper">
+  <div class="c-simple__hero">
+    <h1 id="page-not-found">Sorry page not found</h1>
+    <p>
+      We’re sorry, that page doesn’t seem to exist. Please goto the
+      <a class="c-simple__link" href="/"> home page</a>.
+    </p>
+  </div>
+</div>
+
+<style>
+  .c-simple-wrapper {
+    padding: 2rem;
+
+    .c-simple__link {
+      color: var(--indigo-1);
+    }
+
+    .c-simple__hero {
+      color: var(--gray-8);
+      background-color: var(--red-8);
+      border-radius: var(--radius-2);
+      padding: 2rem;
+    }
+  }
+</style>

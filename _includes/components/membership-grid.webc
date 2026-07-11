@@ -1,0 +1,49 @@
+<div class="pricing-grid">
+  <!-- Eleventy dynamically slots your Markdown list items or child content here -->
+  <slot></slot>
+</div>
+
+<style>
+  .pricing-grid {
+    display: grid;
+    gap: var(--size-5);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-block: var(--size-7);
+  }
+
+  /* Target article wrappers inside the grid slot */
+  .pricing-grid article {
+    background: var(
+      --surface-1
+    ); /* Swapped to surface-1 so cards pop cleanly against our new stone-2 canvas */
+    padding: var(--size-5);
+    border-radius: var(--radius-3);
+    box-shadow: var(--elevation); /* Uses our responsive layout shadows token */
+    border: 1px solid var(--border-color); /* Swapped from missing surface-3 token */
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3);
+  }
+
+  .pricing-grid h3 {
+    font-size: var(--font-size-4);
+    color: var(--brand); /* Uses your bold athletic brand color */
+    margin: 0;
+  }
+
+  .pricing-grid .price {
+    font-size: var(--font-size-6);
+    font-weight: var(--font-weight-7);
+    color: var(
+      --text-color
+    ); /* Swapped from missing text-1 token for maximum contrast */
+  }
+
+  /* Optional: Soften the 'per season' text scale inside the small tag */
+  .pricing-grid .price small {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-4);
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+</style>
