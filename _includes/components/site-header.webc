@@ -1,7 +1,7 @@
 <header class="site-header">
   <div class="header-container">
     <!-- Pass Eleventy's global page URL directly down into the tracker prop -->
-    <site-nav :@pageurl="page.url"></site-nav>
+    <site-nav></site-nav>
     <theme-toggle></theme-toggle>
   </div>
 </header>

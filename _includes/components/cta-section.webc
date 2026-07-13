@@ -24,12 +24,12 @@
     margin-block: var(--size-8);
 
     /* 2. Swapped raw pixels for the responsive Open Props size token */
-    max-height: var(--size-14);
+    max-height: calc(1.2 * var(--size-14));
   }
 
   /* Ensure text stays perfectly balanced inside your Open Props bounding box */
   .cta-content {
-    grid-column: content;
+    grid-column: breakout;
     position: relative;
     z-index: 3;
     text-align: center;
@@ -40,9 +40,11 @@
     align-items: center;
     justify-content: center; /* Keeps everything locked to the physical center line */
     gap: var(--size-4);
-
+    margin-block: var(--size-2);
     /* Optional safety: ensure the text never stretches taller than the size token container */
-    min-height: calc(var(--size-14) - (var(--size-6) * 2));
+    min-height: calc(
+      (1.2 * var(--size-14)) - (2 * var(--size-2)) - (var(--size-6) * 2)
+    );
   }
   /* Ensure the image tag updates smoothly within the parent bounds */
   img.cta-bg-image {
@@ -61,7 +63,7 @@
   .cta-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 2;
   }
 
@@ -69,6 +71,10 @@
     max-inline-size: none;
     margin-inline: auto;
     width: 100%;
+  }
+
+  .cta-content h2 {
+    background: var(--blue-6);
   }
 
   .cta-content p {

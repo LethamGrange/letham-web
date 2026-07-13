@@ -26,16 +26,25 @@
 
   <!-- Content Links Target Wrapper -->
   <div id="nav-links-box" class="nav-links">
-    <a href="/" :class="pageurl === '/' ? 'active' : ''">Home</a>
-    <a href="/about/" :class="pageurl === '/about/' ? 'active' : ''">About</a>
-    <a href="/membership/" :class="pageurl === '/membership/' ? 'active' : ''"
-      >Membership</a
+    <a href="/" :class="$data.page.url === '/' ? 'active' : ''">Home </a>
+    <a href="/about/" :class="$data.page.url === '/about/' ? 'active' : ''"
+      >About Us</a
     >
-    <a href="/facilities/" :class="pageurl === '/facilities/' ? 'active' : ''"
-      >Facilties</a
+    <a
+      href="/membership/"
+      :class="$data.page.url === '/membership/' ? 'active' : ''"
+      >Membership Information</a
     >
-    <a href="/news/" :class="pageurl.includes('/news/') ? 'active' : ''"
-      >News</a
+    <a href="/news/" :class="$data.page.url.includes('/news/') ? 'active' : ''"
+      >Club News &amp; Events</a
+    >
+    <a
+      href="/facilities/"
+      :class="$data.page.url === '/facilities/' ? 'active' : ''"
+      >Our Facilties</a
+    >
+    <a href="/guide/" :class="$data.page.url === '/guide/' ? 'active' : ''"
+      >Beginners Guide</a
     >
   </div>
 </nav>

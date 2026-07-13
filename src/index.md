@@ -7,14 +7,24 @@ description: Welcome to Letham Grange Curling
 ---
 
 <!-- The full-width wrapper creates the background belt across the screen -->
-<cta-section img-src="/images/Balcony-ja.png">
+<cta-section img-src="/images/7544378.jpeg">
 
-## Ready to join our next training session?
+<div class="cta-title">
 
-New players are always welcome. Just show up on Tuesday night or fill out our online registration form to get started.
+  <h2>Welcome to Letham Grange Curling Club</h2>
 
-[View Membership Categories](/membership/){.cta-button}
+  </div>
+
+Discover the thrill of curling, connect with our community, and experience the tradition of this exciting sport. Whether you're a seasoned curler or new to the ice, we invite you to join us on our journey.
+
+[Become a Member](/membership/){.cta-button}
 
 </cta-section>
 
 ## more stuff
+
+<style webc: type="sass">
+.cta-title h2{
+  padding-inlineX: var(--size-2);
+}
+</style>
