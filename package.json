@@ -30,15 +30,15 @@
     "markdown-it-attrs": "^5.0.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
-    "material-symbols": "^0.44.10",
+    "material-symbols": "^0.45.8",
     "open-props": "^1.7.23",
-    "postcss": "^8.5.15",
+    "postcss": "^8.5.19",
     "postcss-custom-media": "^12.0.1",
     "postcss-import": "^16.1.1",
     "postcss-jit-props": "^1.0.16"
   },
   "devDependencies": {
-    "browserslist": "^4.28.2",
+    "browserslist": "^4.28.6",
     "del-cli": "^7.0.0",
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",

@@ -23,8 +23,8 @@ Discover the thrill of curling, connect with our community, and experience the t
 
 ## more stuff
 
-<style webc: type="sass">
-.cta-title h2{
-  padding-inlineX: var(--size-2);
-}
+Now is the winter...
+
+<style webc:type="sass">
+
 </style>

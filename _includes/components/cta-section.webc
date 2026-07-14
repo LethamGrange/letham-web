@@ -73,13 +73,14 @@
     width: 100%;
   }
 
-  .cta-content h2 {
+  .cta-contentx h2 {
     background: var(--blue-6);
   }
 
   .cta-content p {
     max-inline-size: var(--size-content-3);
-    color: var(--gray-2);
+    color: var(--gray-1);
+    font-size: var(--font-size-3);
   }
   /* A quick Open Props button style */
   .cta-button {

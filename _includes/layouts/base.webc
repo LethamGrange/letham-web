@@ -26,7 +26,7 @@
     <title @text="title ?? 'Letham Grange'"></title>
 
     <style webc:type="scss" webc:bucket="main">
-      @import "../../src/css/main.scss";
+      @import '../../src/css/main.scss';
     </style>
 
     <!-- This single line writes out your entire main.scss layout AND any tiny component <style> blocks -->
@@ -38,13 +38,13 @@
 
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script>
-      const savedTheme = localStorage.getItem("theme-preference");
-      const systemTheme = window.matchMedia("(prefers-color-scheme: light)")
+      const savedTheme = localStorage.getItem('theme-preference');
+      const systemTheme = window.matchMedia('(prefers-color-scheme: light)')
         .matches
-        ? "dark"
-        : "light";
+        ? 'dark'
+        : 'light';
       document.documentElement.setAttribute(
-        "data-theme",
+        'data-theme',
         savedTheme || systemTheme,
       );
     </script>
@@ -72,21 +72,26 @@
 </html>
 
 <style webc:type="scss">
-  /* Sticky Footer Logic using Flexbox */
+  /* Seamless full-window vertical stack */
   .site-wrapper {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Forces body to be at least screen height */
+    min-height: 100vh;
   }
 
+  /*
+     This acts as our master layout grid.
+     We move the top/bottom vertical breathing room safety padding here,
+     leaving the left and right completely free for full-width elements!
+  */
   .page-layout {
-    flex: 1; /* Pushes footer down by taking up all remaining space */
-    padding-block: var(--size-7);
+    flex: 1;
+    padding-block: var(
+      --size-6
+    ); /* Comfortable vertical spacing above and below content */
   }
 
   .site-footer {
-    border-top: 1px solid var(--surface-3);
-    text-align: center;
-    margin-top: auto; /* Final insurance for the sticky footer */
+    margin-top: auto; /* Absolute guarantee that footer stays at screen bottom */
   }
 </style>
