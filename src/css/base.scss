@@ -39,7 +39,7 @@ body {
 body {
   margin: 0;
   line-height: 1.6;
-  font-family: var(--font-classical-humanist);
+  font-family: var(--font-humanist);
 
   /* Hardware-accelerated font smoothing */
   -webkit-font-smoothing: antialiased;
@@ -51,7 +51,14 @@ body {
   /* Enables your sticky footer mechanism to stretch perfectly */
   min-height: 100vh;
 }
-
+h1,
+h2,
+h3,
+.club-title {
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-7); /* Pure Open Props weight */
+  letter-spacing: var(--font-letterspacing-1); /* Tighter spacing token */
+}
 /* Center all basic content elements within the grid track */
 .page-layout > p,
 .page-layout > ul,
