@@ -1,4 +1,4 @@
-<section class="centered-content-block" webc:root>
+<section class="centered-content-block" webc:root="override">
   <slot></slot>
 </section>
 

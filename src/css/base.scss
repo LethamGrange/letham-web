@@ -61,7 +61,7 @@ body {
   grid-column: content;
   max-inline-size: var(--size-content-3); /* Keeps sentences easy to read */
 
-  margin-inline: auto; /* Forces left and right margins to balance, centering the text */
+  /*  margin-inline: auto; /* Forces left and right margins to balance, centering the text */
   width: 100%; /* Allows the element to take full available track width up to its max-inline-size */
 }
 
