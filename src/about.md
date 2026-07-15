@@ -24,9 +24,13 @@ This text goes right back to the neat, centered text track without needing any e
   </membership-grid>
 </div>
 
+<div>
+
 ## Our Club Community
 
 We are more than just a sports team; we are a family.
+
+</div>
 
 <!-- The full-width wrapper creates the background belt across the screen -->
 <cta-section img-src="/images/Balcony-ja.png">

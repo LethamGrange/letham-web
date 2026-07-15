@@ -1,31 +1,26 @@
-<div class="split-grid">
-  <!-- Slot 1 captures the first chunk of text -->
-  <div class="col-left">
+<div class="two-columns-section" webc:root="override">
+  <div class="column-left">
     <slot name="left"></slot>
   </div>
-
-  <!-- Slot 2 captures the second chunk of text or image -->
-  <div class="col-right">
+  <div class="column-right">
     <slot name="right"></slot>
   </div>
 </div>
 
 <style>
-  .split-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin: 2rem 0;
+  .two-columns-section {
+    grid-column: content; /* Keeps the container inside your centered lane */
+    display: grid;
+    gap: var(--size-7);
+    margin-block: var(--size-7);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 
-  @media (min-width: 48rem) {
-    .split-grid {
-      flex-direction: row;
-      align-items: center; /* Keeps things vertically aligned nicely */
-    }
-    .col-left,
-    .col-right {
-      flex: 1;
-    }
+  /* Keep standard line spacing rules inside your column text blocks */
+  .column-left,
+  .column-right {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3);
   }
 </style>

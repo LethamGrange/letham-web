@@ -34,28 +34,22 @@ html,
 body {
   block-size: 100%;
   overflow-x: hidden;
+  --size-content-3: 75ch;
 }
-
 body {
   margin: 0;
   line-height: 1.6;
   font-family: var(--font-classical-humanist);
 
-  /* 2. Hardware-accelerated font smoothing for dark text themes */
+  /* Hardware-accelerated font smoothing */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
   color: var(--text-color);
   background-color: var(--background-color);
-}
 
-/* Quick baseline using Open Props layout tokens */
-body {
-  margin-inline: auto;
-  padding: var(--size-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--size-7);
+  /* Enables your sticky footer mechanism to stretch perfectly */
+  min-height: 100vh;
 }
 
 /* Center all basic content elements within the grid track */
@@ -99,6 +93,13 @@ img[width][height] {
 /* Layout Wrapper applied to the <main> container */
 .page-layout {
   display: grid;
+
+  /*
+       THE CRUCIAL FIX: This tells the CSS Grid engine to stack all rows tightly
+       at the top of the container, leaving any extra "filler space" at the bottom!
+    */
+  align-content: start;
+
   /* 1. Edges | 2. Breakout Track | 3. Center Content Track */
   grid-template-columns:
     [full-width-start] minmax(var(--size-5), 1fr)

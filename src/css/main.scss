@@ -1,6 +1,10 @@
+/* 1. Open Props Core Tokens and Normalization */
 @use 'reset.scss';
 @use 'open-props/normalize.min.css';
 @use 'open-props/colors.min.css';
+
+/* ADD THIS LINE HERE: Enables all text sizing, fluid typography, and font tokens */
+@use 'open-props/fonts.min.css';
 
 /* 2. Global Design Variables and Tokens */
 @use 'open-props/media.min.css';
