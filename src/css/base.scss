@@ -34,6 +34,7 @@ html,
 body {
   block-size: 100%;
   overflow-x: hidden;
+  --size-content-3: 75ch;
 }
 body {
   margin: 0;
@@ -92,6 +93,13 @@ img[width][height] {
 /* Layout Wrapper applied to the <main> container */
 .page-layout {
   display: grid;
+
+  /*
+       THE CRUCIAL FIX: This tells the CSS Grid engine to stack all rows tightly
+       at the top of the container, leaving any extra "filler space" at the bottom!
+    */
+  align-content: start;
+
   /* 1. Edges | 2. Breakout Track | 3. Center Content Track */
   grid-template-columns:
     [full-width-start] minmax(var(--size-5), 1fr)

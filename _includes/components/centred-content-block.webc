@@ -1,0 +1,33 @@
+<section class="centered-content-block" webc:root>
+  <slot></slot>
+</section>
+
+<style>
+  .centered-content-block {
+    grid-column: content;
+    text-align: center;
+    /*
+     Change this from var(--size-8) to a tighter token like size-4.
+     Since the main layout grid now manages section spacing uniformly,
+     components should only handle minor boundary adjustments!
+  */
+    margin-block-start: var(--size-4);
+    margin-block-end: var(--size-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4);
+  }
+
+  /* Clears Open Props invisible line-length walls specifically for this section */
+  .centered-content-block :is(h2, h3, p) {
+    max-inline-size: none;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  /* Keeps paragraphs crisp but perfectly bounded */
+  .centered-content-block p {
+    max-inline-size: var(--size-content-3);
+  }
+</style>

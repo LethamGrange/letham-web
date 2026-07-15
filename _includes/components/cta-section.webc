@@ -21,7 +21,7 @@
 
     /* 1. Open Props layout spacing */
     padding-block: var(--size-6);
-    margin-block: var(--size-8);
+    margin-block: var(--size-2);
 
     /* 2. Swapped raw pixels for the responsive Open Props size token */
     max-height: calc(1.2 * var(--size-14));
