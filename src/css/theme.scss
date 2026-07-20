@@ -33,6 +33,12 @@ html[data-theme='light'] {
   --cta-background-color: var(--blue-9);
   --link-color: var(--blue-7);
   --elevation: var(--shadow-2);
+
+  /* Table Specific Layout Variables */
+  --table-header-bg: rgb(34, 131, 231);
+  --table-header-text: #ffffff;
+  --table-row-bg: var(--stone-1); /* Light Mode: White surface */
+  --table-row-alt-bg: var(--stone-2); /* Light Mode: Soft gray alternate */
 }
 
 /* ==========================================================================
@@ -65,6 +71,12 @@ html[data-theme='light'] {
     --cta-background-color: var(--stone-10);
     --link-color: var(--cyan-3);
     --elevation: var(--shadow-4);
+
+    /* Table Specific Layout Variables */
+    --table-header-bg: rgb(34, 131, 231);
+    --table-header-text: #ffffff;
+    --table-row-bg: var(--stone-11); /* Dark Mode: Deep gray surface */
+    --table-row-alt-bg: var(--stone-10); /* Dark Mode: Slightly lighter contrasting gray */
   }
 }
 
@@ -96,4 +108,10 @@ html[data-theme='dark'] {
   --cta-background-color: var(--stone-10);
   --link-color: var(--cyan-3);
   --elevation: var(--shadow-4);
+
+  /* Table Specific Layout Variables */
+  --table-header-bg: rgb(34, 131, 231);
+  --table-header-text: #ffffff;
+  --table-row-bg: var(--stone-11); /* Dark Mode: Deep gray surface */
+  --table-row-alt-bg: var(--stone-10); /* Dark Mode: Slightly lighter contrasting gray */
 }
