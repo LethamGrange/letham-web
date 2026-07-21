@@ -1,0 +1,37 @@
+<!-- _components/custom-table.webc -->
+<div class="custom-table-container">
+  <slot webc:nokeep></slot>
+</div>
+
+<style webc:type="sass">
+  .custom-table-container {
+    grid-column: content;
+    width: 100%;
+    overflow-x: auto;
+    margin-block: var(--size-4);
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--text-color);
+    }
+
+    th {
+      /* Replaced hardcoded rgb value with Open Props blue token */
+      background-color: var(--blue-7);
+      color: #ffffff;
+      padding: var(--size-3, 12px);
+      text-align: left;
+    }
+
+    td {
+      padding: var(--size-3, 12px);
+      background-color: var(--table-row-bg, var(--stone-1));
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tr:nth-child(even) td {
+      background-color: var(--table-row-alt-bg, var(--stone-2));
+    }
+  }
+</style>

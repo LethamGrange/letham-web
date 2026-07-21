@@ -122,7 +122,7 @@ export default async function (eleventyConfig) {
               // Inlines all remaining @import statements physically into the file
 
               postcssImport({
-                path: ['./node_modules'],
+                path: ['./src/css', './node_modules'],
               }),
               // A. Load OpenProps media definitions globally for PostCSS
               postcssGlobalData({
@@ -131,7 +131,9 @@ export default async function (eleventyConfig) {
               // B. Polyfill the @media (--md-n-below) strings into raw pixels
               postcssCustomMedia(),
               // C. Pull in standard OpenProps variables Just-In-Time
-              postcssJit(OpenProps),
+              postcssJit({
+                ...OpenProps,
+              }),
             ]).process(content, {
               from: this.page.inputPath,
               to: null,

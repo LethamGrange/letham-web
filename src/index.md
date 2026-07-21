@@ -44,7 +44,7 @@ description: Welcome to Letham Grange Curling
 
     Learn about our rich history, our values, and what makes Letham Grange Curling Club a vibrant community for all curling enthusiasts in Arbroath, across Angus and beyond.
 
-[Find out More](/about/){.cta-button}
+[Find out More](/about/){.ui-button .ui-filled  .ui-primary}
 
   </div>
 

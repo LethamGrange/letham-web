@@ -72,6 +72,33 @@ h3,
   width: 100%; /* Allows the element to take full available track width up to its max-inline-size */
 }
 
+/* Inside your src/css/base.scss (Safe modern additions) */
+
+/* 1. Prevent text inflation issues on mobile orientation changes */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* 2. Accessible list handling for unstyled semantic lists */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 3. Text balancing for cleaner headlines */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
 nav {
   display: flex;
   gap: var(--size-4);

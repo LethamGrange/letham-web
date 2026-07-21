@@ -117,7 +117,7 @@ ul li:not([class]) {
 
   h2,h3 {color: var(--blue-6);}
 
-strong {color: var(--blue-6);}
+strong {   color: var(--blue-6);}
 
 .custom-table-container{grid-column: content;}
 /* ==========================================================================
@@ -146,7 +146,7 @@ strong {color: var(--blue-6);}
 
 /* Alternating Row Stripe Styling */
 .custom-table-container tr:nth-child(even) td {
-  background-color: var(--table-row-alt-bg);
+    background-color: var(--table-row-alt-bg);
 }
 
  </style>
