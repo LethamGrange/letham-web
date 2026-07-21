@@ -20,6 +20,7 @@
 
 /* 4. Isolated UI Components (Direct copy-paste from docs) */
 @import 'opui-components/button.css';
+@import 'opui-components/table.css'; /* <-- Pulls the original, unmodified table rules */
 
 /* 5. Custom Page Overrides */
 @import 'layout.scss';

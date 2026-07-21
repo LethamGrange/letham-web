@@ -8,7 +8,7 @@
 
 <style>
   .site-header {
-    background-color: var(--header-bg);
+    background-color: var(--accent);
     box-shadow: var(--elevation);
     grid-column: full-width;
     display: grid;

@@ -19,7 +19,7 @@ description: Welcome to Letham Grange Curling
     new to the ice, we invite you to join us on our journey.
   </p>
 
-[Become a Member](/membership/){.cta-button}
+[Become a Member](/membership/){.ui-button .ui-filled .ui-primary}
 
 </cta-section>
 

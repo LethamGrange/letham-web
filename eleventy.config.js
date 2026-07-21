@@ -27,7 +27,7 @@ import pluginCollections from './_config/collections.js';
 import pluginFilters from './_config/filters.js';
 
 function configureMarkdownIt() {
-  return markdownit({ html: true })
+  const md = markdownit({ html: true })
     .use(markdownitattrs)
     .use(markdownitcontainer, 'dynamic', {
       validate: function () {
@@ -42,6 +42,10 @@ function configureMarkdownIt() {
         }
       },
     });
+  md.renderer.rules.table_open = () => '<div class="custom-table-container"><table class="ui-table">';
+  md.renderer.rules.table_close = () => '</table></div>';
+
+  return md;
 }
 
 export const config = {
@@ -152,7 +156,7 @@ export default async function (eleventyConfig) {
                 minify: false,
                 sourceMap: false,
                 targets,
-                exclude: Features.LogicalProperties,
+                exclude: Features.LogicalProperties | Features.LightDark,
                 drafts: {
                   customMedia: true,
                 },

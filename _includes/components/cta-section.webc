@@ -1,17 +1,23 @@
-<div class="full-width cta-background-section" webc:root="override">
-  <!-- 1. The native image tag Eleventy CAN see and optimize -->
+<!-- 1. ADD DATA-THEME="DARK" HERE: Permanently isolates this container -->
+<div
+  class="full-width cta-background-section"
+  data-theme="dark"
+  webc:root="override"
+>
+  <!-- The native image tag Eleventy CAN see and optimize -->
   <img :src="imgSrc" alt="" class="cta-bg-image" />
 
-  <!-- 2. The dark overlay tint layer -->
+  <!-- The dark overlay tint layer -->
   <div class="cta-overlay"></div>
 
-  <!-- 3. The structural text layout slot -->
+  <!-- The structural text layout slot -->
   <div class="cta-content">
     <slot></slot>
   </div>
 </div>
 
 <style>
+  /* 1. STRUCTURAL BOUNDING BOX CONTAINER PATTERNS */
   .cta-background-section {
     grid-column: full-width;
     display: grid;
@@ -19,83 +25,70 @@
     position: relative;
     overflow: hidden;
 
-    /* 1. Open Props layout spacing */
-    padding-block: var(--size-6);
-    margin-block: var(--size-2);
-
-    /* 2. Swapped raw pixels for the responsive Open Props size token */
-    max-height: calc(1.2 * var(--size-14));
+    padding-block: var(
+      --size-8
+    ); /* Upgraded for cleaner layout padding rhythm */
+    margin-block: var(--size-4);
+    max-height: calc(1.5 * var(--size-14));
   }
 
-  /* Ensure text stays perfectly balanced inside your Open Props bounding box */
   .cta-content {
     grid-column: breakout;
     position: relative;
     z-index: 3;
     text-align: center;
-    color: white;
 
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Keeps everything locked to the physical center line */
+    justify-content: center;
     gap: var(--size-4);
-    margin-block: var(--size-2);
-    /* Optional safety: ensure the text never stretches taller than the size token container */
-    min-height: calc(
-      (1.2 * var(--size-14)) - (2 * var(--size-2)) - (var(--size-6) * 2)
-    );
   }
-  /* Ensure the image tag updates smoothly within the parent bounds */
+
   img.cta-bg-image {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100% !important;
     object-fit: cover;
-
-    /* Keep focus perfectly centered so cropping happens equally at top and bottom */
     object-position: center center;
     z-index: 1;
   }
 
-  /* Semi-transparent dark overlay sheet */
+  /* 2. RE-TUNED INTENSITY ACCENT SHEET */
   .cta-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    /* Boosted opacity slightly to ensure AA compliance against bright elements in imagery */
+    background: rgba(0, 0, 0, 0.35);
     z-index: 2;
   }
 
-  .cta-content :is(h1, h2, h3, p) {
-    max-inline-size: none;
-    margin-inline: auto;
-    width: 100%;
-  }
-
-  .cta-contentx h2 {
-    background: var(--blue-6);
+  /* 3. CLEAN FRAMEWORK INTEGRATION */
+  /* Because the parent wrapper has data-theme="dark", these structural system tokens
+     automatically evaluate to pure high-contrast values, bypassing the page cascade */
+  .cta-content h2 {
+    color: var(--gray-1); /* Stark high-contrast title */
+    font-size: var(--font-size-6);
+    text-wrap: balance;
   }
 
   .cta-content p {
     max-inline-size: var(--size-content-3);
-    color: var(--gray-1);
+    color: var(--gray-3); /* Smooth accessible subtext description spacing */
     font-size: var(--font-size-3);
+    text-wrap: pretty;
   }
-  /* A quick Open Props button style */
-  .cta-button {
-    display: inline-block;
-    background: var(--blue-6);
-    color: white;
-    font-weight: var(--font-weight-6);
-    padding: var(--size-2) var(--size-4);
-    border-radius: var(--radius-2);
-    text-decoration: none;
-    box-shadow: var(--shadow-2);
+
+  /* 4. LEVERAGING YOUR LOCAL PEER DROPDOWN RULES INSTEAD OF CUSTOM BUTTON CLASSES */
+  /* You no longer need custom `.cta-button` code blocks! Just call the native OPUI utility class
+     combination inside your Markdown slots: class="ui-button ui-filled ui-primary" */
+  .cta-content :where(.ui-button) {
+    box-shadow: var(--shadow-3);
     transition: transform 0.2s ease;
   }
 
-  .cta-button:hover {
+  .cta-content :where(.ui-button):hover {
     transform: scale(1.05);
   }
 </style>

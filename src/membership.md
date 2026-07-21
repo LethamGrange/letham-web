@@ -119,18 +119,59 @@ ul li:not([class]) {
 
 strong {   color: var(--blue-6);}
 
-.custom-table-container{grid-column: content;}
+/* Ensure the scroll-panel rules stay isolated inside your custom wrapper class */
+.custom-table-container {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-block: var(--size-4);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2);
+ 
+     /* Target the automatically generated Markdown tables */
+  table.ui-table {
+    
+    /* 1. UPGRADE THE HEADER TO THE BG ACCENT BRAND COLOR */
+    thead th {
+      /* Force it to pull your master accent background blue (--blue-8) */
+      background-color: var(--accent);
+      
+      /* Ensure text utilizes the crisp high-contrast variant we locked in */
+      color: var(--accent-contrast);
+      
+      font-weight: var(--font-weight-7);
+      border-bottom: 2px solid var(--border);
+    }
+ tbody tr {
+      background-color: var(--surface-1);
+    }
+    /* 2. AUTOMATE ZEBRA STRIPING FOR ALTERNATING ROWS */
+    /* Light Mode default: Subtle slate tint on every even row item */
+    tbody tr:nth-child(even) {
+      background-color: var(--surface-2);
+    }
+
+    /* 3. OPTIONAL: FLUID HOVER ROW SHIFT EFFECTS */
+    tbody tr:hover {
+      background-color: var(--surface-4);
+      cursor: pointer;
+    }
+  }
+}
+
+
+
+.custom-table-containerX{grid-column: content;}
 /* ==========================================================================
    4. COMPONENT: ALTERNATING ZEBRA TABLES
    ========================================================================== */
-.custom-table-container table {
+.custom-table-containerX table {
   width: 100%;
   border-collapse: collapse;
   color: var(--text-color);
 }
 
 /* Header Styling */
-.custom-table-container th {
+.custom-table-containerX th {
   background-color: var(--table-header-bg);
   color: var(--table-header-text);
   padding: 12px;
@@ -138,14 +179,14 @@ strong {   color: var(--blue-6);}
 }
 
 /* Standard Base Rows */
-.custom-table-container td {
+.custom-table-containerX td {
   padding: 12px;
   background-color: var(--table-row-bg);
   border-bottom: 1px solid var(--border-color);
 }
 
 /* Alternating Row Stripe Styling */
-.custom-table-container tr:nth-child(even) td {
+.custom-table-containerX tr:nth-child(even) td {
     background-color: var(--table-row-alt-bg);
 }
 

@@ -1,31 +1,45 @@
 /* Inside your src/css/theme-ui.scss */
 
 :root {
-  --primary-base: var(--blue-6);
+  --primary-base: var(--blue-8);
 
-  /* 1. Core Variables & Hovers (100% safe back to 2023) */
-  --primary: var(--primary-base);
-  --color-8: var(--primary-base);
-  --primary-hover: color-mix(in oklch, var(--primary-base), #000 15%);
-  --color-9: color-mix(in oklch, var(--primary-base), #000 15%);
-  --primary-signal: color-mix(in oklch, var(--primary-base), transparent 60%);
+  --brand: var(--primary-base);
+  --palette-chroma: 0.25;
 
-  /* 2. Text Fallback Block */
-  --primary-text: var(--white); /* Standard fallback text color for older browsers */
+  --primary: var(--brand);
+  --accent: var(--brand);
+  --accent-contrast: var(--gray-0); /* Pure white text overlay */
+  --primary-contrast: var(--gray-0);
+
+  /* 1. Core Framework Tokens */
+  --text-1: var(--gray-9); /* Charcoal */
+  --text-2: var(--gray-7); /* Muted gray */
+
+  /* 2. RE-ADD YOUR ALIASES HERE: Links your body CSS directly to the engine */
+  --text-color: var(--text-1);
+  --text-muted: var(--text-2);
+
+  /* Canvas Surfaces */
+  --surface-1: var(--gray-0);
+  --surface-2: var(--gray-1);
 }
 
-/* 3. Progressive Enhancement: Upgrade only if the browser supports Relative Colors */
-@supports (color: oklch(from red l c h)) {
-  :root {
-    /* Automates dark text on light buttons, white text on dark buttons natively */
-    --primary-text: oklch(from var(--primary-base) calc((1 - l) * 999) 0 h);
-  }
-}
-
-/* --- SYSTEM DARK MODE AUTOMATIONS --- */
+/* AUTOMATED DARK MODE MIRROR */
 html[data-theme='dark'] {
   --primary-base: var(--blue-4);
-  --primary-text: var(--gray-9); /* Standard fallback text color for dark mode */
-  --primary-hover: color-mix(in oklch, var(--primary-base), #fff 15%);
-  --color-9: color-mix(in oklch, var(--primary-base), #fff 15%);
+
+  --accent-contrast: var(--gray-12); /* Deep slate text overlay */
+  --primary-contrast: var(--gray-12);
+
+  /* 1. Core Framework Dark Tokens */
+  --text-1: var(--gray-1); /* Off-white */
+  --text-2: var(--gray-4); /* Soft gray */
+
+  /* 2. UPDATE YOUR ALIASES FOR DARK MODE */
+  --text-color: var(--text-1);
+  --text-muted: var(--text-2);
+
+  /* Canvas Surfaces */
+  --surface-1: var(--gray-12);
+  --surface-2: var(--gray-11);
 }
