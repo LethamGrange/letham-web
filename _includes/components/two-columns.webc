@@ -15,6 +15,13 @@
     margin-block: var(--size-7);
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
+  .two-columns-section img {
+    margin-block: var(--size-4);
+  }
+
+  .two-columns-section.full-width {
+    grid-column: full-width;
+  }
 
   /* Keep standard line spacing rules inside your column text blocks */
   .column-left,

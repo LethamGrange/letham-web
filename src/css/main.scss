@@ -4,6 +4,7 @@
 
 /* 1. Core Engine */
 @import 'open-props/normalize.min.css' layer(openprops);
+@import 'open-props/borders.min.css' layer(openprops);
 @import 'open-props/sizes.min.css' layer(openprops);
 @import 'open-props/colors.min.css' layer(openprops);
 @import 'open-props/fonts.min.css' layer(openprops);
@@ -22,6 +23,7 @@
 
 /* 4. Isolated UI Components (Direct copy-paste from docs) */
 @import 'opui-components/button.css';
+@import 'opui-components/divider.css'; /* <-- Pulls the original, unmodified table rules */
 @import 'opui-components/table.css'; /* <-- Pulls the original, unmodified table rules */
 
 /* 5. Custom Page Overrides */
