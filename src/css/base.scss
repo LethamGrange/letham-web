@@ -35,6 +35,8 @@ body {
   block-size: 100%;
   overflow-x: hidden;
   --size-content-3: 75ch;
+  /* Create your own dynamic, theme-aware equivalent string */
+  --theme-gradient: linear-gradient(135deg, var(--color-3), var(--color-9));
 }
 body {
   margin: 0;
@@ -70,7 +72,7 @@ h3,
 }
 
 body {
-  background-color: var(--surface-1);
+  background-color: var(--surface-default);
   color: var(--text-color); /* Natively links paragraph text to your theme-ui tokens */
   transition:
     background-color 0.2s ease,
@@ -84,7 +86,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--text-1);
+  color: var(--text-primary);
 }
 
 /* Style secondary text elements easily */
@@ -150,7 +152,7 @@ img[width][height] {
   display: grid;
 
   /*
-       THE CRUCIAL FIX: This tells the CSS Grid engine to stack all rows tightly
+       This tells the CSS Grid engine to stack all rows tightly
        at the top of the container, leaving any extra "filler space" at the bottom!
     */
   align-content: start;
@@ -179,7 +181,7 @@ img[width][height] {
 }
 /* Quick optional styling for that breakout hero inside your CSS */
 .hero-banner {
-  background: var(--gradient-7); /* Open props built-in gradient */
+  background: var(--theme-gradient); /* Open props built-in gradient */
   color: white;
   padding: var(--size-8);
   text-align: center;

@@ -102,12 +102,11 @@ CWPO - Jane McArtney Contact - wellbeing@lethamgrangecc.org.uk
 
 <style webc:type="sass">
   .section-title {
-    color: var(--blue-6);
+    color: var(--color-6);
   }
   .centered-content-block.breakout {grid-column:breakout;}
 
- 
-  .lgcc-titles h2{color:var(--blue-6); font-size:var(--font-size-5);}
+  .lgcc-titles h2{color:var(--color-6); font-size:var(--font-size-5);}
 
 ul li:not([class]) {
   margin-block: 0;
@@ -115,9 +114,9 @@ ul li:not([class]) {
     max-inline-size: none;
 }
 
-  h2,h3 {color: var(--blue-6);}
+  h2,h3 {color: var(--color-6);}
 
-strong {   color: var(--blue-6);}
+strong {   color: var(--color-6);}
 
 /* Ensure the scroll-panel rules stay isolated inside your custom wrapper class */
 .custom-table-container {
@@ -126,68 +125,40 @@ strong {   color: var(--blue-6);}
   margin-block: var(--size-4);
   border-radius: var(--radius-2);
   box-shadow: var(--shadow-2);
- 
-     /* Target the automatically generated Markdown tables */
+
+  /* Target the automatically generated Markdown tables */
   table.ui-table {
-    
+  
     /* 1. UPGRADE THE HEADER TO THE BG ACCENT BRAND COLOR */
     thead th {
       /* Force it to pull your master accent background blue (--blue-8) */
-      background-color: var(--accent);
-      
+      background-color: var(--primary);
+  
       /* Ensure text utilizes the crisp high-contrast variant we locked in */
-      color: var(--accent-contrast);
-      
+      color: var(--primary-contrast);
+  
       font-weight: var(--font-weight-7);
       border-bottom: 2px solid var(--border);
     }
  tbody tr {
-      background-color: var(--surface-1);
+      background-color: var(--surface-default);
     }
     /* 2. AUTOMATE ZEBRA STRIPING FOR ALTERNATING ROWS */
     /* Light Mode default: Subtle slate tint on every even row item */
     tbody tr:nth-child(even) {
-      background-color: var(--surface-2);
+      background-color: oklch(from var(--surface-default) calc(l * 0.75) c h);
+
+        td{
+          background-color: inherit;
+        }
     }
 
     /* 3. OPTIONAL: FLUID HOVER ROW SHIFT EFFECTS */
     tbody tr:hover {
-      background-color: var(--surface-4);
+      background-color: var(--surface-filled);
       cursor: pointer;
     }
   }
-}
-
-
-
-.custom-table-containerX{grid-column: content;}
-/* ==========================================================================
-   4. COMPONENT: ALTERNATING ZEBRA TABLES
-   ========================================================================== */
-.custom-table-containerX table {
-  width: 100%;
-  border-collapse: collapse;
-  color: var(--text-color);
-}
-
-/* Header Styling */
-.custom-table-containerX th {
-  background-color: var(--table-header-bg);
-  color: var(--table-header-text);
-  padding: 12px;
-  text-align: left;
-}
-
-/* Standard Base Rows */
-.custom-table-containerX td {
-  padding: 12px;
-  background-color: var(--table-row-bg);
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* Alternating Row Stripe Styling */
-.custom-table-containerX tr:nth-child(even) td {
-    background-color: var(--table-row-alt-bg);
 }
 
  </style>

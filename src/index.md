@@ -56,7 +56,7 @@ description: Welcome to Letham Grange Curling
 
 Discover the benefits of becoming a member of Letham Grange Curling Club. We offer various membership options tailored to suit different needs and skill levels.
 
-[View Options](/membership/){.cta-button}
+[View Options](/membership/){.ui-button .ui-filled .ui-primary}
 
   </div>
 </two-columns>
@@ -69,7 +69,7 @@ Discover the benefits of becoming a member of Letham Grange Curling Club. We off
 
 Explore our state-of-the-art curling facilities, designed to provide the best experience for both casual players and competitive curlers. Come and see where the magic happens!
 
-[Discover our Facilities](/facilities){.cta-button}
+[Discover our Facilities](/facilities){.ui-button .ui-filled .ui-primary}
 
     <img src="/images/fis-picture.png" alt="Club main pitch" />
 
@@ -83,14 +83,14 @@ Explore our state-of-the-art curling facilities, designed to provide the best ex
 
 Discover the benefits of becoming a member of Letham Grange Curling Club. We offer various membership options tailored to suit different needs and skill levels.
 
-[Learn to Curl](/guide/){.cta-button}
+[Learn to Curl](/guide/){.ui-button .ui-filled .ui-primary}
 
   </div>
 </two-columns>
 
 <style webc:type="sass">
   .section-title {
-    color: var(--blue-6);
+    color: var(--color-6);
   }
-  .lgcc-titles h2{color:var(--blue-6);}
+  .lgcc-titles h2{color:var(--color-6);}
 </style>

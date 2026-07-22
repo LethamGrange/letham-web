@@ -147,9 +147,9 @@ The skip will usually use hand actions to inform players of the shot they wish t
 
 <style webc:type="scss">
 
-h2,h3 {color: var(--blue-6);}
+h2,h3 {color: var(--color-6);}
 
-strong {color: var(--blue-6);}
+strong {color: var(--color-6);}
 
 ul li:not([class]) {
   margin-block: 0;

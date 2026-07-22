@@ -13,12 +13,12 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      color: var(--text-color);
+      color: var(--text-primary);
     }
 
     th {
       /* Replaced hardcoded rgb value with Open Props blue token */
-      background-color: var(--blue-7);
+      background-color: var(--color-7);
       color: #ffffff;
       padding: var(--size-3, 12px);
       text-align: left;

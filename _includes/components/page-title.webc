@@ -40,10 +40,10 @@
     margin: 0;
 
     /* Pulls your vibrant light/dark blue brand token automatically */
-    color: var(--brand);
+    color: var(--primary);
 
     /* Open Props font tokens fall back gracefully to native system fallbacks */
-    font-family: 'Montserrat', var(--font-sans);
+    font-family: "Montserrat", var(--font-sans);
     font-weight: var(--font-weight-7);
 
     /* Fluid typography step scale: automatically stays small on phones, grows to massive on desktop */

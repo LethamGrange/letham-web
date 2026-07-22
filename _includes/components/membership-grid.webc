@@ -14,7 +14,7 @@
   /* Target article wrappers inside the grid slot */
   .pricing-grid article {
     background: var(
-      --surface-1
+      --surface-tonal
     ); /* Swapped to surface-1 so cards pop cleanly against our new stone-2 canvas */
     padding: var(--size-5);
     border-radius: var(--radius-3);
@@ -27,7 +27,7 @@
 
   .pricing-grid h3 {
     font-size: var(--font-size-4);
-    color: var(--brand); /* Uses your bold athletic brand color */
+    color: var(--primary); /* Uses your bold athletic brand color */
     margin: 0;
   }
 
@@ -35,7 +35,7 @@
     font-size: var(--font-size-6);
     font-weight: var(--font-weight-7);
     color: var(
-      --text-color
+      --text-primary
     ); /* Swapped from missing text-1 token for maximum contrast */
   }
 
@@ -43,7 +43,7 @@
   .pricing-grid .price small {
     font-size: var(--font-size-2);
     font-weight: var(--font-weight-4);
-    color: var(--text-color);
+    color: var(--text-primary);
     opacity: 0.8;
   }
 </style>

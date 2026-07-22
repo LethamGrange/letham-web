@@ -73,7 +73,7 @@
     });
   });
 </script>
-<style>
+<style webc:type="scss">
   /* Inside your site-nav style block */
 
   :where(.navigation-lane) {
@@ -144,7 +144,7 @@
       top: 100%;
       left: 0;
       right: 0;
-      background: var(--surface-2);
+      background-color: var(--surface-filled);
       padding: var(--size-4) var(--size-5);
       border-top: 1px solid var(--border);
       box-shadow: var(--shadow-3);
@@ -170,7 +170,7 @@
     .nav-links a:hover,
     .nav-links a.active {
       border-left-color: var(--primary);
-      background: var(--surface-3);
+      background: var(--surface-elevated);
       color: var(--text-1);
     }
   }
