@@ -88,8 +88,7 @@
     ); /* Clean, high-contrast text on solid blue backdrops */
 
     /* 3. SIMPLIFIED CHROMATIC HOVER BLEND (Original OPUI calculation block) */
-    --_hover-color: oklch(from var(--_accent) calc(l + 0.15) c h);
-    --_hover-color: oklch(from var(--_accent-contrast) calc(l - 0.2) c h);
+    --_hover-color: var(--primary-hover);
 
     display: flex;
     align-items: center;

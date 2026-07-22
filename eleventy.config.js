@@ -133,7 +133,7 @@ export default async function (eleventyConfig) {
                 files: ['./node_modules/open-props/media.min.css'],
               }),
               // B. Polyfill the @media (--md-n-below) strings into raw pixels
-              //              postcssCustomMedia(),
+              postcssCustomMedia(),
               // // C. Pull in standard OpenProps variables Just-In-Time
               // postcssJit({
               //   ...OpenProps,
@@ -148,7 +148,7 @@ export default async function (eleventyConfig) {
           return content;
         },
         async function (content) {
-          if (this.type === 'cssX') {
+          if (this.type === 'css') {
             try {
               let { code } = transform({
                 filename: 'bundle.css',
