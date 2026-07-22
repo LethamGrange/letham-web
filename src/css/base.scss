@@ -73,7 +73,7 @@ h3,
 
 body {
   background-color: var(--surface-default);
-  color: var(--text-color); /* Natively links paragraph text to your theme-ui tokens */
+  color: var(--text-primary); /* Natively links paragraph text to your theme-ui tokens */
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -179,6 +179,33 @@ img[width][height] {
 .full-width {
   grid-column: full-width;
 }
+
+/* Inside your layout stylesheet or base.scss */
+
+.full-width.with-bg {
+  grid-column: full-width;
+  background-color: var(--with-bg-color, --surface-2);
+  padding-block: var(--size-8);
+  display: grid;
+  grid-template-columns: inherit; /* Inherits your exact layout tracks */
+
+  /* 1. Structural layout components (like <two-columns>) default to full track width */
+  & > * {
+    grid-column: content;
+  }
+
+  /* 2. Pure text elements inherit readable text boundaries, matching your main layout */
+  & > p,
+  & > ul,
+  & > ol,
+  & > h1,
+  & > h2 {
+    grid-column: content;
+    max-inline-size: var(--size-content-3); /* Keeps line-lengths easy to read */
+    width: 100%;
+  }
+}
+
 /* Quick optional styling for that breakout hero inside your CSS */
 .hero-banner {
   background: var(--theme-gradient); /* Open props built-in gradient */
