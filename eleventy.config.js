@@ -27,7 +27,7 @@ import pluginCollections from './_config/collections.js';
 import pluginFilters from './_config/filters.js';
 
 function configureMarkdownIt() {
-  return markdownit({ html: true })
+  const md = markdownit({ html: true })
     .use(markdownitattrs)
     .use(markdownitcontainer, 'dynamic', {
       validate: function () {
@@ -42,6 +42,10 @@ function configureMarkdownIt() {
         }
       },
     });
+  md.renderer.rules.table_open = () => '<div class="custom-table-container"><table class="ui-table">';
+  md.renderer.rules.table_close = () => '</table></div>';
+
+  return md;
 }
 
 export const config = {
@@ -122,7 +126,7 @@ export default async function (eleventyConfig) {
               // Inlines all remaining @import statements physically into the file
 
               postcssImport({
-                path: ['./node_modules'],
+                path: ['./src/css', './node_modules'],
               }),
               // A. Load OpenProps media definitions globally for PostCSS
               postcssGlobalData({
@@ -130,8 +134,10 @@ export default async function (eleventyConfig) {
               }),
               // B. Polyfill the @media (--md-n-below) strings into raw pixels
               postcssCustomMedia(),
-              // C. Pull in standard OpenProps variables Just-In-Time
-              postcssJit(OpenProps),
+              // // C. Pull in standard OpenProps variables Just-In-Time
+              // postcssJit({
+              //   ...OpenProps,
+              // }),
             ]).process(content, {
               from: this.page.inputPath,
               to: null,
@@ -150,7 +156,7 @@ export default async function (eleventyConfig) {
                 minify: false,
                 sourceMap: false,
                 targets,
-                exclude: Features.LogicalProperties,
+                exclude: Features.LogicalProperties | Features.LightDark | Features.LabColors,
                 drafts: {
                   customMedia: true,
                 },

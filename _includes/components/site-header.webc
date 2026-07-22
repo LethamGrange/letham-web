@@ -6,9 +6,9 @@
   </div>
 </header>
 
-<style>
-  .site-header {
-    background-color: var(--header-bg);
+<style webc:type="scss">
+  :where(.site-header) {
+    background-color: var(--primary);
     box-shadow: var(--elevation);
     grid-column: full-width;
     display: grid;
@@ -16,13 +16,13 @@
 
     /* Crucial parameter anchor so mobile menu doesn't fly off screen edges */
     position: relative;
-  }
 
-  .header-container {
-    grid-column: content;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-block: var(--size-4);
+    .header-container {
+      grid-column: content;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-block: var(--size-4);
+    }
   }
 </style>

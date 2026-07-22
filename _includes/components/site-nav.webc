@@ -73,19 +73,33 @@
     });
   });
 </script>
+<style webc:type="scss">
+  /* Inside your site-nav style block */
 
-<style>
-  .navigation-lane {
+  :where(.navigation-lane) {
+    /* 1. SEPARATE CORE PARAMETERS LIKE THE FRAMEWORK BUTTON */
+    --_accent: var(
+      --primary
+    ); /* Anchors straight to your global --blue-8 theme */
+
+    /* 2. MATCH THE EXACT ACCENT CONTRAST RULE YOU FOUND IN THE DOCS */
+    --_accent-contrast: var(
+      --gray-1
+    ); /* Clean, high-contrast text on solid blue backdrops */
+
+    /* 3. SIMPLIFIED CHROMATIC HOVER BLEND (Original OPUI calculation block) */
+    --_hover-color: var(--primary-hover);
+
     display: flex;
     align-items: center;
   }
 
   /* 1. Desktop Defaults */
   .menu-button {
-    display: none; /* Hidden completely on widescreen desktops */
+    display: none;
     background: none;
     border: none;
-    color: var(--header-text);
+    color: var(--_accent-contrast);
     cursor: pointer;
     padding: var(--size-2);
   }
@@ -96,43 +110,48 @@
   }
 
   .nav-links a {
-    color: var(--header-text);
+    /* Links now natively pull the unified grey-1 text overlay color specification */
+    color: var(--_accent-contrast);
     text-decoration: none;
     font-weight: var(--font-weight-6);
     padding-block: var(--size-2);
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.2s ease;
+    transition: color 0.2s ease;
   }
 
-  .nav-links a:hover,
+  .nav-links a:hover {
+    /* Smoothly lightens up your bright blue theme color on link hover states */
+    color: var(--_hover-color);
+  }
+
   .nav-links a.active {
-    border-color: var(--accent);
+    color: var(--_accent-contrast);
+    font-weight: var(--font-weight-7);
+    text-decoration: underline;
+    text-underline-offset: var(--size-1);
   }
 
-  /* 2. Responsive Mobile Styles Layout Overrides */
+  /* 2. Responsive Mobile Layout Overrides */
   @media (max-width: 767px) {
     .menu-button {
-      display: block; /* Show the button when screen goes tight */
+      display: block;
       z-index: 100;
     }
 
-    /* Transform the links panel into an absolute vertical panel wrapper drawer */
     .nav-links {
-      display: none; /* Hide closed drawer natively */
+      display: none;
       flex-direction: column;
       position: absolute;
-      top: 100%; /* Drops cleanly directly below header bar line */
+      top: 100%;
       left: 0;
       right: 0;
-      background: var(--header-bg);
+      background-color: var(--surface-filled);
       padding: var(--size-4) var(--size-5);
-      border-top: 1px solid var(--border-color);
-      box-shadow: var(--elevation);
+      border-top: 1px solid var(--border);
+      box-shadow: var(--shadow-3);
       gap: var(--size-2);
       z-index: 90;
     }
 
-    /* When toggled open, reset active status rules */
     .nav-links.open {
       display: flex;
     }
@@ -143,27 +162,16 @@
       border-bottom: none;
       border-left: 4px solid transparent;
       padding-left: var(--size-3);
+
+      /* Drops back to the global page theme color when inside the mobile slide panel drawer */
+      color: var(--text-1);
     }
 
     .nav-links a:hover,
     .nav-links a.active {
-      border-left-color: var(--accent);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    /* Fun CSS micro-animation: Turn hamburger lines into an 'X' close indicator when expanded */
-    .menu-button[aria-expanded="true"] .line-mid {
-      opacity: 0;
-    }
-    .menu-button[aria-expanded="true"] .line-top {
-      transform: translateY(6px) rotate(45deg);
-      transform-origin: center;
-      transition: transform 0.2s ease;
-    }
-    .menu-button[aria-expanded="true"] .line-bot {
-      transform: translateY(-6px) rotate(-45deg);
-      transform-origin: center;
-      transition: transform 0.2s ease;
+      border-left-color: var(--primary);
+      background: var(--surface-elevated);
+      color: var(--text-1);
     }
   }
 </style>

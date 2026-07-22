@@ -35,6 +35,8 @@ body {
   block-size: 100%;
   overflow-x: hidden;
   --size-content-3: 75ch;
+  /* Create your own dynamic, theme-aware equivalent string */
+  --theme-gradient: linear-gradient(135deg, var(--color-3), var(--color-9));
 }
 body {
   margin: 0;
@@ -44,9 +46,6 @@ body {
   /* Hardware-accelerated font smoothing */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  color: var(--text-color);
-  background-color: var(--background-color);
 
   /* Enables your sticky footer mechanism to stretch perfectly */
   min-height: 100vh;
@@ -70,6 +69,57 @@ h3,
 
   /*  margin-inline: auto; /* Forces left and right margins to balance, centering the text */
   width: 100%; /* Allows the element to take full available track width up to its max-inline-size */
+}
+
+body {
+  background-color: var(--surface-default);
+  color: var(--text-color); /* Natively links paragraph text to your theme-ui tokens */
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Ensure headings default to your crisp primary color layer */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+}
+
+/* Style secondary text elements easily */
+small,
+.muted,
+.text-muted {
+  color: var(--text-muted);
+}
+/* Inside your src/css/base.scss (Safe modern additions) */
+
+/* 1. Prevent text inflation issues on mobile orientation changes */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* 2. Accessible list handling for unstyled semantic lists */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 3. Text balancing for cleaner headlines */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
 }
 
 nav {
@@ -102,7 +152,7 @@ img[width][height] {
   display: grid;
 
   /*
-       THE CRUCIAL FIX: This tells the CSS Grid engine to stack all rows tightly
+       This tells the CSS Grid engine to stack all rows tightly
        at the top of the container, leaving any extra "filler space" at the bottom!
     */
   align-content: start;
@@ -131,7 +181,7 @@ img[width][height] {
 }
 /* Quick optional styling for that breakout hero inside your CSS */
 .hero-banner {
-  background: var(--gradient-7); /* Open props built-in gradient */
+  background: var(--theme-gradient); /* Open props built-in gradient */
   color: white;
   padding: var(--size-8);
   text-align: center;

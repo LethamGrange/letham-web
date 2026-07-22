@@ -102,12 +102,11 @@ CWPO - Jane McArtney Contact - wellbeing@lethamgrangecc.org.uk
 
 <style webc:type="sass">
   .section-title {
-    color: var(--blue-6);
+    color: var(--color-6);
   }
   .centered-content-block.breakout {grid-column:breakout;}
 
- 
-  .lgcc-titles h2{color:var(--blue-6); font-size:var(--font-size-5);}
+  .lgcc-titles h2{color:var(--color-6); font-size:var(--font-size-5);}
 
 ul li:not([class]) {
   margin-block: 0;
@@ -115,38 +114,51 @@ ul li:not([class]) {
     max-inline-size: none;
 }
 
-  h2,h3 {color: var(--blue-6);}
+  h2,h3 {color: var(--color-6);}
 
-strong {color: var(--blue-6);}
+strong {   color: var(--color-6);}
 
-.custom-table-container{grid-column: content;}
-/* ==========================================================================
-   4. COMPONENT: ALTERNATING ZEBRA TABLES
-   ========================================================================== */
-.custom-table-container table {
-  width: 100%;
-  border-collapse: collapse;
-  color: var(--text-color);
-}
+/* Ensure the scroll-panel rules stay isolated inside your custom wrapper class */
+.custom-table-container {
+  overflow-x: auto;
+  max-width: 100%;
+  margin-block: var(--size-4);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-2);
 
-/* Header Styling */
-.custom-table-container th {
-  background-color: var(--table-header-bg);
-  color: var(--table-header-text);
-  padding: 12px;
-  text-align: left;
-}
+  /* Target the automatically generated Markdown tables */
+  table.ui-table {
+  
+    /* 1. UPGRADE THE HEADER TO THE BG ACCENT BRAND COLOR */
+    thead th {
+      /* Force it to pull your master accent background blue (--blue-8) */
+      background-color: var(--primary);
+  
+      /* Ensure text utilizes the crisp high-contrast variant we locked in */
+      color: var(--primary-contrast);
+  
+      font-weight: var(--font-weight-7);
+      border-bottom: 2px solid var(--border);
+    }
+ tbody tr {
+      background-color: var(--surface-default);
+    }
+    /* 2. AUTOMATE ZEBRA STRIPING FOR ALTERNATING ROWS */
+    /* Light Mode default: Subtle slate tint on every even row item */
+    tbody tr:nth-child(even) {
+      background-color: oklch(from var(--surface-default) calc(l * 0.75) c h);
 
-/* Standard Base Rows */
-.custom-table-container td {
-  padding: 12px;
-  background-color: var(--table-row-bg);
-  border-bottom: 1px solid var(--border-color);
-}
+        td{
+          background-color: inherit;
+        }
+    }
 
-/* Alternating Row Stripe Styling */
-.custom-table-container tr:nth-child(even) td {
-  background-color: var(--table-row-alt-bg);
+    /* 3. OPTIONAL: FLUID HOVER ROW SHIFT EFFECTS */
+    tbody tr:hover {
+      background-color: var(--surface-filled);
+      cursor: pointer;
+    }
+  }
 }
 
  </style>
