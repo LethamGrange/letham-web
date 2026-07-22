@@ -133,11 +133,11 @@ export default async function (eleventyConfig) {
                 files: ['./node_modules/open-props/media.min.css'],
               }),
               // B. Polyfill the @media (--md-n-below) strings into raw pixels
-              postcssCustomMedia(),
-              // C. Pull in standard OpenProps variables Just-In-Time
-              postcssJit({
-                ...OpenProps,
-              }),
+              //              postcssCustomMedia(),
+              // // C. Pull in standard OpenProps variables Just-In-Time
+              // postcssJit({
+              //   ...OpenProps,
+              // }),
             ]).process(content, {
               from: this.page.inputPath,
               to: null,
@@ -148,7 +148,7 @@ export default async function (eleventyConfig) {
           return content;
         },
         async function (content) {
-          if (this.type === 'css') {
+          if (this.type === 'cssX') {
             try {
               let { code } = transform({
                 filename: 'bundle.css',
@@ -156,7 +156,7 @@ export default async function (eleventyConfig) {
                 minify: false,
                 sourceMap: false,
                 targets,
-                exclude: Features.LogicalProperties | Features.LightDark,
+                exclude: Features.LogicalProperties | Features.LightDark | Features.LabColors,
                 drafts: {
                   customMedia: true,
                 },
