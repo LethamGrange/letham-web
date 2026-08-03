@@ -38,13 +38,11 @@ Who to talk to if you have any questions about the club.
 <div class="custom-table-container">
 
 
-|Position 	|Name 	|Email/ Contact details|
+|positions|Name|Email/ Contact details|
 |---|---|---|
-|President 	|Dave Piggot 	|president@lethamgrangecc.org.uk|
-|Secretary 	|Brian McArtney 	|secretary@lethamgrangecc.org.uk|
-|Treasurer 	|Kirstina Fairweather 	|treasurer@lethamgrangecc.org.uk|
-|Child Wellbeing and Protection officer 	|Jane McArtney 	|wellbeing@lethamgrangecc.org.uk|
-|Match Secretary 	|Philip Ross 	|match-secretary@lethamgrangecc.org.uk| 
+|President|Dave Piggot|president@lethamgrangecurling.org|
+|Secretary|Brian McArtney|secretary@lethamgrangecurling.org|
+
 
 </div>
 
