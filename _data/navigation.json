@@ -1,0 +1,26 @@
+[
+  {
+    "url": "/",
+    "label": "Home",
+    "exact": true
+  },
+  {
+    "url": "/membership/",
+    "label": "Membership",
+    "includes": true
+  },
+  {
+    "url": "/news/",
+    "label": "Club News &amp; Events",
+    "includes": true
+  },
+  {
+    "url": "/facilities/",
+    "label": "Our Facilties",
+    "includes": true
+  },
+  {
+    "url": "/guide/",
+    "label": "Beginners Guide"
+  }
+]

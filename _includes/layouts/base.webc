@@ -18,16 +18,12 @@
       @layer openprops, theme, normalize, components.root, components.extended, utils;
     </style>
 
-    <style webc:type="scss" webc:bucket="main">
-      @import "../../src/css/main.scss";
-    </style>
+    <link rel="stylesheet" href="/css/main.css" webc:keep />
 
-    <!-- This single line writes out your entire main.scss layout AND any tiny component <style> blocks -->
-    <style
-      webc:keep
-      @raw="`@import url(${getBundleFileUrl('css','main')});`"
-    ></style>
-    <style webc:keep @raw="`@import url(${getBundleFileUrl('css')});`"></style>
+    <!-- this produces the bundled component css needed for the particular page so will be optimized and small-->
+
+    <link rel="stylesheet" :href="getBundleFileUrl('css' )" webc:keep />
+
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script>
       const savedTheme = localStorage.getItem("theme-preference");
@@ -51,11 +47,12 @@
       :@title="$data.pagetitle"
       :@src="$data.pagesrc"
     ></page-title>
-    <site-header></site-header>
+
+    <site-nav></site-nav>
 
     <!-- This main tag acts as the smart layout grid -->
     <main class="page-layout">
-      <template webc:type="11ty" 11ty:type="liquid"> {{ content }} </template>
+      <template webc:nokeep @raw="content"></template>
     </main>
 
     <footer>
@@ -64,29 +61,10 @@
 
     <script :src="getBundleFileUrl('js')" webc:keep></script>
   </body>
+  <script
+    src="https://unpkg.com/htmx.org@1.9.12"
+    integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+    crossorigin="anonymous"
+    webc:keep
+  ></script>
 </html>
-
-<style webc:type="scss">
-  /* Seamless full-window vertical stack */
-  .site-wrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  /*
-     This acts as our master layout grid.
-     We move the top/bottom vertical breathing room safety padding here,
-     leaving the left and right completely free for full-width elements!
-  */
-  .page-layout {
-    flex: 1;
-    padding-block: var(
-      --size-6
-    ); /* Comfortable vertical spacing above and below content */
-  }
-
-  .site-footer {
-    margin-top: auto; /* Absolute guarantee that footer stays at screen bottom */
-  }
-</style>
