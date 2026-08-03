@@ -26,6 +26,7 @@
 
   <!-- Pass tier="global" down to isolate data parsing -->
   <nav-links :@tier="'global'"></nav-links>
+  <theme-toggle></theme-toggle>
 </nav>
 
 <!-- 2. CONTEXT NAV LANE (Light, flat child layout) -->
@@ -86,19 +87,54 @@
     align-items: center;
     position: relative;
     width: 100%;
+    padding-inline: var(--size-fluid-3);
+    /* Ensure a reliable uniform height layer so absolute items line up cleanly */
+    min-height: var(--size-9);
   }
 
   /* --- TIER 1: GLOBAL LANE VISUAL WEIGHTS --- */
   .global-lane {
+    /* This lets us center the nav-links box directly against the screen edges */
     justify-content: center;
     background-color: light-dark(var(--primary), var(--surface-filled));
     color: light-dark(var(--primary-contrast), var(--text-primary));
-    box-shadow: var(
-      --shadow-2
-    ); /* Elevates global block from background layers */
+    box-shadow: var(--shadow-2);
     z-index: var(--layer-3);
   }
 
+  /* Ensure the central desktop link box stretches smoothly */
+  .global-lane .nav-links {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* --- ABSOLUTE EDGE POSITIONING --- */
+
+  /* Pull the hamburger menu toggle to the absolute left flank */
+  .global-lane .menu-toggle-btn {
+    position: absolute;
+    left: var(--size-fluid-3);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: var(--layer-4);
+  }
+
+  /* Pull your theme toggle component button to the absolute right flank */
+  .global-lane .theme-toggle {
+    position: absolute;
+    right: var(--size-fluid-3);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: var(--layer-4);
+
+    /* Fallback color fixes for dark mode surface visibility profiles */
+    color: inherit;
+    --_hover-color: light-dark(
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.05)
+    );
+  }
   /* --- TIER 2: CONTEXT LANE VISUAL WEIGHTS --- */
   .context-lane {
     justify-content: center;

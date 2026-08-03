@@ -1,5 +1,5 @@
 <button
-  id="theme-toggle"
+  id="theme-toggle-btn"
   class="theme-toggle"
   title="Toggle dark and light mode"
   aria-live="polite"
@@ -41,7 +41,7 @@
   const reflectPreference = () => {
     document.firstElementChild.setAttribute("data-theme", theme.value);
     document
-      .querySelector("#theme-toggle")
+      .querySelector("#theme-toggle-btm")
       ?.setAttribute("aria-label", theme.value);
   };
 
@@ -50,7 +50,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     reflectPreference();
-    const btn = document.querySelector("#theme-toggle");
+    const btn = document.querySelector("#theme-toggle-btn");
     if (!btn) return;
 
     let currentTheme = document.documentElement.getAttribute("data-theme");
