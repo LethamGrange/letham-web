@@ -1,11 +1,11 @@
-<nav class="navigation-lane">
-  <!-- Mobile Menu Hamburger Button -->
+<!-- 1. GLOBAL NAV LANE (Heavy, elevated structure) -->
+<nav class="navigation-lane global-lane" webc:root="override">
   <button
-    id="menu-toggle"
-    class="menu-button"
-    aria-expanded="false"
-    aria-controls="nav-links-box"
-    aria-label="Toggle navigation menu"
+    class="ui-button top menu-toggle-btn menu-button"
+    commandfor="drawer-inline-start-html"
+    command="show-modal"
+    aria-haspopup="dialog"
+    aria-controls="drawer-inline-start-html"
   >
     <svg
       class="hamburger-icon"
@@ -24,154 +24,196 @@
     </svg>
   </button>
 
-  <!-- Content Links Target Wrapper -->
-  <div id="nav-links-box" class="nav-links">
-    <a href="/" :class="$data.page.url === '/' ? 'active' : ''">Home </a>
-    <a href="/about/" :class="$data.page.url === '/about/' ? 'active' : ''"
-      >About Us</a
-    >
-    <a
-      href="/membership/"
-      :class="$data.page.url === '/membership/' ? 'active' : ''"
-      >Membership Information</a
-    >
-    <a href="/news/" :class="$data.page.url.includes('/news/') ? 'active' : ''"
-      >Club News &amp; Events</a
-    >
-    <a
-      href="/facilities/"
-      :class="$data.page.url === '/facilities/' ? 'active' : ''"
-      >Our Facilties</a
-    >
-    <a href="/guide/" :class="$data.page.url === '/guide/' ? 'active' : ''"
-      >Beginners Guide</a
-    >
-  </div>
+  <!-- Pass tier="global" down to isolate data parsing -->
+  <nav-links :@tier="'global'"></nav-links>
 </nav>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const toggleBtn = document.querySelector("#menu-toggle");
-    const linksContainer = document.querySelector("#nav-links-box");
+<!-- 2. CONTEXT NAV LANE (Light, flat child layout) -->
+<!-- Only renders if context navigation items exist in the data cascade -->
+<nav
+  class="navigation-lane context-lane"
+  webc:if="$data.contextNavigation && $data.contextNavigation.length > 0"
+>
+  <nav-links :@tier="'context'"></nav-links>
+</nav>
 
-    if (!toggleBtn || !linksContainer) return;
+<!-- MOBILE DRAWER (For top-level global links only) -->
+<dialog
+  class="ui-drawer ui-scroll-lock ui-inline-start"
+  id="drawer-inline-start-html"
+  closedby="any"
+>
+  <div class="ui-header">
+    <span>Menu</span>
+    <button
+      class="ui-icon-button"
+      title="Close"
+      onclick="this.closest('dialog').close()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+      >
+        <path
+          fill="currentColor"
+          d="M26.29 4.293a1 1 0 1 1 1.414 1.414L17.413 16l10.291 10.29a1 1 0 1 1-1.414 1.414L16 17.413L5.707 27.704a1 1 0 0 1-1.414-1.414L14.585 16L4.293 5.707a1 1 0 0 1 1.414-1.414L16 14.584z"
+        />
+      </svg>
+    </button>
+  </div>
+  <div class="ui-content">
+    <nav class="mobile-only-menu">
+      <nav-links :@tier="'global'"></nav-links>
+    </nav>
+  </div>
+  <div class="ui-footer">
+    <button
+      class="ui-button ui-small"
+      commandfor="drawer-inline-start-html"
+      command="close"
+    >
+      Close
+    </button>
+  </div>
+</dialog>
 
-    toggleBtn.addEventListener("click", () => {
-      const isExpanded = toggleBtn.getAttribute("aria-expanded") === "true";
-
-      // Update state for accessibility and visual layout engine hooks
-      toggleBtn.setAttribute("aria-expanded", !isExpanded);
-      linksContainer.classList.toggle("open", !isExpanded);
-    });
-
-    // Close mobile drawer automatically if user resizes back up to desktop viewports
-    window.matchMedia("(min-width: 768px)").addEventListener("change", (e) => {
-      if (e.matches) {
-        toggleBtn.setAttribute("aria-expanded", "false");
-        linksContainer.classList.remove("open");
-      }
-    });
-  });
-</script>
-<style webc:type="scss">
-  /* Inside your site-nav style block */
-
+<style>
+  /* Base structural lanes */
   :where(.navigation-lane) {
-    /* 1. SEPARATE CORE PARAMETERS LIKE THE FRAMEWORK BUTTON */
-    --_accent: var(
-      --primary
-    ); /* Anchors straight to your global --blue-8 theme */
-
-    /* 2. MATCH THE EXACT ACCENT CONTRAST RULE YOU FOUND IN THE DOCS */
-    --_accent-contrast: var(
-      --gray-1
-    ); /* Clean, high-contrast text on solid blue backdrops */
-
-    /* 3. SIMPLIFIED CHROMATIC HOVER BLEND (Original OPUI calculation block) */
-    --_hover-color: var(--primary-hover);
-
     display: flex;
     align-items: center;
+    position: relative;
+    width: 100%;
   }
 
-  /* 1. Desktop Defaults */
+  /* --- TIER 1: GLOBAL LANE VISUAL WEIGHTS --- */
+  .global-lane {
+    justify-content: center;
+    background-color: light-dark(var(--primary), var(--surface-filled));
+    color: light-dark(var(--primary-contrast), var(--text-primary));
+    box-shadow: var(
+      --shadow-2
+    ); /* Elevates global block from background layers */
+    z-index: var(--layer-3);
+  }
+
+  /* --- TIER 2: CONTEXT LANE VISUAL WEIGHTS --- */
+  .context-lane {
+    justify-content: center;
+    background-color: light-dark(
+      var(--color-4),
+      var(--color-13)
+    ); /* Matches standard layout surface */
+    color: var(--text-primary);
+    border-block-end: 1px solid var(--border-dim); /* Flat divider strip instead of shadow */
+    z-index: var(--layer-2);
+  }
+
+  /* Shared formatting and layout properties */
   .menu-button {
-    display: none;
     background: none;
     border: none;
-    color: var(--_accent-contrast);
     cursor: pointer;
     padding: var(--size-2);
+    color: inherit;
   }
 
+  /* Desktop Defaults */
   .nav-links {
     display: flex;
+    flex-direction: row;
     gap: var(--size-5);
   }
 
   .nav-links a {
-    /* Links now natively pull the unified grey-1 text overlay color specification */
-    color: var(--_accent-contrast);
+    color: inherit;
     text-decoration: none;
-    font-weight: var(--font-weight-6);
     padding-block: var(--size-2);
-    transition: color 0.2s ease;
+    transition: opacity 0.2s ease;
   }
 
-  .nav-links a:hover {
-    /* Smoothly lightens up your bright blue theme color on link hover states */
-    color: var(--_hover-color);
+  /* Distinct Tier Active Styling */
+  .global-lane .nav-links a {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-6);
   }
-
-  .nav-links a.active {
-    color: var(--_accent-contrast);
+  .global-lane .nav-links a.active {
+    color: light-dark(var(--primary-contrast), var(--primary));
     font-weight: var(--font-weight-7);
     text-decoration: underline;
     text-underline-offset: var(--size-1);
   }
 
-  /* 2. Responsive Mobile Layout Overrides */
-  @media (max-width: 767px) {
-    .menu-button {
-      display: block;
-      z-index: 100;
-    }
+  .context-lane .nav-links a {
+    font-size: var(--font-size-1); /* Scaled down sub-links */
+    font-weight: var(--font-weight-4);
+    /* Generous horizontal area for easy clicking, keeping it slim vertically */
+    padding-block: var(--size-1); /* Slim top/bottom padding */
+    padding-inline: var(--size-3); /* Wider side padding */
+  }
+  .context-lane .nav-links a.active {
+    color: var(--primary);
+    font-weight: var(--font-weight-6);
+    border-bottom: 2px solid var(--primary); /* Tab style active layout marker instead */
+  }
+
+  .nav-links a:hover {
+    opacity: 0.8;
+  }
+
+  /* Open Props Drawer Custom Formatting override styles */
+  dialog.ui-drawer {
+    background-color: var(--surface-default);
 
     .nav-links {
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background-color: var(--surface-filled);
-      padding: var(--size-4) var(--size-5);
-      border-top: 1px solid var(--border);
-      box-shadow: var(--shadow-3);
-      gap: var(--size-2);
-      z-index: 90;
-    }
-
-    .nav-links.open {
       display: flex;
+      flex-direction: column;
+      gap: var(--size-4);
+      padding: var(--size-5);
+      width: 100%;
+      background: none;
     }
 
     .nav-links a {
-      padding-block: var(--size-3);
-      width: 100%;
-      border-bottom: none;
-      border-left: 4px solid transparent;
-      padding-left: var(--size-3);
-
-      /* Drops back to the global page theme color when inside the mobile slide panel drawer */
-      color: var(--text-1);
+      color: var(--text-primary);
+      font-size: var(--font-size-2);
     }
 
-    .nav-links a:hover,
     .nav-links a.active {
-      border-left-color: var(--primary);
-      background: var(--surface-elevated);
-      color: var(--text-1);
+      color: var(--primary);
+      text-decoration: underline;
+    }
+  }
+
+  /* Responsive Display Rules */
+  @media (min-width: 768px) {
+    .menu-toggle-btn {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    /* Hide the global header layout row items on small mobile screens */
+    .global-lane .nav-links {
+      display: none !important;
+    }
+
+    /* Transform Context Lane into a clean horizontal swiping tray on mobile */
+    .context-lane {
+      justify-content: flex-start;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none; /* Hide standard ugly scrollbar tracking */
+      -webkit-overflow-scrolling: touch;
+      padding-inline: var(--size-3);
+    }
+    .context-lane::-webkit-scrollbar {
+      display: none;
+    }
+    .context-lane .nav-links {
+      gap: var(--size-4);
     }
   }
 </style>

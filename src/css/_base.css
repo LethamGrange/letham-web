@@ -50,6 +50,28 @@ body {
   /* Enables your sticky footer mechanism to stretch perfectly */
   min-height: 100vh;
 }
+
+/* Seamless full-window vertical stack */
+.site-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/*
+     This acts as our master layout grid.
+     We move the top/bottom vertical breathing room safety padding here,
+     leaving the left and right completely free for full-width elements!
+  */
+.page-layout {
+  flex: 1;
+  padding-block: var(--size-6); /* Comfortable vertical spacing above and below content */
+}
+
+.site-footer {
+  margin-top: auto; /* Absolute guarantee that footer stays at screen bottom */
+}
+
 h1,
 h2,
 h3,

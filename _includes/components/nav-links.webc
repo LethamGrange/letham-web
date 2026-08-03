@@ -1,0 +1,11 @@
+<div id="nav-links-box" class="nav-links">
+  <!--- Dynamically select the list data array based on the passed tier prop --->
+  <a
+    webc:for="item of (tier === 'context' ? $data.contextNavigation : $data.navigation)"
+    :href="item.url"
+    :class="item.exact && $data.page.url === item.url ? 'active' :
+      item.includes && $data.page.url.includes(item.url) ? 'active' :
+      !item.exact && !item.includes && $data.page.url === item.url ? 'active' : '' "
+    @text="item.label"
+  ></a>
+</div>

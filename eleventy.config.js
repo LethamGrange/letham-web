@@ -12,17 +12,12 @@ import pluginSyntaxHighlight from '@11ty/eleventy-plugin-syntaxhighlight';
 import pluginWebc from '@11ty/eleventy-plugin-webc';
 import postcssGlobalData from '@csstools/postcss-global-data';
 import browserslist from 'browserslist';
-import { browserslistToTargets, Features, transform } from 'lightningcss';
+import { browserslistToTargets, bundleAsync, Features, transform } from 'lightningcss';
 import markdownit from 'markdown-it';
 import markdownitattrs from 'markdown-it-attrs';
 import markdownitcontainer from 'markdown-it-container';
 import fs from 'node:fs';
-import OpenProps from 'open-props';
-import postcss from 'postcss';
-import postcssCustomMedia from 'postcss-custom-media';
-import postcssImport from 'postcss-import';
-import postcssJit from 'postcss-jit-props';
-import * as sass from 'sass';
+import path from 'path';
 import pluginCollections from './_config/collections.js';
 import pluginFilters from './_config/filters.js';
 
@@ -85,7 +80,7 @@ export default async function (eleventyConfig) {
     outputDir: '.cache/@11ty/images/',
     urlPath: '/img/',
     // Set your global image configurations here
-    formats: ['webp', 'avif', 'jpeg'],
+    formats: ['webp', 'avif'],
     widths: [1200, 'auto'],
     htmlOptions: {
       imgAttributes: {
@@ -95,78 +90,112 @@ export default async function (eleventyConfig) {
     },
   });
 
+  // Recognize CSS as a "template language"
+  eleventyConfig.addTemplateFormats('css');
+
+  // Process CSS with LightningCSS
+  eleventyConfig.addExtension('css', {
+    outputFileExtension: 'css',
+    useLayouts: false, // Cleanly stops Eleventy from wrapping CSS in HTML layout tags
+    compile: async function (inputContent, inputPath) {
+      let parsed = path.parse(inputPath);
+      if (parsed.name.startsWith('_')) {
+        return; // Ignore internal utility partials
+      }
+
+      // Modern regex that cleanly captures the file targets from @import statements
+      const importRuleRegex = /@import\s+(?:url\()?['"]?([^'"\);]+)['"]?\)?.*;/g;
+      const fileList = [];
+      let match;
+
+      while ((match = importRuleRegex.exec(inputContent))) {
+        // Safely map the dependency path relative to the entry directory
+        fileList.push(path.join(parsed.dir, match[1]));
+      }
+
+      if (fileList.length > 0) {
+        this.addDependencies(inputPath, fileList); // Native 11ty watcher reload watch hook
+      }
+
+      return async () => {
+        let { code } = await bundleAsync({
+          filename: inputPath,
+          minify: true, // Switched on for production-ready size optimizations
+          sourceMap: false,
+          targets,
+          resolver: {
+            read(filePath, from) {
+              // 1. Clean browser functional syntax url() or quotes out of path names
+              let cleanedPath = filePath.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+
+              const projectRoot = process.cwd();
+              const localCssPrefix = path.resolve(projectRoot, 'src/css');
+
+              // 2. Normalize package paths (e.g. removes './src/css/' prefix safely if it sneaks in)
+              let normalizedSubPath = cleanedPath;
+              if (cleanedPath.startsWith('./src/css/')) {
+                normalizedSubPath = cleanedPath.replace('./src/css/', '');
+              } else if (path.isAbsolute(cleanedPath) && cleanedPath.startsWith(localCssPrefix)) {
+                normalizedSubPath = path.relative(localCssPrefix, cleanedPath);
+              } else if (path.isAbsolute(cleanedPath) && cleanedPath.startsWith(projectRoot)) {
+                normalizedSubPath = path.relative(projectRoot, cleanedPath);
+              }
+
+              // 3. Sequentially trace file targets across valid project structures
+              const pathsToSearch = [
+                path.resolve(localCssPrefix, normalizedSubPath), // Local workspace stylesheets
+                path.resolve(projectRoot, 'node_modules', normalizedSubPath), // OpenProps & packages
+                path.isAbsolute(cleanedPath) ? cleanedPath : null,
+                from ? path.resolve(path.dirname(from), cleanedPath) : null,
+              ].filter(Boolean);
+
+              for (const absolutePath of pathsToSearch) {
+                if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
+                  return fs.readFileSync(absolutePath, 'utf8');
+                }
+              }
+
+              throw new Error(`Global CSS bundle could not trace: ${normalizedSubPath}`);
+            },
+          },
+          drafts: {
+            nesting: true,
+            customMedia: true, // Successfully unrolls your OpenProps dimensions down to pixels
+          },
+        });
+        return code;
+      };
+    },
+  });
+
   eleventyConfig.addPlugin(pluginWebc, {
     components: ['./_includes/components/**/*.webc', 'npm:@11ty/eleventy-img/*.webc'],
-    // ADD THIS BLOCK: Tells WebC to read .scss link imports natively
-    preprocessors: {
-      scss: src =>
-        sass.compileString(src, {
-          loadPaths: ['./src/css', './node_modules'],
-        }).css,
-    },
+
     bundlePluginOptions: {
       toFileDirectory: false,
       hoistDuplicateBundles: true,
       transforms: [
         async function (content) {
           if (this.type === 'css') {
-            const result = sass.compileString(content, {
-              alertColor: true,
-              // Crucial: Tells Sass where to find files if you use @use or @import
-              loadPaths: ['./src/css', './node_modules'],
-              logger: sass.Logger.silent,
-            });
-            return result.css;
-          }
-          return content;
-        },
-        async function (content) {
-          if (this.type === 'css') {
-            const result = await postcss([
-              // Inlines all remaining @import statements physically into the file
+            if (!content || !content.trim()) return '';
 
-              postcssImport({
-                path: ['./src/css', './node_modules'],
-              }),
-              // A. Load OpenProps media definitions globally for PostCSS
-              postcssGlobalData({
-                files: ['./node_modules/open-props/media.min.css'],
-              }),
-              // B. Polyfill the @media (--md-n-below) strings into raw pixels
-              postcssCustomMedia(),
-              // // C. Pull in standard OpenProps variables Just-In-Time
-              // postcssJit({
-              //   ...OpenProps,
-              // }),
-            ]).process(content, {
-              from: this.page.inputPath,
-              to: null,
-            });
-
-            return result.css;
-          }
-          return content;
-        },
-        async function (content) {
-          if (this.type === 'css') {
             try {
+              // Read ONLY the Open Props media tokens so component media queries function
+              const mediaPath = path.resolve('./node_modules/open-props/media.min.css');
+              const mediaQueries = fs.existsSync(mediaPath) ? fs.readFileSync(mediaPath, 'utf8') : '';
+
               let { code } = transform({
-                filename: 'bundle.css',
-                code: Buffer.from(content), //r.toString()),
-                minify: false,
-                sourceMap: false,
+                filename: 'components.css',
+                code: Buffer.from(`${mediaQueries}\n${content}`),
+                minify: process.env.NODE_ENV === 'production',
                 targets,
                 exclude: Features.LogicalProperties | Features.LightDark | Features.LabColors,
-                drafts: {
-                  customMedia: true,
-                },
+                drafts: { customMedia: true },
               });
-
-              return code;
+              return code.toString();
             } catch (e) {
-              console.log(e.toString());
-              console.log(content.toString());
-              throw e;
+              console.error(`❌ WebC Component CSS Error: ${e.message}`);
+              return content;
             }
           }
           return content;

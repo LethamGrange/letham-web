@@ -1,0 +1,32 @@
+/* 1. Core Engine */
+@import url('open-props/media.min.css');
+
+@import url('open-props/normalize.min.css') layer(openprops);
+@import url('open-props/borders.min.css') layer(openprops);
+@import url('open-props/sizes.min.css') layer(openprops);
+@import url('open-props/colors.min.css') layer(openprops);
+@import url('open-props/fonts.min.css') layer(openprops);
+
+@import url('open-props/gradients.min.css') layer(openprops);
+@import url('open-props/src/props.colors-oklch-hues.css') layer(openprops);
+@import url('opui-core/_palette.css');
+
+/* 2. Your Theme Scheming */
+@import url('_theme-scheme.css');
+@import url('_theme.css');
+
+/* 3. Open Props UI System */
+@import url('opui-core/_normalize.css');
+@import url('opui-core/_utils.css');
+
+/* 4. Isolated UI Components */
+@import url('opui-components/_button.css');
+@import url('opui-components/_card.css');
+@import url('opui-components/_divider.css');
+@import url('opui-components/_drawer.css');
+@import url('opui-components/_table.css');
+@import url('opui-components/_typography.css');
+
+/* 5. Custom Page Overrides */
+@import url('_layout.css');
+@import url('_base.css');
