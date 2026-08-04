@@ -1,11 +1,74 @@
 <div id="nav-links-box" class="nav-links">
-  <!--- Dynamically select the list data array based on the passed tier prop --->
-  <a
-    webc:for="item of (tier === 'context' ? $data.contextNavigation : $data.navigation)"
-    :href="item.url"
-    :class="item.exact && $data.page.url === item.url ? 'active' :
-      item.includes && $data.page.url.includes(item.url) ? 'active' :
-      !item.exact && !item.includes && $data.page.url === item.url ? 'active' : '' "
-    @text="item.label"
-  ></a>
+  <script webc:type="js">
+    export default function () {
+      // 1. GLOBAL NAVIGATION TIER RENDERING
+      if (this.tier !== "context") {
+        if (!this.$data.navigation) return "";
+
+        return this.$data.navigation
+          .map((item) => {
+            const isActive =
+              item.exact && this.$data.page.url === item.url
+                ? "active"
+                : item.includes && this.$data.page.url.includes(item.url)
+                  ? "active"
+                  : !item.exact &&
+                      !item.includes &&
+                      this.$data.page.url === item.url
+                    ? "active"
+                    : "";
+            return `<a href="${item.url}" class="${isActive}">${item.label}</a>`;
+          })
+          .join("");
+      }
+
+      // 2. CONTEXT NAVIGATION TIER RENDERING
+      // A. MANUAL OVERRIDE CHECK: First priority goes to manual data front matter arrays
+      let subItems = this.$data.contextNavigation;
+
+      // B. AUTOMATION FALLBACK: If no manual front matter array exists, use the passed collection prop
+      if (!subItems && this.customLinks) {
+        subItems = this.customLinks;
+      }
+
+      // If both tracks turn up empty, strip out the HTML rendering loop
+      if (!subItems || subItems.length === 0) return "";
+
+      // Target the first item in the array to calculate paths safely
+      const firstItemUrl = subItems[0].url;
+      const paths = firstItemUrl.split("/").filter(Boolean);
+      const parentUrl = paths.length > 0 ? `/${paths[0]}/` : "/";
+
+      // Check if the user is sitting exactly on the section landing root folder page
+      const isParentActive = this.$data.page.url === parentUrl ? "active" : "";
+
+      // Cross-reference top-level menus to fetch the exact visual category label
+      const parentMenuMatch = this.$data.navigation?.find(
+        (item) => item.url === parentUrl,
+      );
+      const parentLabel = parentMenuMatch ? parentMenuMatch.label : paths[0];
+
+      // Build the breadcrumb root anchor link
+      const parentLinkHtml = `<a href="${parentUrl}" class="overview-link ${isParentActive}">${parentLabel}&nbsp;&nbsp;&gt;</a>`;
+
+      // Map out the rest of the sibling pages
+      const childLinksHtml = subItems
+        .map((item) => {
+          const isActive =
+            item.exact && this.$data.page.url === item.url
+              ? "active"
+              : item.includes && this.$data.page.url.includes(item.url)
+                ? "active"
+                : !item.exact &&
+                    !item.includes &&
+                    this.$data.page.url === item.url
+                  ? "active"
+                  : "";
+          return `<a href="${item.url}" class="${isActive}">${item.label}</a>`;
+        })
+        .join("");
+
+      return parentLinkHtml + childLinksHtml;
+    }
+  </script>
 </div>
