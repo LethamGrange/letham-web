@@ -6,6 +6,7 @@
 @import url('open-props/sizes.min.css') layer(openprops);
 @import url('open-props/colors.min.css') layer(openprops);
 @import url('open-props/fonts.min.css') layer(openprops);
+@import url('open-props/zindex.min.css') layer(openprops);
 
 @import url('open-props/gradients.min.css') layer(openprops);
 @import url('open-props/src/props.colors-oklch-hues.css') layer(openprops);
