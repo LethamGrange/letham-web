@@ -1,0 +1,149 @@
+<!-- components/editorial-block.webc -->
+<div class="editorial-wrapper">
+  <div class="editorial-mesh" :data-align="align || 'right'">
+    <div class="prose-pane prose">
+      <slot></slot>
+    </div>
+
+    <figure class="image-pane">
+      <!--
+        WebC Attributes:
+        1. Pass source, alt, and native dimensional metadata dynamically.
+        2. Set the structural 35ch size definition as a constant rule.
+      -->
+      <slot name="image">
+        <img
+          :src="src"
+          :alt="alt"
+          :width="width"
+          height="auto"
+          sizes="(min-width: 50rem) 35ch, 90vw"
+      /></slot>
+
+      <figcaption webc:if="caption" @text="caption"></figcaption>
+    </figure>
+  </div>
+</div>
+
+<style webc:keep>
+  .prose-pane {
+    /* 1. Pull the dynamic background token passed via the WebC attribute */
+    background-color: var(--pane-bg, transparent);
+
+    /*
+        2. The Correct Native CSS Math:
+        The browser reads your background variable, computes the WCAG luminance,
+        and spits out a sharp, accessible text color automatically.
+      */
+    color: contrast-color(var(--pane-bg));
+
+    /* 3. Spacing and presentation */
+    padding: 0;
+
+    /*
+      1. Establish your restored flex formatting correction.
+      This allows paragraphs to be perfectly centered vertically next to a tall image.
+    */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    width: 100%;
+    > p + p {
+      margin-block-start: 1em;
+    }
+  }
+  @container not style(--pane-bg: initial) {
+    .prose-pane {
+      padding: 1.5em;
+      border-radius: var(--radius-3);
+    }
+  }
+
+  /* 1. Register the component as a layout boundaries container */
+  .editorial-wrapper {
+    container-type: inline-size;
+    width: 100%;
+    margin-block: var(--size-6);
+  }
+
+  /* 2. Mobile View: Uniform vertical stack */
+  .editorial-mesh {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--size-5);
+  }
+
+  .editorial-mesh img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: var(--ratio-landscape);
+    border-radius: var(--radius-2);
+    box-shadow: var(--shadow-3);
+    max-inline-size: 30ch;
+  }
+
+  .editorial-mesh figcaption {
+    font-size: var(--font-size-0);
+    color: var(--text-2);
+    margin-block-start: var(--size-2);
+    font-style: italic;
+  }
+
+  /* 3. Container Query: Fires dynamically based on the track width! */
+  /* If placed in content (75ch ≈ 650px), this fires seamlessly on desktop */
+  /* If placed in breakout, this fires even sooner because it has more space */
+  @container (min-width: 38rem) {
+    .editorial-mesh {
+      grid-template-columns: 1.5fr 1fr; /* Text gets slightly more weight than the photo */
+      align-items: center;
+      align-items: stretch;
+
+      gap: var(--size-7);
+    }
+
+    /* Pull the photo to the left if alignment attribute is set */
+    .editorial-mesh[data-align="left"] {
+      direction: rtl;
+    }
+    .editorial-mesh[data-align="left"] > * {
+      direction: ltr; /* Reset reading direction for text */
+    }
+
+    .editorial-mesh img {
+      aspect-ratio: var(
+        --ratio-square
+      ); /* Sharp rectangular/square crop on side-by-side layout */
+    }
+  }
+  /* --- The Image Pane Layout Anchor --- */
+  .image-pane {
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: var(--size-2, 0.5rem);
+
+    img {
+      width: 100%;
+      height: auto; /* Preserves your natural, uncropped landscape layout pixels */
+      border-radius: var(--radius-2);
+      box-shadow: var(--shadow-3);
+    }
+
+    figcaption {
+      font-size: var(--font-size-0);
+      color: var(
+        --text-secondary,
+        var(--text-2)
+      ); /* Hooks cleanly into OPUI text tokens */
+      line-height: var(--font-lineheight-2, 1.4);
+      font-style: italic;
+
+      margin: 0;
+    }
+  }
+</style>

@@ -1,0 +1,40 @@
+
+<two-columns>
+
+<div slot="left">
+
+
+
+Letham Grange Curling Club started in 1984 when the purpose built rink was opened on the 30th September 1984 by the Scottish Rugby Captain Jim Aitken in the Letham Grange House Hotel. There were over 100 members in the first year with many club competitions being played with the trophies being donated by The Bank of Scotland, the Contractors who built the rink and local business people. These trophies are still played for today. Our first President was Jim Milne who later became our Hon. President in 2024 at our 40th Anniversary celebrations. There have been many long serving officials who must be thanked for their dedication in keeping the club going through the past years. Some of the founder members were still playing in the 40th Anniversary Bonspiel. In 2002 when the rink closed LGCC continued to play the Club, Province, Inter Club, Rink and Area competitions in Forfar Ice rink. Letham Grange members have been active across a wide range of positions at Province, Area and the Royal Caledonian Curling Club. Brian McArtney became RCCC President in season 2019-2020 with Janine Wilson and Mari Milne serving on the RCCC Board. LGCC members have also supported the development of curling by being coaches, umpires or time keeper at local, national and international levels. Many LGCC members have excelled on the ice at national and international level with many becoming Scottish, European and World Champions.
+
+  </div>
+
+
+  <div slot="right">
+Our approach is focused on understanding your needs and providing practical solutions. From personalized consultations to hands-on assistance.
+
+      <img src="/images/letham-opening-plaque.png" width="300" alt="Club main pitch" />
+
+  </div>
+</two-columns>
+
+</div>
+
+<hr class="ui-divider ui-border-filled" />
+
+
+## Key Contacts
+
+Who to talk to if you have any questions about the club.
+
+<div class="custom-table-container">
+
+
+|positions|Name|Email/ Contact details|
+|---|---|---|
+|President|Dave Piggot|president@lethamgrangecurling.org|
+|Secretary|Brian McArtney|secretary@lethamgrangecurling.org|
+
+
+</div>
+

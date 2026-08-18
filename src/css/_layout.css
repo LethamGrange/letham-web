@@ -1,0 +1,196 @@
+/* Layout Integrity */
+/* ==========================================
+     Your Custom Reset Rules
+     ========================================== */
+@layer custom.reset {
+  html {
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    /* The Modern Safetynet: Stops horizontal "waggle" on mobile */
+    overflow-x: clip;
+    color-scheme: light dark;
+
+    /* 2. Text Inflation Defenses */
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  img,
+  picture {
+    display: block;
+    max-inline-size: 100%;
+    height: auto;
+  }
+
+  /*
+    1. Open Props clears heading margins, but doesn't wipe list padding,
+    which can throw off your main grid's alignment tracks.
+  */
+  ul,
+  ol {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+}
+@layer custom.base {
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: var(--font-weight-5);
+    font-style: normal;
+    font-size: var(--font-size-1);
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'liga';
+
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  :root {
+    --woodland-info-font: 'Merriweather Sans', sans-serif;
+    --max-inline-size: 90ch;
+    --size-content-3: var(--max-inline-size);
+  }
+
+  ::view-transition-old(root) {
+    animation-delay: 500ms;
+  }
+
+  ::view-transition-new(root) {
+    animation: circle-in 500ms;
+  }
+
+  @keyframes circle-in {
+    from {
+      clip-path: circle(0% at 50% 0%);
+    }
+    to {
+      clip-path: circle(120% at 50% 0%);
+    }
+  }
+
+  body {
+    min-block-size: 100svh;
+    font-family: var(--font-humanist);
+    line-height: var(--font-lineheight-3, 1.6);
+
+    /* 1. OPUI Automated Color Pairings */
+    background-color: var(--surface-default);
+    color: var(--text-primary);
+    /* 3. Rendering Enhancements */
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  /* 1. Global Reset: Wipe out the narrow Open Props list item ceiling website-wide */
+  :where(ol, ul) li {
+    max-inline-size: var(--max-inline-size, 95ch); /* Upgrades lists from tight header size to standard text size */
+  }
+
+  /* Inherits your organic humanist font, while stabilizing mobile layout bounds */
+  h1,
+  h2,
+  h3 {
+    font-weight: var(--font-weight-7); /* Resolves irradiation issues on OLED/Retina displays */
+    letter-spacing: var(--font-letterspacing-1); /* Conserves horizontal space, preventing bad line-wraps on mobile */
+  }
+
+  .page-layout {
+    display: grid;
+    align-content: start;
+
+    /*
+      Optional extra layer of safety:
+      Guarantees that your full-width tracks never force horizontal viewport expansion.
+    */
+    overflow-x: clip;
+
+    grid-template-columns:
+      [full-width-start] minmax(var(--size-5), 1fr)
+      [breakout-start] minmax(0, var(--size-10))
+      [content-start] minmax(0, var(--max-inline-size))
+      [content-end]
+      minmax(0, var(--size-10)) [breakout-end]
+      minmax(var(--size-5), 1fr) [full-width-end];
+
+    @media (max-width: 600px) {
+      grid-template-columns:
+        [full-width-start] minmax(1rem, 1fr)
+        [breakout-start] 0
+        [content-start] minmax(0, 100%) [content-end]
+        0 [breakout-end]
+        minmax(1rem, 1fr) [full-width-end];
+    }
+  }
+
+  .page-layout > * {
+    grid-column: content-start / content-end;
+  }
+
+  /* 2. Classes you can apply to make elements break out */
+  .breakout {
+    grid-column: breakout-start/breakout-end;
+  }
+
+  .full-width {
+    grid-column: full-width-start/full-width-end;
+    /*
+      Guarantees that a full-bleed panoramic flora photograph
+      stretches across the exact layout inline width of the short screen track.
+    */
+    inline-size: 100vi;
+  }
+
+  /* Minimalist Hybrid Em Flow */
+  .page-layout > * + * {
+    margin-block-start: 1em;
+  }
+  .page-layout > :is(h1, h2, h3, h4) + * {
+    margin-block-start: 0.4em;
+  }
+  /*
+    1. Apply balance strictly to titles.
+    This guarantees no ugly single-word line wraps on desktop or mobile.
+  */
+  :is(h1, h2, h3, h4, h5, h6) {
+    text-wrap: balance;
+  }
+
+  /*
+    2. Optional Pro Tip for Long Prose Paragraphs:
+    If you want your body text paragraphs to wrap nicely without orphans,
+    use the companion property 'pretty' instead!
+  */
+  p {
+    text-wrap: pretty; /* Only fixes the very last line of long prose, zero performance cost */
+    font-size: var(--font-size-2);
+  }
+}
+
+.container {
+  display: block;
+  position: relative;
+
+  &.container-spacing {
+    margin-block: 1rem;
+    margin-inline: 0;
+  }
+}
+
+.flow > * + * {
+  margin-top: var(--flow-spacing, 1em);
+}
+
+.prose > * + * {
+  margin-top: var(--prose-flow, 1em);
+}

@@ -1,8 +1,22 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <link rel="icon" href="/favicon-192.png" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap"
+      rel="stylesheet"
+      webc:keep
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+      webc:keep
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
       rel="stylesheet"
@@ -13,19 +27,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Letham Grange Curling" />
     <title @text="title ?? 'Letham Grange'"></title>
+
     <!-- 1. CRUCIAL: Establish layer order explicitly in raw HTML -->
     <style webc:keep>
-      @layer openprops, theme, normalize, components.root, components.extended, utils;
+      @layer openprops, theme, normalize, custom.reset, custom.base, components.root, components.extended, utils;
     </style>
-
     <link rel="stylesheet" href="/css/main.css" webc:keep />
 
     <!-- this produces the bundled component css needed for the particular page so will be optimized and small-->
 
     <link rel="stylesheet" :href="getBundleFileUrl('css' )" webc:keep />
 
+    <link
+      webc:if="$data.componentBucket"
+      webc:keep
+      rel="stylesheet"
+      :href="getBundleFileUrl('css', $data.componentBucket)"
+    />
+
+    <style
+      webc:if="$data.pageBucket"
+      @raw="getBundle('css', $data.pageBucket)"
+      webc:keep
+    ></style>
+
     <!-- Critical inline initialization to prevent dark-mode page flash -->
-    <script>
+    <script webc:keep>
       const savedTheme = localStorage.getItem("theme-preference");
 
       // FIXED: If prefers-color-scheme is dark, default to dark; otherwise light.
@@ -42,28 +69,31 @@
   </head>
 
   <body tabindex="-1" class="site-wrapper">
-    <page-title
-      webc:if="$data.pagetitle"
-      :@title="$data.pagetitle"
-      :@src="$data.pagesrc"
-    ></page-title>
-
-    <site-nav></site-nav>
-    <!-- This main tag acts as the smart layout grid -->
+    <div>
+      <page-title
+        webc:if="$data.pagetitle"
+        :@title="$data.pagetitle"
+        :@src="$data.pagesrc"
+      ></page-title>
+      <site-nav></site-nav>
+    </div>
     <main class="page-layout">
       <template webc:nokeep @raw="content"></template>
     </main>
-
-    <footer>
-      <p>&copy; Letham Grange Curling Club</p>
-    </footer>
-
+    <site-footer></site-footer>
     <script :src="getBundleFileUrl('js')" webc:keep></script>
   </body>
+
   <script
     src="https://unpkg.com/htmx.org@1.9.12"
     integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
     crossorigin="anonymous"
+    webc:keep
+  ></script>
+  <script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer
     webc:keep
   ></script>
 </html>

@@ -10,7 +10,6 @@ import { eleventyImageTransformPlugin } from '@11ty/eleventy-img';
 import pluginNavigation from '@11ty/eleventy-navigation';
 import pluginSyntaxHighlight from '@11ty/eleventy-plugin-syntaxhighlight';
 import pluginWebc from '@11ty/eleventy-plugin-webc';
-import postcssGlobalData from '@csstools/postcss-global-data';
 import browserslist from 'browserslist';
 import { browserslistToTargets, bundleAsync, Features, transform } from 'lightningcss';
 import markdownit from 'markdown-it';
@@ -61,6 +60,14 @@ export const config = {
  * @param {EleventyConfig} eleventyConfig
  */
 export default async function (eleventyConfig) {
+  // Determine if the local development server is running
+  const isLocalServer = process.env.ELEVENTY_RUN_MODE === 'serve' || process.env.ELEVENTY_RUN_MODE === 'watch';
+  // Inject it directly into the data cascade under the "env" namespace
+  eleventyConfig.addGlobalData('env', {
+    isLocalServer: isLocalServer,
+  });
+  // Sets a global fallback layout for every single template file
+  eleventyConfig.addGlobalData('layout', 'base.webc');
   //  Only copy global structural assets to the build output
   eleventyConfig.addPassthroughCopy('src/images/icons');
   eleventyConfig.addPassthroughCopy('src/images/logos');
@@ -76,12 +83,12 @@ export default async function (eleventyConfig) {
 
   // Use the native HTML transform plugin
   eleventyConfig.addPlugin(eleventyImageTransformPlugin, {
-    // Crucial for Cloudflare Build Cache
     outputDir: '.cache/@11ty/images/',
     urlPath: '/img/',
-    // Set your global image configurations here
-    formats: ['webp', 'avif'],
-    widths: [1200, 'auto'],
+
+    // 🚀 DROP LATEST JPEG: WebP and AVIF handle 100% of modern web layout demands!
+    formats: ['avif'],
+    widths: [400, 800, 'auto'],
     htmlOptions: {
       imgAttributes: {
         loading: 'lazy',
@@ -94,6 +101,7 @@ export default async function (eleventyConfig) {
   eleventyConfig.addTemplateFormats('css');
 
   // Process CSS with LightningCSS
+  // Process CSS with LightningCSS
   eleventyConfig.addExtension('css', {
     outputFileExtension: 'css',
     useLayouts: false, // Cleanly stops Eleventy from wrapping CSS in HTML layout tags
@@ -104,7 +112,9 @@ export default async function (eleventyConfig) {
       }
 
       // Modern regex that cleanly captures the file targets from @import statements
-      const importRuleRegex = /@import\s+(?:url\()?['"]?([^'"\);]+)['"]?\)?.*;/g;
+      // const importRuleRegex = /@import\s+(?:url\()?['"]?([^'"\);]+)['"]?\)?.*;/g;
+      const importRuleRegex = /@import\s+(?:url\()?['"]?([^'"\);\s]+)['"]?\)?/g;
+
       const fileList = [];
       let match;
 
@@ -160,7 +170,7 @@ export default async function (eleventyConfig) {
           },
           drafts: {
             nesting: true,
-            customMedia: true, // Successfully unrolls your OpenProps dimensions down to pixels
+            customMedia: true,
           },
         });
         return code;
@@ -176,7 +186,9 @@ export default async function (eleventyConfig) {
       hoistDuplicateBundles: true,
       transforms: [
         async function (content) {
-          if (this.type === 'css') {
+          // console.log(this.buckets[0]);
+
+          if (this.type === 'css' && this.bucket === undefined) {
             if (!content || !content.trim()) return '';
 
             try {
@@ -232,4 +244,5 @@ export default async function (eleventyConfig) {
       fs.cpSync(sourceDir, destDir, { recursive: true });
     }
   });
+  eleventyConfig.addPassthroughCopy({ './public': '/' });
 }

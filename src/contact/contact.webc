@@ -1,0 +1,328 @@
+<div class="contact">
+  <div id="contact-container">
+    <h1>Contact Us</h1>
+
+    <form
+      class="contact-form"
+      novalidate
+      hx-post="/api/submit-contact"
+      :hx-on:htmx:before-request="env.isLocalServer ? 'event.preventDefault(); alert(\'Form validation by-passed! HTMX submit intercepted locally without Wrangler.\');' : ''"
+      hx-target="#contact-container"
+      hx-swap="outerHTML"
+    >
+      <div class="form-group">
+        <label for="fname">First Name</label>
+        <input
+          type="text"
+          id="fname"
+          name="first_name"
+          required
+          aria-describedby="fname-error"
+        />
+        <span class="error-message" id="fname-error" aria-live="polite">
+          First name is required
+        </span>
+      </div>
+      <div class="form-group">
+        <label for="lname">Last Name</label>
+        <input
+          type="text"
+          id="lname"
+          name="last_name"
+          required
+          aria-describedby="lname-error"
+        />
+        <span class="error-message" id="lname-error" aria-live="polite">
+          Last name is required
+        </span>
+      </div>
+      <div class="form-group span-all">
+        <label for="email">Email</label>
+        <input
+          type="text"
+          id="email"
+          name="email"
+          required
+          aria-describedby="email-error"
+        />
+        <span class="error-message" id="email-error" aria-live="polite">
+          Email is required
+        </span>
+      </div>
+      <!-- https://issues.chromium.org/issues/4027891-->
+      <fieldset class="span-all" aria-describedby="query-error">
+        <legend>Query Type</legend>
+        <div class="form-group">
+          <input
+            type="radio"
+            id="general"
+            name="query"
+            value="General Enquiry"
+            required
+          />
+          <label for="general">General Enquiry</label>
+        </div>
+
+        <div class="form-group">
+          <input
+            type="radio"
+            id="support"
+            name="query"
+            value="Support Request"
+            required
+          />
+          <label for="support">Membership enquiry</label>
+        </div>
+
+        <span class="error-message" id="query-error" aria-live="polite"
+          >Please select what kind of query.</span
+        >
+      </fieldset>
+      <div class="form-group span-all">
+        <label for="message">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          required
+          aria-describedby="message-error"
+        ></textarea>
+        <span class="error-message" id="message-error" aria-live="polite">
+          Message is required
+        </span>
+      </div>
+
+      <div class="form-group span-all">
+        <input
+          type="checkbox"
+          name="consent"
+          id="consent"
+          required
+          aria-describedby="consent-error"
+        />
+        <label for="consent">I consent to being contacted by the team</label>
+        <span class="error-message" id="consent-error" aria-live="polite">
+          You must consent to us contacting you to submit this form.
+        </span>
+      </div>
+
+      <button class="span-all">Submit</button>
+      <div
+        webc:if="!env.isLocalServer"
+        class="cf-turnstile"
+        :data-sitekey="process.env.TURNSTILE_SITEKEY || '1x00000000000000000000AA'"
+        style="margin-bottom: 1rem"
+      ></div>
+    </form>
+  </div>
+</div>
+<script>
+  const form = document.querySelector("form");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const isValid = e.target.checkValidity();
+
+    if (isValid) {
+      const formData = Object.fromEntries(new FormData(form));
+    } else {
+      if (firstInvalid) {
+        // If the invalid item is a radio button, focus its labeled container box instead
+        if (firstInvalid.type === "radio") {
+          const groupContainer =
+            firstInvalid.closest("fieldset") ||
+            firstInvalid.closest(".form-group");
+          groupContainer?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          firstInvalid.focus({ preventScroll: true });
+        } else {
+          // Standard inputs get normal smooth focus
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          firstInvalid.focus({ preventScroll: true });
+        }
+      }
+    }
+  });
+</script>
+
+<style>
+  :where(.contact) {
+    --red: hsl(0, 66%, 54%);
+    --_critical: var(--red);
+    --_color: light-dark(var(--color-16), var(--color-1));
+    --_color-contrast: light-dark(var(--color-1), var(--color-16));
+    --_filled-hover-bg-color: oklch(from var(--primary) calc(l - 0.1) c h);
+    --_border-color: light-dark(var(--color-7), var(--color-10));
+    --_query-color: light-dark(var(--color-4), var(--color-12));
+
+    color: var(--text-primary);
+    font-size: var(--size-4);
+    font-family: var(--ff-base, inherit);
+    line-height: 1.6;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-inline-size: 700px;
+    margin: 0 auto;
+    width: 100%; /* this needs structural width to give the container an intrinsic size */
+
+    container-type: inline-size;
+
+    h1,
+    h2,
+    p {
+      margin-block: 0;
+    }
+
+    input,
+    button,
+    textarea {
+      background-color: var(--surface-default);
+    }
+
+    :where(form.contact-form) {
+      display: grid;
+      gap: var(--size-3);
+
+      @container (inline-size > 500px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      fieldset {
+        border: 0;
+        padding: 0;
+
+        display: grid;
+        gap: var(--size-1) var(--size-3);
+        grid-template-columns: inherit;
+        .error-message {
+          grid-column: 1 / -1;
+        }
+      }
+      textarea {
+        box-sizing: content-box;
+        min-block-size: 3lh;
+        resize: none;
+        field-sizing: content;
+      }
+
+      .form-group {
+        display: grid;
+        grid-auto-rows: min-content;
+      }
+
+      fieldset:has([required]) legend,
+      .form-group:has(:not([type="radio"])[required]) label {
+        display: flex;
+        gap: var(--size-2);
+
+        &::after {
+          content: "*";
+          color: var(--text-muted, #71717a);
+        }
+      }
+
+      input,
+      textarea,
+      .form-group:has(input[type="radio"]) {
+        border: 1px solid var(--_border-color);
+        border-radius: 0.5rem;
+        padding: 0.5em 0.75em;
+
+        &:focus-visible {
+          outline-color: var(--primary);
+        }
+      }
+
+      [type="radio"],
+      [type="checkbox"] {
+        width: var(--size-3);
+        height: var(--size-3);
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .form-group:has([type="radio"], [type="checkbox"]) {
+        display: flex;
+        gap: var(--size-2);
+        align-items: center;
+      }
+
+      .form-group:has(input[type="radio"]) {
+        border: 1px solid var(--_border-color);
+        border-radius: 0.5rem;
+        padding: 0.5em 0.75em;
+        display: flex;
+        gap: var(--size-2);
+        align-items: center;
+        position: relative;
+
+        label::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          cursor: pointer;
+        }
+      }
+      .form-group:has([type="radio"]:checked) {
+        background: var(--_query-color);
+        color: contrast-color(var(--_query-color));
+        border-color: var(--_border-color);
+      }
+
+      button {
+        background: var(--primary);
+        color: var(--primary-contrast);
+
+        border: 0;
+        border-radius: var(--radius-2);
+        padding: 0.75em 1.5em;
+
+        &:hover,
+        &:focus-visible {
+          background: var(--_filled-hover-bg-color);
+        }
+      }
+
+      .error-message {
+        display: none;
+        color: var(--_critical);
+        font-size: var(--size-3);
+      }
+
+      fieldset:has([type="radio"][required]):has(:user-invalid) .error-message,
+      .form-group:has([required]):has(:user-invalid) .error-message {
+        display: block;
+      }
+
+      input:user-invalid,
+      textarea:user-invalid {
+        border-color: var(--red);
+      }
+
+      .form-group:has([type="checkbox"]) {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.25rem var(--size-2);
+        align-items: start;
+
+        > input {
+          grid-column: 1;
+          grid-row: 1;
+          margin-top: 0.25rem; /* Aligns box nicely with first text line */
+        }
+
+        > label {
+          grid-column: 2;
+          grid-row: 1;
+        }
+
+        .error-message {
+          grid-column: 1 / -1;
+          grid-row: 2;
+        }
+      }
+
+      .span-all {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+</style>

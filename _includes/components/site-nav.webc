@@ -6,6 +6,7 @@
     command="show-modal"
     aria-haspopup="dialog"
     aria-controls="drawer-inline-start-html"
+    aria-label="Open navigation menu"
   >
     <svg
       class="hamburger-icon"

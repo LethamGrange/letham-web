@@ -22,54 +22,56 @@
 </button>
 
 <script>
-  // Your exact execution logic stays here unchanged because it works perfectly!
-  const getColorPreference = () => {
-    if (localStorage.getItem("theme-preference")) {
-      return localStorage.getItem("theme-preference");
-    } else {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
+  // Read the live theme directly from the DOM state established in the <head>
+  const curTheme = {
+    value: document.documentElement.getAttribute("data-theme"),
+  };
+
+  // The single source of truth for themes
+  const getThemePair = (theme) =>
+    theme === "dark" ? ["dark", "light"] : ["light", "dark"];
+
+  const applyThemePair = (theme, nextTheme, btn, shouldSave = false) => {
+    document.documentElement.setAttribute("data-theme", theme);
+    btn.setAttribute("aria-label", `Switch to ${nextTheme} theme.`);
+
+    if (shouldSave) {
+      localStorage.setItem("theme-preference", theme);
     }
-  };
 
-  const setPreference = () => {
-    localStorage.setItem("theme-preference", theme.value);
-    reflectPreference();
+    return theme;
   };
-
-  const reflectPreference = () => {
-    document.firstElementChild.setAttribute("data-theme", theme.value);
-    document
-      .querySelector("#theme-toggle-btm")
-      ?.setAttribute("aria-label", theme.value);
-  };
-
-  const theme = { value: getColorPreference() };
-  reflectPreference();
 
   document.addEventListener("DOMContentLoaded", () => {
-    reflectPreference();
     const btn = document.querySelector("#theme-toggle-btn");
     if (!btn) return;
 
-    let currentTheme = document.documentElement.getAttribute("data-theme");
-    btn.setAttribute("aria-label", currentTheme);
+    // Sync the aria-labels to match the theme applied by the <head>
+    const [theme, nextTheme] = getThemePair(curTheme.value);
+    applyThemePair(theme, nextTheme, btn, false);
 
     btn.addEventListener("click", () => {
-      const nextTheme = currentTheme === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", nextTheme);
-      localStorage.setItem("theme-preference", nextTheme);
-      btn.setAttribute("aria-label", nextTheme);
-      currentTheme = nextTheme;
+      const [currentTheme, nextTheme] = getThemePair(curTheme.value);
+      const svtFn = () =>
+        (curTheme.value = applyThemePair(nextTheme, currentTheme, btn, true));
+
+      document.startViewTransition?.(svtFn) ?? svtFn();
     });
   });
 
   window
     .matchMedia("(prefers-color-scheme: dark)")
     .addEventListener("change", ({ matches: isDark }) => {
-      theme.value = isDark ? "dark" : "light";
-      setPreference();
+      // Stop system overrides if the user explicitly locked in a preference
+      if (localStorage.getItem("theme-preference")) return;
+
+      curTheme.value = isDark ? "dark" : "light";
+      const btn = document.querySelector("#theme-toggle-btn");
+
+      if (btn) {
+        const [theme, nextTheme] = getThemePair(curTheme.value);
+        applyThemePair(theme, nextTheme, btn, false);
+      }
     });
 </script>
 

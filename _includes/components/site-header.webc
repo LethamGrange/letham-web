@@ -6,7 +6,7 @@
   </div>
 </header>
 
-<style webc:type="scss">
+<style>
   :where(.site-header) {
     background-color: var(--primary);
     box-shadow: var(--elevation);

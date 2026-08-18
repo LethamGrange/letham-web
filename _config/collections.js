@@ -1,3 +1,4 @@
+// ADD THIS DEDICATED NAVIGATION MIX:
 export default function (eleventyConfig) {
   eleventyConfig.addCollection('autoContext', function (collectionApi) {
     let allPages = collectionApi.getAll();
