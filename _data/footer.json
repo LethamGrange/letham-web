@@ -1,0 +1,23 @@
+{
+  "links": [
+    {
+      "label": "About",
+      "url": "/about/"
+    },
+    {
+      "hidden": false,
+      "label": "Contact",
+      "url": "/contact/"
+    },
+    {
+      "hidden": true,
+      "label": "Events",
+      "url": "/events/"
+    },
+    {
+      "hidden": true,
+      "label": "News",
+      "url": "/news/"
+    }
+  ]
+}

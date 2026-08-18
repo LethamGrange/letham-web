@@ -1,0 +1,6 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "letham-web",
+  "compatibility_date": "2026-06-05",
+  "pages_build_output_dir": "_site"
+}

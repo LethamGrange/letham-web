@@ -1,0 +1,59 @@
+<footer class="footer">
+  <p>&copy; Letham Grange Curling Club</p>
+
+  <nav webc:if="$data.footer.links">
+    <a
+      :href="link.url"
+      webc:for="link of $data.footer.links"
+      @text="link.label"
+      webc:if="!link.hidden"
+    ></a>
+  </nav>
+</footer>
+
+<style>
+  :where(.footer) {
+    --footer-background-color: light-dark(#f1f1f1, #1a1a1a);
+    --footer-text-color: light-dark(#424242, #bdbdbd);
+    --footer-link-color: light-dark(#1b70df, #82b1ff);
+
+    background-color: var(--footer-background-color);
+    color: var(--footer-text-color);
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+
+    a {
+      color: var(--footer-link-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    nav a {
+      color: var(--footer-link-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+  }
+  @media (--md-n-below) {
+    .footer {
+      font-size: 0.75rem;
+      padding: 0.75rem;
+    }
+  }
+</style>

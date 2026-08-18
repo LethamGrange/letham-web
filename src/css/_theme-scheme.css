@@ -1,40 +1,13 @@
 /* ======================================================= */
-/* theme-scheme.scss (Placed BEFORE theme-ui / palette)   */
+/* theme-scheme.css (Placed BEFORE theme-ui / palette)   */
 /* ======================================================= */
 
-/* 1. Universal Default Setup */
-:root {
-  color-scheme: light dark; /* Tells the browser both modes exist natively */
+html[data-theme='light'] {
+  --color-scheme: light; /* Satisfies OPUI's variable cascade */
+  color-scheme: light; /* Satisfies the browser's native chrome & scrollbars */
 }
 
-/* 2. SYSTEM FALLBACKS (If no data-theme attribute is present yet) */
-@media (prefers-color-scheme: light) {
-  :root {
-    --choice-scheme: light;
-  }
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --choice-scheme: dark;
-  }
-}
-
-/* 3. HARD OVERRIDES (Intercepting your 11ty data-theme toggle) */
-
-/* Force Light Mode Styles */
-html[data-theme='light'],
-html.light {
-  color-scheme: light !important;
-
-  /* Force Open Props core tokens to explicitly re-map to their light variations */
-  --meta-color-scheme: light;
-}
-
-/* Force Dark Mode Styles */
-html[data-theme='dark'],
-html.dark {
-  color-scheme: dark !important;
-
-  /* Force Open Props core tokens to explicitly re-map to their dark variations */
-  --meta-color-scheme: dark;
+html[data-theme='dark'] {
+  --color-scheme: dark; /* Satisfies OPUI's variable cascade */
+  color-scheme: dark; /* Satisfies the browser's native chrome & scrollbars */
 }

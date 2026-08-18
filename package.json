@@ -19,35 +19,26 @@
     "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.2",
     "@11ty/eleventy-plugin-webc": "^0.12.0-beta.7",
     "@11ty/webc": "^0.12.0-beta.2",
-    "@csstools/postcss-global-data": "^4.0.0",
-    "@parcel/watcher": "^2.6.0",
-    "eleventy-plugin-purgecss": "^0.6.0",
-    "esbuild": "^0.28.1",
     "fast-glob": "^3.3.3",
-    "lightningcss": "^1.32.0",
+    "lightningcss": "^1.33.0",
     "luxon": "^3.7.2",
-    "markdown-it": "^14.2.0",
-    "markdown-it-anchor": "^9.2.0",
+    "markdown-it": "^14.3.0",
+    "markdown-it-anchor": "^9.2.1",
     "markdown-it-attrs": "^5.0.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
-    "material-symbols": "^0.45.8",
-    "open-props": "^1.7.23",
-    "postcss": "^8.5.19",
-    "postcss-custom-media": "^12.0.1",
-    "postcss-import": "^16.1.1",
-    "postcss-jit-props": "^1.0.16"
+    "material-symbols": "^0.45.9",
+    "open-props": "^1.7.23"
   },
   "devDependencies": {
-    "browserslist": "^4.28.6",
+    "browserslist": "^4.28.7",
     "del-cli": "^7.0.0",
-    "prettier": "^3.8.3",
+    "prettier": "^3.9.6",
     "prettier-plugin-organize-imports": "^4.3.0",
     "rimraf": "^6.1.3",
-    "sass": "^1.100.0",
     "serve": "^14.2.6",
-    "stylelint": "^17.12.0",
-    "wrangler": "^4.98.0"
+    "stylelint": "^17.14.1",
+    "wrangler": "^4.114.0"
   },
   "prettier": {
     "semi": true,
@@ -69,9 +60,9 @@
   },
   "allowScripts": {
     "@parcel/watcher@2.5.6": true,
-    "sharp@0.34.5": true,
     "sharp@0.33.5": true,
     "esbuild@0.28.1": true,
-    "workerd@1.20260708.1": true
+    "sharp@0.35.2": true,
+    "workerd@1.20260815.1": true
   }
 }
