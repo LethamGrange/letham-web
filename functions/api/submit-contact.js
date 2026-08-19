@@ -59,7 +59,7 @@ export async function onRequestPost(context) {
         <p>Thanks for reaching out, <strong>${firstName}</strong>. We've received your request regarding "${queryType}" and our team will be in touch with you soon.</p>
       </div>
     `;
-    if (env.SEND_EMAIL && env.CONTACT_TO_ADDRESS) {
+    if (env.CONTACT_TO_ADDRESS) {
       const apiBody = JSON.stringify({
         // The sender must be a verified domain/email identity inside your Brevo Account
         sender: {
