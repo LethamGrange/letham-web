@@ -1,6 +1,10 @@
 ---
 layout: base.webc
 title: 'Membership information'
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+
 ---
 
 <centred-content-block class="breakout lgcc-titles">

@@ -1,7 +1,7 @@
 ---
 title: 'Welcome to Letham'
-pagetitle: Letham Grange Curling
 layout: 'base'
+pagetitle: Letham Grange Curling
 headerImage: images/logo-high.png
 headerAlt: Letham Grange logo
 headerPosition: center
