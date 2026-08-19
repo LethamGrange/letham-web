@@ -1,0 +1,50 @@
+---
+title: Leagues
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+inContextNav: true
+---
+
+<h2>League Standings</h2>
+
+<!-- Tab Navigation Menu -->
+<div
+  class="tabs-menu"
+  style="display: flex; gap: var(--size-2); margin-bottom: var(--size-3)"
+>
+  <button
+    hx-get="/api/get-league-table?league=Bank of Scotland"
+    hx-target="#league-table-display"
+    class="active"
+  >
+    Bank of Scotland
+  </button>
+  <button
+    hx-get="/api/get-league-table?league=Contractor's Cup"
+    hx-target="#league-table-display"
+  >
+    Contractor's Cup
+  </button>
+  <button
+    hx-get="/api/get-league-table?league=Spring League"
+    hx-target="#league-table-display"
+  >
+    Spring League
+  </button>
+  <button
+    hx-get="/api/get-league-table?league=Mixed Doubles"
+    hx-target="#league-table-display"
+  >
+    Mixed Doubles
+  </button>
+</div>
+
+<!-- Dynamic Container -->
+<div
+  id="league-table-display"
+  hx-get="/api/get-league-table?league=Bank of Scotland"
+  hx-trigger="load"
+>
+  <p>Calculating standings...</p>
+</div>

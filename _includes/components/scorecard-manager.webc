@@ -1,0 +1,38 @@
+<slot></slot>
+<script>
+  class ScorecardManager extends HTMLElement {
+    connectedCallback() {
+      const form = this.querySelector("form");
+      const errorBanner = document.getElementById("form-error-banner");
+
+      // Event 1: Before htmx swaps data, inspect the server status code
+      form.addEventListener("htmx:beforeOnLoad", (event) => {
+        const status = event.detail.xhr.status;
+
+        if (status === 400 || status === 500) {
+          // 1. Stop htmx from swapping the error message into the #recent-results list
+          event.detail.shouldSwap = false;
+
+          // 2. Inject the server's error message straight into our safe static banner
+          errorBanner.innerHTML = `
+          <div style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;">
+            ⚠️ ${event.detail.xhr.responseText}
+          </div>
+        `;
+        } else if (status === 200) {
+          // 2. Handle Success: Instantly clear the error banner
+          errorBanner.innerHTML = "";
+
+          // 3. Defer the form reset by 50ms so htmx can comfortably finish its DOM swap
+          setTimeout(() => {
+            form.reset();
+          }, 50);
+        }
+      });
+    }
+  }
+
+  if ("customElements" in window) {
+    customElements.define("scorecard-manager", ScorecardManager);
+  }
+</script>

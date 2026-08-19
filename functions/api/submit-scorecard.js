@@ -4,10 +4,19 @@ export async function onRequestPost(context) {
   try {
     const formData = await context.request.formData();
 
+    const selectValue = formData.get('competition_select');
+    const customValue = formData.get('custom_competition_name');
+
+    // If they picked 'Other', use the text box string. Otherwise, grab the strict dropdown value.
+    const competitionName = selectValue === 'Other' ? customValue?.trim() : selectValue;
+
+    if (!competitionName) {
+      return new Response("<p style='color:var(--red-6);'>Error: Competition name is required.</p>", { status: 400 });
+    }
+
     const matchDate = formData.get('match_date');
     const matchTime = formData.get('match_time');
     const sheet = formData.get('sheet');
-    const competitionName = formData.get('competition_name');
     const concededEarly = formData.get('conceded') ? 1 : 0;
 
     // 1. GET THE NAMES FROM THE UI INSTEAD OF DIRECT IDS
@@ -158,13 +167,9 @@ async function renderUpdatedResultsList(db) {
     `;
     })
     .join('');
+  const successMessage = `<p style="color: var(--green-6); font-weight: bold; margin-bottom: var(--size-2);">✓ Scorecard recorded successfully!</p>`;
 
-  // We wrap this inside the active #recent-results container so htmx knows exactly what target to replace
-  return new Response(
-    `<div id="recent-results" class="results-list">
-      <p style="color: var(--green-6); font-weight: bold; margin-bottom: var(--size-2);">✓ Scorecard recorded successfully!</p>
-      ${matchCards}
-     </div>`,
-    { headers: { 'Content-Type': 'text/html' } },
-  );
+  return new Response(`${successMessage}${matchCards}`, {
+    headers: { 'Content-Type': 'text/html' },
+  });
 }
