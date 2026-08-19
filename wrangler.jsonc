@@ -1,6 +1,13 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "letham-web",
-  "compatibility_date": "2026-06-05",
-  "pages_build_output_dir": "_site"
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "letham-web",
+	"compatibility_date": "2026-06-05",
+	"pages_build_output_dir": "_site",
+	"d1_databases": [
+		{
+			"binding": "curling_league",
+			"database_name": "curling-league",
+			"database_id": "30784ec7-c658-420e-a390-c6a11ce24ba9"
+		}
+	]
 }

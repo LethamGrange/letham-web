@@ -1,0 +1,372 @@
+---
+title: Record Match Scores
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+---
+
+<h1 class="ui-h2">Admin: Record Match Score</h1>
+
+<form
+  novalidate
+  class="scorecard"
+  hx-post="/api/submit-scorecard"
+  hx-target="#recent-results"
+  hx-swap="outerHTML"
+>
+  <!-- 1. Metadata -->
+  <label>Match Date:</label>
+  <input type="date" name="match_date" required /><br /><br />
+  <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+    <div>
+      <label>Date:</label><br />
+      <input type="date" name="match_date" required />
+    </div>
+    <div>
+      <label>Time / Draw:</label><br />
+      <input type="time" name="match_time" required />
+    </div>
+    <div>
+      <label>Sheet:</label><br />
+      <select name="sheet" required>
+        <option value="A">Sheet A</option>
+        <option value="B">Sheet B</option>
+        <option value="C">Sheet C</option>
+        <option value="D">Sheet D</option>
+        <option value="E">Sheet E</option>
+        <option value="F">Sheet F</option>
+      </select>
+    </div>
+    <div>
+      <label>Competition / Trophy:</label><br />
+      <input
+        type="text"
+        name="competition_name"
+        placeholder="e.g., Club Championship"
+        required
+        list="competitions-list"
+      />
+    </div>
+  </div>
+
+  <!-- 2. Teams & Rosters -->
+  <div style="display: flex; gap: 40px">
+    <!-- Team A Column -->
+    <div>
+      <h3>Team A</h3>
+
+      <input
+        type="text"
+        name="team_a_name"
+        placeholder="Team or Rink name"
+        list="club-members"
+        required
+      />
+      <h4>Roster:</h4>
+      <input
+        type="text"
+        name="team_a_skip"
+        placeholder="Skip"
+        list="club-members"
+        required
+      /><br />
+
+      <input
+        type="text"
+        name="team_a_third"
+        placeholder="Third"
+        list="club-members"
+        required
+      /><br />
+      <input
+        type="text"
+        name="team_a_second"
+        placeholder="Second"
+        list="club-members"
+        required
+      /><br />
+      <input
+        type="text"
+        name="team_a_lead"
+        placeholder="Lead"
+        list="club-members"
+        required
+      />
+    </div>
+
+    <!-- Team B Column -->
+    <div>
+      <h3>Team B</h3>
+
+      <input
+        type="text"
+        name="team_b_name"
+        placeholder="Team or Rink name"
+        list="club-members"
+        required
+      />
+
+      <h4>Roster:</h4>
+      <input
+        type="text"
+        name="team_b_skip"
+        placeholder="Skip"
+        list="club-members"
+        required
+      /><br />
+      <input
+        type="text"
+        name="team_b_third"
+        placeholder="Third"
+        list="club-members"
+        required
+      /><br />
+      <input
+        type="text"
+        name="team_b_second"
+        placeholder="Second"
+        list="club-members"
+        required
+      /><br />
+      <input
+        type="text"
+        name="team_b_lead"
+        placeholder="Lead"
+        list="club-members"
+        required
+      />
+    </div>
+  </div>
+
+  <!-- 3. End-by-End Linescore Grid -->
+  <h3>Linescore <span>(Leave blank if end wasn't played)i</span></h3>
+  <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
+    Swipe horizontally to view all 8 ends ↔
+  </p>
+  <div class="scorecard-scroll-wrapper">
+    <table
+      border="1"
+      cellpadding="6"
+      style="border-collapse: collapse; text-align: center"
+    >
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>E1</th>
+          <th>E2</th>
+          <th>E3</th>
+          <th>E4</th>
+          <th>E5</th>
+          <th>E6</th>
+          <th>E7</th>
+          <th>E8</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Team A Shots</td>
+          <td webc:for="end of [1,2,3,4,5,6,7,8]">
+            <input
+              type="number"
+              :name="`e${end}_a`"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+        </tr>
+        <tr>
+          <td>Team B Shots</td>
+          <td webc:for="end of [1,2,3,4,5,6,7,8]">
+            <input
+              type="number"
+              :name="`e${end}_b`"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <span class="error-message" id="linescore-error"></span>
+  </div>
+  <div style="margin-top: 15px">
+    <label
+      ><input type="checkbox" name="conceded" /> Match conceded early / ran out
+      of time</label
+    >
+  </div>
+
+  <br />
+  <button type="submit">Submit Complete Scorecard</button>
+</form>
+
+<h2>Recent Results Log</h2>
+<!-- htmx will fetch and load existing scores here automatically when the page opens -->
+<div
+  id="recent-results"
+  hx-get="/api/get-scores"
+  hx-trigger="load"
+  hx-swap="outerHTML"
+>
+  <div
+    class="loading-placeholder"
+    style="color: var(--text-3); padding: var(--size-3)"
+  >
+    Loading latest scorecards...
+  </div>
+</div>
+
+<!-- At the bottom of your admin page, you have a list of all club members -->
+<datalist id="club-members">
+  <option value="John Smith"></option>
+  <option value="Dave Anderson"></option>
+  <option value="Hamish Milne"></option>
+  <option value="Robert Brown"></option>
+</datalist>
+<script>
+  const form = document.querySelector("form");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const isValid = e.target.checkValidity();
+    const formData = Object.fromEntries(new FormData(form));
+    //console.log(JSON.stringify(formData, null, 2));
+    //console.log(isValid);
+
+    if (isValid) {
+      // Loop through all 8 ends to check curling legality
+      for (let end = 1; end <= 8; end++) {
+        const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
+        const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
+
+        const scoreA = parseInt(scoreAInput.value) || 0;
+        const scoreB = parseInt(scoreBInput.value) || 0;
+
+        // RULE: Both teams cannot score points in the same end
+        if (scoreA > 0 && scoreB > 0) {
+          event.preventDefault(); // Stop the form submission completely
+
+          event.stopImmediatePropagation();
+
+          // 4. Force the browser to mark them invalid (this triggers :user-invalid)
+          scoreAInput.setCustomValidity("Invalid curling score");
+          scoreBInput.setCustomValidity("Invalid curling score");
+
+          // Highlight the offending inputs
+          scoreAInput.style.borderColor = "var(--red-6)";
+          scoreBInput.style.borderColor = "var(--red-6)";
+
+          const messageEl = form.querySelector("#linescore-error");
+
+          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in End ${end}. One side must be 0 or blank.`;
+
+          return;
+        }
+      }
+    }
+  });
+
+  // Listen for any input changes inside the scorecard table body
+  form
+    .querySelector(".scorecard-scroll-wrapper tbody")
+    .addEventListener("input", function (event) {
+      // Ensure we are interacting with one of our numeric inputs
+      if (!event.target.matches('input[type="number"]')) return;
+
+      const currentInput = event.target;
+      const currentValue = parseInt(currentInput.value) || 0;
+
+      // Only trigger the auto-zero logic if the admin typed a positive score
+      if (currentValue > 0) {
+        const currentName = currentInput.name; // e.g., "e1_a"
+
+        // Determine the opponent's input name by swapping '_a' with '_b' (or vice-versa)
+        const opponentName = currentName.endsWith("_a")
+          ? currentName.replace("_a", "_b")
+          : currentName.replace("_b", "_a");
+
+        // Find the opponent's input box within the same form
+        const opponentInput = currentInput.form.querySelector(
+          `[name="${opponentName}"]`,
+        );
+
+        // Rule: Auto-fill 0 ONLY if the opponent box is completely empty
+        // This allows the admin to manually correct numbers without the script overriding them
+        if (opponentInput && opponentInput.value === "") {
+          opponentInput.value = 0;
+        }
+      }
+    });
+</script>
+
+<style>
+  .scorecard {
+    --red: hsl(0, 66%, 54%);
+    --_critical: var(--red);
+  }
+  h1,
+  h2,
+  h3 {
+    max-inline-size: 100%;
+  }
+  h3 span {
+    font-size: var(--size-3);
+  }
+  .error-message {
+    color: var(--_critical);
+    font-size: var(--size-3);
+  }
+
+  /* Target Chrome, Safari, Edge, and Opera */
+  .scorecard-scroll-wrapper input[type="number"]::-webkit-outer-spin-button,
+  .scorecard-scroll-wrapper input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Target Firefox */
+  .scorecard-scroll-wrapper input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  /* Container forces horizontal scrolling on small screens */
+  .scorecard-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
+    margin-bottom: 1rem;
+  }
+
+  /* Ensure the table doesn't collapse its columns too small */
+  .scorecard-scroll-wrapper table {
+    width: 100%;
+    min-width: 600px; /* Forces the table to stay wide enough to read on mobile */
+    border-collapse: collapse;
+  }
+
+  /* Give the number inputs a consistent, finger-friendly size */
+  .scorecard-scroll-wrapper input[type="number"] {
+    width: 45px;
+    height: 35px;
+    text-align: center;
+    font-size: 1rem;
+    border: 1px solid transparent;
+  }
+  /* Style the input when a user types an invalid number and moves away */
+  .scorecard-scroll-wrapper input[type="number"]:user-invalid {
+    border-color: var(--red-6);
+    background-color: var(--red-1);
+    color: var(--red-9);
+  }
+
+  /* Hide the swipe hint on large screens where scrolling isn't needed */
+  .mobile-hint {
+    display: none;
+  }
+  @media (max-width: 600px) {
+    .mobile-hint {
+      display: block;
+    }
+  }
+</style>
