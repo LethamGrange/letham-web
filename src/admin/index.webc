@@ -6,202 +6,193 @@ headerAlt: Letham Grange logo
 ---
 
 <h1 class="ui-h2">Admin: Record Match Score</h1>
+<div id="form-error-banner"></div>
+<scorecard-manager>
+  <form
+    novalidate
+    class="scorecard"
+    hx-post="/api/submit-scorecard"
+    hx-target="#recent-results"
+    hx-swap="innerHTML"
+  >
+    <!-- 1. Metadata -->
+    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+      <div>
+        <label>Date:</label><br />
+        <input type="date" name="match_date" required />
+      </div>
+      <div>
+        <label>Time / Draw:</label><br />
+        <input type="time" name="match_time" required />
+      </div>
+      <div>
+        <label>Sheet:</label><br />
+        <select name="sheet" required>
+          <option value="A">Sheet A</option>
+          <option value="B">Sheet B</option>
+          <option value="C">Sheet C</option>
+          <option value="D">Sheet D</option>
+          <option value="E">Sheet E</option>
+          <option value="F">Sheet F</option>
+        </select>
+      </div>
+      <competition-picker></competition-picker>
+    </div>
 
-<form
-  novalidate
-  class="scorecard"
-  hx-post="/api/submit-scorecard"
-  hx-target="#recent-results"
-  hx-swap="outerHTML"
+    <!-- 2. Teams & Rosters -->
+    <div style="display: flex; gap: 40px">
+      <!-- Team A Column -->
+      <div>
+        <h3>Team A</h3>
+
+        <input
+          type="text"
+          name="team_a_name"
+          placeholder="Team or Rink name"
+          list="club-members"
+          required
+        />
+        <h4>Roster:</h4>
+        <input
+          type="text"
+          name="team_a_skip"
+          placeholder="Skip"
+          list="club-members"
+          required
+        /><br />
+
+        <input
+          type="text"
+          name="team_a_third"
+          placeholder="Third"
+          list="club-members"
+          required
+        /><br />
+        <input
+          type="text"
+          name="team_a_second"
+          placeholder="Second"
+          list="club-members"
+          required
+        /><br />
+        <input
+          type="text"
+          name="team_a_lead"
+          placeholder="Lead"
+          list="club-members"
+          required
+        />
+      </div>
+
+      <!-- Team B Column -->
+      <div>
+        <h3>Team B</h3>
+
+        <input
+          type="text"
+          name="team_b_name"
+          placeholder="Team or Rink name"
+          list="club-members"
+          required
+        />
+
+        <h4>Roster:</h4>
+        <input
+          type="text"
+          name="team_b_skip"
+          placeholder="Skip"
+          list="club-members"
+          required
+        /><br />
+        <input
+          type="text"
+          name="team_b_third"
+          placeholder="Third"
+          list="club-members"
+          required
+        /><br />
+        <input
+          type="text"
+          name="team_b_second"
+          placeholder="Second"
+          list="club-members"
+          required
+        /><br />
+        <input
+          type="text"
+          name="team_b_lead"
+          placeholder="Lead"
+          list="club-members"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- 3. End-by-End Linescore Grid -->
+    <h3>Linescore <span>(Leave blank if end wasn't played)i</span></h3>
+    <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
+      Swipe horizontally to view all 8 ends ↔
+    </p>
+    <div class="scorecard-scroll-wrapper">
+      <table
+        border="1"
+        cellpadding="6"
+        style="border-collapse: collapse; text-align: center"
+      >
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>E1</th>
+            <th>E2</th>
+            <th>E3</th>
+            <th>E4</th>
+            <th>E5</th>
+            <th>E6</th>
+            <th>E7</th>
+            <th>E8</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Team A Shots</td>
+            <td webc:for="end of [1,2,3,4,5,6,7,8]">
+              <input
+                type="number"
+                :name="`e${end}_a`"
+                min="0"
+                max="8"
+                onwheel="this.blur()"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Team B Shots</td>
+            <td webc:for="end of [1,2,3,4,5,6,7,8]">
+              <input
+                type="number"
+                :name="`e${end}_b`"
+                min="0"
+                max="8"
+                onwheel="this.blur()"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <span class="error-message" id="linescore-error"></span>
+    </div>
+    <div style="margin-top: 15px">
+      <label
+        ><input type="checkbox" name="conceded" /> Match conceded early / ran
+        out of time</label
+      >
+    </div>
+
+    <br />
+    <button type="submit">Submit Complete Scorecard</button>
+  </form></scorecard-manager
 >
-  <!-- 1. Metadata -->
-  <label>Match Date:</label>
-  <input type="date" name="match_date" required /><br /><br />
-  <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
-    <div>
-      <label>Date:</label><br />
-      <input type="date" name="match_date" required />
-    </div>
-    <div>
-      <label>Time / Draw:</label><br />
-      <input type="time" name="match_time" required />
-    </div>
-    <div>
-      <label>Sheet:</label><br />
-      <select name="sheet" required>
-        <option value="A">Sheet A</option>
-        <option value="B">Sheet B</option>
-        <option value="C">Sheet C</option>
-        <option value="D">Sheet D</option>
-        <option value="E">Sheet E</option>
-        <option value="F">Sheet F</option>
-      </select>
-    </div>
-    <div>
-      <label>Competition / Trophy:</label><br />
-      <input
-        type="text"
-        name="competition_name"
-        placeholder="e.g., Club Championship"
-        required
-        list="competitions-list"
-      />
-    </div>
-  </div>
-
-  <!-- 2. Teams & Rosters -->
-  <div style="display: flex; gap: 40px">
-    <!-- Team A Column -->
-    <div>
-      <h3>Team A</h3>
-
-      <input
-        type="text"
-        name="team_a_name"
-        placeholder="Team or Rink name"
-        list="club-members"
-        required
-      />
-      <h4>Roster:</h4>
-      <input
-        type="text"
-        name="team_a_skip"
-        placeholder="Skip"
-        list="club-members"
-        required
-      /><br />
-
-      <input
-        type="text"
-        name="team_a_third"
-        placeholder="Third"
-        list="club-members"
-        required
-      /><br />
-      <input
-        type="text"
-        name="team_a_second"
-        placeholder="Second"
-        list="club-members"
-        required
-      /><br />
-      <input
-        type="text"
-        name="team_a_lead"
-        placeholder="Lead"
-        list="club-members"
-        required
-      />
-    </div>
-
-    <!-- Team B Column -->
-    <div>
-      <h3>Team B</h3>
-
-      <input
-        type="text"
-        name="team_b_name"
-        placeholder="Team or Rink name"
-        list="club-members"
-        required
-      />
-
-      <h4>Roster:</h4>
-      <input
-        type="text"
-        name="team_b_skip"
-        placeholder="Skip"
-        list="club-members"
-        required
-      /><br />
-      <input
-        type="text"
-        name="team_b_third"
-        placeholder="Third"
-        list="club-members"
-        required
-      /><br />
-      <input
-        type="text"
-        name="team_b_second"
-        placeholder="Second"
-        list="club-members"
-        required
-      /><br />
-      <input
-        type="text"
-        name="team_b_lead"
-        placeholder="Lead"
-        list="club-members"
-        required
-      />
-    </div>
-  </div>
-
-  <!-- 3. End-by-End Linescore Grid -->
-  <h3>Linescore <span>(Leave blank if end wasn't played)i</span></h3>
-  <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
-    Swipe horizontally to view all 8 ends ↔
-  </p>
-  <div class="scorecard-scroll-wrapper">
-    <table
-      border="1"
-      cellpadding="6"
-      style="border-collapse: collapse; text-align: center"
-    >
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th>E1</th>
-          <th>E2</th>
-          <th>E3</th>
-          <th>E4</th>
-          <th>E5</th>
-          <th>E6</th>
-          <th>E7</th>
-          <th>E8</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Team A Shots</td>
-          <td webc:for="end of [1,2,3,4,5,6,7,8]">
-            <input
-              type="number"
-              :name="`e${end}_a`"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-        </tr>
-        <tr>
-          <td>Team B Shots</td>
-          <td webc:for="end of [1,2,3,4,5,6,7,8]">
-            <input
-              type="number"
-              :name="`e${end}_b`"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <span class="error-message" id="linescore-error"></span>
-  </div>
-  <div style="margin-top: 15px">
-    <label
-      ><input type="checkbox" name="conceded" /> Match conceded early / ran out
-      of time</label
-    >
-  </div>
-
-  <br />
-  <button type="submit">Submit Complete Scorecard</button>
-</form>
 
 <h2>Recent Results Log</h2>
 <!-- htmx will fetch and load existing scores here automatically when the page opens -->
@@ -224,8 +215,13 @@ headerAlt: Letham Grange logo
   <option value="John Smith"></option>
   <option value="Dave Anderson"></option>
   <option value="Hamish Milne"></option>
-  <option value="Robert Brown"></option>
+  <option value="Robert Brown"></option></datalist
+><datalist id="competitions-list">
+  <option value="Bank of Scotland"></option>
+  <option value="Contractor's Cup"></option>
+  <option value="Spring League"></option>
 </datalist>
+
 <script>
   const form = document.querySelector("form");
   form.addEventListener("submit", function (e) {

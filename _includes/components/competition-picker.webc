@@ -1,0 +1,57 @@
+<!-- components/competition-picker.webc -->
+<div class="competition-picker-group" style="margin-bottom: var(--size-3)">
+  <label for="competition_select">Competition / League:</label><br />
+
+  <select id="competition_select" name="competition_select" required>
+    <option value="">-- Select Competition --</option>
+    <option value="Bank of Scotland">Bank of Scotland</option>
+    <option value="Contractor's Cup">Contractor's Cup</option>
+    <option value="Spring League">Spring League</option>
+    <option value="Mixed Doubles">Mixed Doubles</option>
+    <option value="Other">Other (Friendly / External Trophy / Bonspiel)</option>
+  </select>
+
+  <!-- The custom text field starts hidden via inline style -->
+  <div
+    id="custom-field-container"
+    style="display: none; margin-top: var(--size-2)"
+  >
+    <label for="custom_competition_name">Specify Match/Trophy Name:</label
+    ><br />
+    <input
+      type="text"
+      id="custom_competition_name"
+      name="custom_competition_name"
+      placeholder="e.g., Agricar, Friendly vs Forfar"
+    />
+  </div>
+</div>
+
+<script>
+  class CompetitionPicker extends HTMLElement {
+    connectedCallback() {
+      const select = this.querySelector("#competition_select");
+      const container = this.querySelector("#custom-field-container");
+      const customInput = this.querySelector("#custom_competition_name");
+
+      select.addEventListener("change", () => {
+        if (select.value === "Other") {
+          // Show the custom text field and make it mandatory
+          container.style.display = "block";
+          customInput.setAttribute("required", "");
+          customInput.focus();
+        } else {
+          // Hide it, clear any entered text, and remove the required flag
+          container.style.display = "none";
+          customInput.removeAttribute("required");
+          customInput.value = "";
+        }
+      });
+    }
+  }
+
+  // Register the custom element natively
+  if ("customElements" in window) {
+    customElements.define("competition-picker", CompetitionPicker);
+  }
+</script>
