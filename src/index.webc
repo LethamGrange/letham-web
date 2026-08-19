@@ -1,0 +1,102 @@
+---
+title: "Welcome to Letham"
+layout: "base"
+pagetitle: Letham Grange Curling
+headerImage: images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
+---
+
+<!-- The full-width wrapper creates the background belt across the screen -->
+<cta-section img-src="/images/7544378.jpeg">
+  <div class="cta-title">
+    <h2>Welcome to Letham Grange Curling Club</h2>
+  </div>
+
+  <p>
+    Discover the thrill of curling, connect with our community, and experience
+    the tradition of this exciting sport. Whether you're a seasoned curler or
+    new to the ice, we invite you to join us on our journey.
+  </p>
+  <a class="ui-button ui-filled ui-primary" href="/contact/">Become a Member</a>
+</cta-section>
+
+<centred-content-block class="breakout lgcc-titles">
+  <h1 class="ui-h2">Explore the world of curling with us</h1>
+  <p>
+    Letham Grange Curling Club is more than just a club; it is a community
+    passionate about curling. We offer various opportunities for all skill
+    levels, from beginners to experienced players. Join us and discover the joy
+    of the 'roaring game'.
+  </p>
+</centred-content-block>
+
+<two-columns class="full-width lgcc-titles">
+  <div slot="left">
+    <img src="/images/75544300.jpg" alt="Club main pitch" />
+
+    <h2>About our Club</h2>
+    <p>
+      Learn about our rich history, our values, and what makes Letham Grange
+      Curling Club a vibrant community for all curling enthusiasts in Arbroath,
+      across Angus and beyond.
+    </p>
+    <a class="ui-button ui-filled ui-primary" href="/about/">Find out More</a>
+  </div>
+
+  <div slot="right">
+    <img src="/images/75544305.jpeg" alt="Club main pitch" />
+
+    <h2>Membership details</h2>
+    <p>
+      Discover the benefits of becoming a member of Letham Grange Curling Club.
+      We offer various membership options tailored to suit different needs and
+      skill levels.
+    </p>
+    <a class="ui-button ui-filled ui-primary" href="/membership/"
+      >View Options</a
+    >
+  </div>
+</two-columns>
+
+<two-columns class="full-width lgcc-titles">
+  <div slot="left">
+    <h2>Our facilities</h2>
+    <p>
+      Explore our state-of-the-art curling facilities, designed to provide the
+      best experience for both casual players and competitive curlers. Come and
+      see where the magic happens!
+    </p>
+    <a class="ui-button ui-filled ui-primary" href="/facilities/"
+      >Discover our Facilities</a
+    >
+
+    <img src="/images/fis-picture.png" alt="Club main pitch" />
+  </div>
+
+  <div slot="right">
+    <img src="/images/curling-stone-high.jpeg" alt="Club main pitch" />
+
+    <h2>Membership details</h2>
+    <p>
+      Discover the benefits of becoming a member of Letham Grange Curling Club.
+      We offer various membership options tailored to suit different needs and
+      skill levels.
+    </p>
+    <a class="ui-button ui-filled ui-primary" href="/guide/">Learn to Curl</a>
+  </div>
+</two-columns>
+
+<style>
+  .section-title {
+    color: var(--color-6);
+  }
+  .lgcc-titles {
+    padding-inline: var(--size-3);
+    h1,
+    h2 {
+      color: var(--color-6);
+      max-inline-size: 100%;
+    }
+  }
+</style>
