@@ -1,6 +1,10 @@
 ---
 layout: base.webc
 title: Beginners Guide to Curling
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+
 ---
 
 ## Curling Information sheets

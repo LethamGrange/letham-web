@@ -1,6 +1,10 @@
 ---
 layout: base.webc
 title: Membership Categories & Costs
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+
 ---
 
 # News & Events

@@ -1,0 +1,22 @@
+---
+title: Scores
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+---
+
+<h1 class="ui-h2">Recent Results Log</h1>
+<!-- htmx will fetch and load existing scores here automatically when the page opens -->
+<div
+  id="recent-results"
+  hx-get="/api/get-scores"
+  hx-trigger="load"
+  hx-swap="outerHTML"
+>
+  <div
+    class="loading-placeholder"
+    style="color: var(--text-3); padding: var(--size-3)"
+  >
+    Loading latest scorecards...
+  </div>
+</div>

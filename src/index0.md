@@ -1,9 +1,10 @@
 ---
 title: 'Welcome to Letham'
-pagetitle: Letham Grange Curling
-pagesrc: /images/logo-high.png
 layout: 'base'
-description: Welcome to Letham Grange Curling
+pagetitle: Letham Grange Curling
+headerImage: images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
 ---
 
 <!-- The full-width wrapper creates the background belt across the screen -->

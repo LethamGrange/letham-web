@@ -17,11 +17,16 @@
     --footer-text-color: light-dark(#424242, #bdbdbd);
     --footer-link-color: light-dark(#1b70df, #82b1ff);
 
+    --footer-background-color: light-dark(#f1f1f1, #1a1a1a);
+    --footer-text-color: light-dark(#424242, #bdbdbd);
+    --footer-link-color: light-dark(#1b70df, #82b1ff);
     background-color: var(--footer-background-color);
     color: var(--footer-text-color);
-    padding: 1rem;
     text-align: center;
-    font-size: 0.875rem;
+    padding: 1rem;
+    display: grid;
+    align-items: center;
+    grid-template-areas: "pile";
 
     a {
       color: var(--footer-link-color);
@@ -32,12 +37,22 @@
       text-decoration: underline;
     }
 
+    p {
+      text-wrap: pretty;
+      grid-area: pile;
+      justify-self: start;
+    }
+
     nav {
-      display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
-      flex-wrap: wrap;
       margin-top: 0.5rem;
+      display: flex;
+      align-self: center;
+      justify-self: center;
+      grid-area: pile;
+      justify-self: center;
     }
 
     nav a {

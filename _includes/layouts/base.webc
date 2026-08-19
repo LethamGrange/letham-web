@@ -69,14 +69,19 @@
   </head>
 
   <body tabindex="-1" class="site-wrapper">
-    <div>
-      <page-title
-        webc:if="$data.pagetitle"
+    <header>
+      <page-header
+        webc:if="$data.headerImage"
+        :@pos="$data.headerPosition"
         :@title="$data.pagetitle"
-        :@src="$data.pagesrc"
-      ></page-title>
+        :@description="$data.description"
+        :@image="$data.headerImage"
+        :@alt="$data.headerAlt || 'Section header graphic'"
+      >
+      </page-header>
       <site-nav></site-nav>
-    </div>
+    </header>
+
     <main class="page-layout">
       <template webc:nokeep @raw="content"></template>
     </main>
