@@ -11,12 +11,13 @@ headerAlt: Letham Grange logo
   <form
     novalidate
     class="scorecard"
-    hx-post="/api/submit-scorecard"
+    hx-post="/admin/submit-scorecard"
     hx-target="#recent-results"
     hx-swap="innerHTML"
   >
     <!-- 1. Metadata -->
     <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+      <input type="hidden" name="match_id" value="" />
       <div>
         <label>Date:</label><br />
         <input type="date" name="match_date" required />
@@ -53,35 +54,18 @@ headerAlt: Letham Grange logo
           required
         />
         <h4>Roster:</h4>
-        <input
-          type="text"
-          name="team_a_skip"
-          placeholder="Skip"
-          list="club-members"
-          required
-        /><br />
-
-        <input
-          type="text"
-          name="team_a_third"
-          placeholder="Third"
-          list="club-members"
-          required
-        /><br />
-        <input
-          type="text"
-          name="team_a_second"
-          placeholder="Second"
-          list="club-members"
-          required
-        /><br />
-        <input
-          type="text"
-          name="team_a_lead"
-          placeholder="Lead"
-          list="club-members"
-          required
-        />
+        <div
+          class="form-input"
+          webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+        >
+          <input
+            type="text"
+            :name="`team_a_${player.toLowerCase()}`"
+            :placeholder="player"
+            list="club-members"
+            required
+          />
+        </div>
       </div>
 
       <!-- Team B Column -->
@@ -97,34 +81,18 @@ headerAlt: Letham Grange logo
         />
 
         <h4>Roster:</h4>
-        <input
-          type="text"
-          name="team_b_skip"
-          placeholder="Skip"
-          list="club-members"
-          required
-        /><br />
-        <input
-          type="text"
-          name="team_b_third"
-          placeholder="Third"
-          list="club-members"
-          required
-        /><br />
-        <input
-          type="text"
-          name="team_b_second"
-          placeholder="Second"
-          list="club-members"
-          required
-        /><br />
-        <input
-          type="text"
-          name="team_b_lead"
-          placeholder="Lead"
-          list="club-members"
-          required
-        />
+        <div
+          class="form-input"
+          webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+        >
+          <input
+            type="text"
+            :name="`team_b_${player.toLowerCase()}`"
+            :placeholder="player"
+            list="club-members"
+            required
+          />
+        </div>
       </div>
     </div>
 
@@ -209,14 +177,9 @@ headerAlt: Letham Grange logo
     Loading latest scorecards...
   </div>
 </div>
-
+<datalist id="club-members"></datalist>
 <!-- At the bottom of your admin page, you have a list of all club members -->
-<datalist id="club-members">
-  <option value="John Smith"></option>
-  <option value="Dave Anderson"></option>
-  <option value="Hamish Milne"></option>
-  <option value="Robert Brown"></option></datalist
-><datalist id="competitions-list">
+<datalist id="competitions-list">
   <option value="Bank of Scotland"></option>
   <option value="Contractor's Cup"></option>
   <option value="Spring League"></option>
