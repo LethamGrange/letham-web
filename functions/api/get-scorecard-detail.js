@@ -109,15 +109,36 @@ export async function onRequestGet(context) {
         </div>
 
         <!-- Collapse Action Trigger Button -->
-        <div style="text-align: right; margin-top: var(--size-3);">
-          <button hx-get="/api/get-scores"
-                  hx-target="#recent-results"
-                  hx-swap="outerHTML"
-                  style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;">
-            Close Details ▴
-          </button>
-        </div>
-      </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--size-3);">
+  <!-- 1. The Secure Delete Button Trigger -->
+  <button
+    hx-delete="/admin/delete-scorecard?id=${match.id}"
+    hx-target="#recent-results"
+    hx-swap="innerHTML"
+    hx-confirm="⚠️ CRITICAL WARNING:\n\nAre you completely sure you want to permanently delete this scorecard? This will wipe the match, the player lineups, and all end-by-end records from the database."
+    style="background: var(--red-1); color: var(--red-7); border: 1px solid var(--red-2); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;"
+    onmouseover="this.style.background='var(--red-2)'"
+    onmouseout="this.style.background='var(--red-1)'">
+    Delete Scorecard 🗑️
+  </button>
+<button
+  type="button"
+  onclick="this.dispatchEvent(new CustomEvent('edit-scorecard-request', {
+    bubbles: true,
+    detail: { matchId: ${match.id} }
+  }))"
+  style="background: var(--surface-3); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;">
+  Edit Scorecard ✏️
+</button>
+
+  <!-- Your existing Close button remains on the right -->
+  <button hx-get="/api/get-scores"
+          hx-target="#recent-results"
+          hx-swap="innerHTML"
+          style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;">
+    Close Details ▴
+  </button>
+</div>      </div>
     `;
 
     return new Response(detailHtml, { headers: { 'Content-Type': 'text/html' } });
