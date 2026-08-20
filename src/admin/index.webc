@@ -122,7 +122,7 @@ headerAlt: Letham Grange logo
         </thead>
         <tbody>
           <tr>
-            <td>Team A Shots</td>
+            <td id="label-team-a">Team A</td>
             <td webc:for="end of [1,2,3,4,5,6,7,8]">
               <input
                 type="number"
@@ -134,7 +134,7 @@ headerAlt: Letham Grange logo
             </td>
           </tr>
           <tr>
-            <td>Team B Shots</td>
+            <td id="label-team-b">Team B</td>
             <td webc:for="end of [1,2,3,4,5,6,7,8]">
               <input
                 type="number"

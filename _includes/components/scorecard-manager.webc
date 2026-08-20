@@ -7,6 +7,29 @@
 
       const submitBtn = this.querySelector('button[type="submit"]');
 
+      const inputA = form.querySelector('[name="team_a_name"]');
+      const inputB = form.querySelector('[name="team_b_name"]');
+
+      const labelA = form.querySelector("#label-team-a");
+      const labelB = form.querySelector("#label-team-b");
+
+      // DYNAMIC NAME SYNC FUNCTION
+      const syncLabels = () => {
+        // If a name is typed, show it. Otherwise, fall back to the defaults.
+        labelA.textContent = inputA.value.trim()
+          ? `${inputA.value.trim()}`
+          : "Team A";
+        labelB.textContent = inputB.value.trim()
+          ? `${inputB.value.trim()}`
+          : "Team B";
+      };
+
+      // Listen for real-time keystrokes on both inputs
+      if (inputA && labelA) inputA.addEventListener("input", syncLabels);
+      if (inputB && labelB) inputB.addEventListener("input", syncLabels);
+
+      setTimeout(syncLabels, 10);
+
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
       let cancelBtn = this.querySelector("#cancel-edit-btn");
       if (!cancelBtn) {
@@ -22,60 +45,64 @@
       this.populateClubMembers();
 
       // 1. CATCH THE BUBBLED EVENT FROM ANY DEEP MATCH CARD CLICK
-      this.addEventListener("edit-scorecard-request", async (event) => {
-        const matchId = event.detail.matchId;
+      document.body.addEventListener(
+        "edit-scorecard-request",
+        async (event) => {
+          const matchId = event.detail.matchId;
 
-        try {
-          // 2. FETCH PURE JSON FROM CLOUDFLARE
-          const response = await fetch(
-            `/admin/get-raw-scorecard-json?id=${matchId}`,
-          );
-          if (!response.ok)
-            throw new Error("Could not pull scorecard database records.");
+          try {
+            // 2. FETCH PURE JSON FROM CLOUDFLARE
+            const response = await fetch(
+              `/admin/get-raw-scorecard-json?id=${matchId}`,
+            );
+            if (!response.ok)
+              throw new Error("Could not pull scorecard database records.");
 
-          const data = await response.json();
+            const data = await response.json();
 
-          // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
-          const hiddenIdInput = form.querySelector('[name="match_id"]');
-          if (hiddenIdInput) {
-            hiddenIdInput.value = matchId;
-          }
-
-          // 3. AUTOMATED DOM DATA MAPPER
-          // Loop keys and search form for matching named elements
-          Object.keys(data).forEach((key) => {
-            const input = form.querySelector(`[name="${key}"]`);
-            if (input) {
-              if (input.type === "checkbox") {
-                input.checked = !!data[key];
-              } else {
-                input.value = data[key] !== null ? data[key] : "";
-              }
-              // Manually trigger a dispatch event if your competition picker
-              // component needs to see changes (like toggling 'Other')
-              if (key === "competition_select") {
-                input.dispatchEvent(new Event("change"));
-              }
+            // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
+            const hiddenIdInput = form.querySelector('[name="match_id"]');
+            if (hiddenIdInput) {
+              hiddenIdInput.value = matchId;
             }
-          });
 
-          // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
-          form.setAttribute("hx-put", "/admin/submit-scorecard");
-          form.removeAttribute("hx-post");
-          htmx.process(form); // Rebinds the active lifecycle handlers to PUT
+            // 3. AUTOMATED DOM DATA MAPPER
+            // Loop keys and search form for matching named elements
+            Object.keys(data).forEach((key) => {
+              const input = form.querySelector(`[name="${key}"]`);
+              if (input) {
+                if (input.type === "checkbox") {
+                  input.checked = !!data[key];
+                } else {
+                  input.value = data[key] !== null ? data[key] : "";
+                }
+                // Manually trigger a dispatch event if your competition picker
+                // component needs to see changes (like toggling 'Other')
+                if (key === "competition_select") {
+                  input.dispatchEvent(new Event("change"));
+                }
+              }
+            });
 
-          submitBtn.textContent = "Save Modifications 💾";
-          cancelBtn.style.display = "inline-block";
+            // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
+            form.setAttribute("hx-put", "/admin/submit-scorecard");
+            form.removeAttribute("hx-post");
+            htmx.process(form); // Rebinds the active lifecycle handlers to PUT
 
-          // Bring workspace focus smoothly into window view
-          this.scrollIntoView({ behavior: "smooth" });
-        } catch (error) {
-          const errorBanner = document.getElementById("form-error-banner");
-          if (errorBanner) {
-            errorBanner.innerHTML = `<div style="color:var(--red-6)">⚠️ ${error.message}</div>`;
+            submitBtn.textContent = "Save Modifications 💾";
+            cancelBtn.style.display = "inline-block";
+
+            // Bring workspace focus smoothly into window view
+            this.scrollIntoView({ behavior: "smooth" });
+          } catch (error) {
+            const errorBanner = document.getElementById("form-error-banner");
+            if (errorBanner) {
+              errorBanner.innerHTML = `<div style="color:var(--red-6)">⚠️ ${error.message}</div>`;
+            }
           }
-        }
-      });
+          setTimeout(syncLabels, 10);
+        },
+      );
 
       // 5. THE CLEAN RESET PATHway TO CREATE MODE
       cancelBtn.addEventListener("click", () => {
@@ -96,6 +123,8 @@
         // If your competition picker element hides custom text strings on reset, trigger it
         const compSelect = form.querySelector('[name="competition_select"]');
         if (compSelect) compSelect.dispatchEvent(new Event("change"));
+
+        setTimeout(syncLabels, 10);
       });
 
       // Event 1: Before htmx swaps data, inspect the server status code
@@ -128,6 +157,7 @@
           setTimeout(() => {
             form.reset();
           }, 50);
+          setTimeout(syncLabels, 10); // Resets labels back to defaults on success
         }
       });
     }
