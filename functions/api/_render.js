@@ -7,7 +7,7 @@ export async function renderUpdatedResultsList(db) {
       .prepare(
         `
       SELECT
-        m.id, m.match_date, m.match_time, m.sheet, m.competition_name, m.final_score_a, m.final_score_b, m.conceded_early,
+        m.id, m.match_date, m.match_time, m.sheet, m.competition_name, m.final_score_a, m.final_score_b,
         tA.name AS team_a_name, tB.name AS team_b_name
       FROM matches m
       JOIN clubs_or_rinks tA ON m.team_a_id = tA.id
@@ -31,10 +31,6 @@ export async function renderUpdatedResultsList(db) {
     // 3. Map database rows to clean HTML markup using Open Props layout preferences
     const matchCards = results
       .map(match => {
-        const isConceded = match.conceded_early
-          ? ' <span class="badge conceded" style="background: var(--red-2); color: var(--red-9); padding: var(--size-1); border-radius: var(--radius-1); font-size: var(--font-size-0);">Conceded</span>'
-          : '';
-
         return `
         <div class="match-card summary-view"
              hx-get="/api/get-scorecard-detail?id=${match.id}"
@@ -61,8 +57,7 @@ export async function renderUpdatedResultsList(db) {
             </div>
           </div>
           <div style="margin-top: var(--size-2); font-size: var(--font-size-0); color: var(--text-3); text-align: center;">
-            Click to view full line score & rosters ▾ ${isConceded}
-          </div>
+            Click to view full line score & rosters ▾           </div>
         </div>
       `;
       })

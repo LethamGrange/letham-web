@@ -8,8 +8,8 @@ export async function onRequestGet(context) {
   }
 
   try {
-    // 1. Fetch main match records
-    const match = await db
+    // 1. Prepare both SELECT statements
+    const matchQuery = db
       .prepare(
         `
       SELECT m.*, tA.name AS team_a_name, tB.name AS team_b_name
@@ -19,15 +19,9 @@ export async function onRequestGet(context) {
       WHERE m.id = ?
     `,
       )
-      .bind(matchId)
-      .first();
+      .bind(matchId);
 
-    if (!match) {
-      return new Response(JSON.stringify({ error: 'Match not found' }), { status: 404 });
-    }
-
-    // 2. Fetch the completed end linescores
-    const { results: ends } = await db
+    const endsQuery = db
       .prepare(
         `
       SELECT end_number, score_a, score_b
@@ -35,16 +29,27 @@ export async function onRequestGet(context) {
       WHERE match_id = ?
     `,
       )
-      .bind(matchId)
-      .all();
+      .bind(matchId);
 
-    // 3. Flatten everything into a single dictionary object matching your form 'name' attributes
+    // 2. Execute both queries simultaneously in a single D1 trip
+    const [matchResult, endsResult] = await db.batch([matchQuery, endsQuery]);
+
+    // Extract the singular match object
+    const match = matchResult.results[0];
+    if (!match) {
+      return new Response(JSON.stringify({ error: 'Match not found' }), { status: 404 });
+    }
+
+    // Extract the ends array
+    const ends = endsResult.results;
+
+    // 3. Flatten everything into a single dictionary object matching your form
     const payload = {
       match_id: match.id,
       match_date: match.match_date,
       match_time: match.match_time,
       sheet: match.sheet,
-      competition_select: match.competition_name, // Hooks into your select logic
+      competition_select: match.competition_name,
       team_a_name: match.team_a_name,
       team_b_name: match.team_b_name,
       team_a_skip: match.team_a_skip,
