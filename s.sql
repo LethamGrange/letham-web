@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS clubs_or_rinks (
 );
 
 -- 2. Master Match Record with all curling metadata
-CREATE TABLE matches (
+CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     match_date TEXT NOT NULL,         -- YYYY-MM-DD
     match_time TEXT NOT NULL,         -- e.g., "18:00" or "20:15"
@@ -30,10 +30,24 @@ CREATE TABLE matches (
 );
 
 -- 3. Linescore (End-by-end details remain identical)
-CREATE TABLE match_ends (
+CREATE TABLE IF NOT EXISTS match_ends (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     match_id INTEGER REFERENCES matches(id) ON DELETE CASCADE,
     end_number INTEGER NOT NULL,
     score_a INTEGER NOT NULL,
     score_b INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user'
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -1,11 +1,21 @@
+import { getSessionRole } from '../helpers/auth.js';
+
 export async function onRequestGet(context) {
-  const db = context.env.curling_league;
-  const url = new URL(context.request.url);
+  const {
+    env: { curling_league: db },
+    data: { role },
+    request: { url: requestUrl },
+  } = context;
+
+  const url = new URL(requestUrl);
   const matchId = url.searchParams.get('id');
 
   if (!matchId) {
     return new Response('<p>Missing scorecard identifier.</p>', { status: 400 });
   }
+
+  const userRole = role ?? (await getSessionRole(context));
+  const isAdmin = userRole === 'admin';
 
   try {
     // 1. Fetch the master match details
@@ -51,9 +61,35 @@ export async function onRequestGet(context) {
       }
     }
 
+    const adminButtons = isAdmin
+      ? `
+  <button
+
+ hx-delete="/admin/delete-scorecard?id=${match.id}"
+  hx-target="#expanded-scorecard-${match.id}"
+  hx-swap="outerHTML"
+  hx-confirm="⚠️ CRITICAL WARNING:\n\nAre you completely sure you want to permanently delete this scorecard? This will wipe the match, the player lineups, and all end-by-end records from the database."
+   style="background: var(--red-1); color: var(--red-7); border: 1px solid var(--red-2); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;"
+    onmouseover="this.style.background='var(--red-2)'"
+    onmouseout="this.style.background='var(--red-1)'">
+    Delete Scorecard 🗑️
+  </button>
+
+<button
+  type="button"
+  onclick="this.dispatchEvent(new CustomEvent('edit-scorecard-request', {
+    bubbles: true,
+    detail: { matchId: ${match.id} }
+  }))"
+  style="background: var(--surface-3); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;">
+  Edit Scorecard ✏️
+</button>
+`
+      : '';
+
     // 4. Combine into an expanded Open Props card block
     const detailHtml = `
-      <div class="match-card detailed-view"
+      <div id="expanded-scorecard-${match.id}" class="match-card detailed-view"
            style="border: 2px solid var(--brand, var(--link)); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);">
 
         <header style="display: flex; justify-content: space-between; font-size: var(--font-size-0); color: var(--text-2); margin-bottom: var(--size-3); border-bottom: 1px solid var(--border); padding-bottom: var(--size-1);">
@@ -110,27 +146,7 @@ export async function onRequestGet(context) {
 
         <!-- Collapse Action Trigger Button -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--size-3);">
-  <!-- 1. The Secure Delete Button Trigger -->
-  <button
-    hx-delete="/admin/delete-scorecard?id=${match.id}"
-    hx-target="#recent-results"
-    hx-swap="innerHTML"
-    hx-confirm="⚠️ CRITICAL WARNING:\n\nAre you completely sure you want to permanently delete this scorecard? This will wipe the match, the player lineups, and all end-by-end records from the database."
-    style="background: var(--red-1); color: var(--red-7); border: 1px solid var(--red-2); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;"
-    onmouseover="this.style.background='var(--red-2)'"
-    onmouseout="this.style.background='var(--red-1)'">
-    Delete Scorecard 🗑️
-  </button>
-<button
-  type="button"
-  onclick="this.dispatchEvent(new CustomEvent('edit-scorecard-request', {
-    bubbles: true,
-    detail: { matchId: ${match.id} }
-  }))"
-  style="background: var(--surface-3); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;">
-  Edit Scorecard ✏️
-</button>
-
+ ${adminButtons}
   <!-- Your existing Close button remains on the right -->
   <button hx-get="/api/get-scores"
           hx-target="#recent-results"

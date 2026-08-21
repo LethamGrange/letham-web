@@ -1,5 +1,9 @@
 import { renderUpdatedResultsList } from './_render.js';
 
 export async function onRequestGet(context) {
-  return await renderUpdatedResultsList(context.env.curling_league);
+  const {
+    env: { curling_league: db },
+  } = context;
+
+  return await renderUpdatedResultsList(db);
 }
