@@ -189,22 +189,27 @@
            </div>
          `;
         } else if (status === 200) {
-          // 2. Handle Success: Instantly clear the error banner
           errorBanner.innerHTML = "";
 
-          // 3. FLIP THE FORM CONTROLS BACK TO STANDARD "CREATE" MODE
-          submitBtn.textContent = "Log New Scorecard";
-          cancelBtn.style.display = "none"; // <-- Hides the cancel button instantly!
+          // 🚨 FIX: Check if the HTMX target is the recent-results container.
+          // If it is, we are just closing details/refreshing the list—do NOT reset the form!
+          const isJustRefreshingList =
+            event.detail.target.id === "recent-results";
 
-          // If your competition picker component hides custom text strings on reset, trigger it
-          const compSelect = form.querySelector('[name="competition_select"]');
-          if (compSelect) compSelect.dispatchEvent(new Event("change"));
+          if (!isJustRefreshingList) {
+            submitBtn.textContent = "Log New Scorecard";
+            cancelBtn.style.display = "none";
 
-          // 4. Defer the form reset by 50ms so htmx can comfortably finish its DOM swap
-          setTimeout(() => {
-            form.reset();
-          }, 50);
-          setTimeout(syncLabels, 10); // Resets labels back to defaults on success
+            const compSelect = form.querySelector(
+              '[name="competition_select"]',
+            );
+            if (compSelect) compSelect.dispatchEvent(new Event("change"));
+
+            setTimeout(() => {
+              form.reset();
+            }, 50);
+            setTimeout(syncLabels, 10);
+          }
         }
       });
     }
