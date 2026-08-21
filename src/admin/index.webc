@@ -7,6 +7,9 @@ headerAlt: Letham Grange logo
 
 <h1 class="ui-h2">Admin: Record Match Score</h1>
 <div id="form-error-banner"></div>
+
+<button hx-post="/api/logout" class="logout-btn">Sign Out</button>
+
 <scorecard-manager>
   <form
     novalidate
