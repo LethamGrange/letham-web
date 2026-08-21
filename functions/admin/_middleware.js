@@ -2,7 +2,6 @@
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const db = context.env.curling_league;
-  console.log(context.env.curling_league);
 
   // Skip authentication checks on public assets or the login routes themselves
   if (

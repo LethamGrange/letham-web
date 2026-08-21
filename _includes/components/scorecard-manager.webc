@@ -12,6 +12,26 @@
 
       const labelA = form.querySelector("#label-team-a");
       const labelB = form.querySelector("#label-team-b");
+      const totalAEl = document.getElementById("running-total-a");
+      const totalBEl = document.getElementById("running-total-b");
+
+      // Helper function to calculate math for all 12 ends dynamically
+      function updateRunningTotals() {
+        let totalA = 0;
+        let totalB = 0;
+
+        for (let end = 1; end <= 12; end++) {
+          const valA = form.querySelector(`[name="e${end}_a"]`)?.value;
+          const valB = form.querySelector(`[name="e${end}_b"]`)?.value;
+
+          totalA += parseInt(valA) || 0;
+          totalB += parseInt(valB) || 0;
+        }
+
+        // Push the fresh values straight into the UI text nodes
+        totalAEl.textContent = totalA;
+        totalBEl.textContent = totalB;
+      }
 
       // DYNAMIC NAME SYNC FUNCTION
       const syncLabels = () => {
@@ -101,6 +121,9 @@
             }
           }
           setTimeout(syncLabels, 10);
+
+          // Add this right after you populate your form fields with JSON edit data:
+          updateRunningTotals();
         },
       );
 
@@ -166,22 +189,27 @@
            </div>
          `;
         } else if (status === 200) {
-          // 2. Handle Success: Instantly clear the error banner
           errorBanner.innerHTML = "";
 
-          // 3. FLIP THE FORM CONTROLS BACK TO STANDARD "CREATE" MODE
-          submitBtn.textContent = "Log New Scorecard";
-          cancelBtn.style.display = "none"; // <-- Hides the cancel button instantly!
+          // 🚨 FIX: Check if the HTMX target is the recent-results container.
+          // If it is, we are just closing details/refreshing the list—do NOT reset the form!
+          const isJustRefreshingList =
+            event.detail.target.id === "recent-results";
 
-          // If your competition picker component hides custom text strings on reset, trigger it
-          const compSelect = form.querySelector('[name="competition_select"]');
-          if (compSelect) compSelect.dispatchEvent(new Event("change"));
+          if (!isJustRefreshingList) {
+            submitBtn.textContent = "Log New Scorecard";
+            cancelBtn.style.display = "none";
 
-          // 4. Defer the form reset by 50ms so htmx can comfortably finish its DOM swap
-          setTimeout(() => {
-            form.reset();
-          }, 50);
-          setTimeout(syncLabels, 10); // Resets labels back to defaults on success
+            const compSelect = form.querySelector(
+              '[name="competition_select"]',
+            );
+            if (compSelect) compSelect.dispatchEvent(new Event("change"));
+
+            setTimeout(() => {
+              form.reset();
+            }, 50);
+            setTimeout(syncLabels, 10);
+          }
         }
       });
     }
@@ -209,3 +237,92 @@
     customElements.define("scorecard-manager", ScorecardManager);
   }
 </script>
+<style>
+  /* ==========================================================================
+   SCORECARD ADMISSIONS & CONTEXT MENU GRID COMPONENTS
+   ========================================================================== */
+
+  /* Anchor assignment bridge */
+  .popover-trigger {
+    anchor-name: var(--anchor-id);
+    background: none;
+    border: none;
+    font-size: var(--font-size-3);
+    cursor: pointer;
+    padding: var(--size-1);
+    line-height: 1;
+    color: var(--text-2);
+  }
+
+  .popover-trigger:hover {
+    color: var(--text-1);
+  }
+
+  /* Base structural layout for top-layer anchor element containers */
+  [popover].popover-menu {
+    display: none;
+    position-anchor: var(--anchor-id);
+    margin: 0;
+    inset: auto;
+    top: anchor(bottom);
+    right: anchor(right);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2);
+    box-shadow: var(--shadow-3);
+    padding: var(--size-1);
+    grid-template-columns: 1fr;
+    row-gap: var(--size-1);
+    min-width: 160px;
+  }
+
+  /* Activate CSS Grid structures natively when popover wakes */
+  [popover].popover-menu:popover-open {
+    display: grid;
+  }
+
+  /* Standardized row-item layout controls inside context layer */
+  .popover-menu .popover-item {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: var(--size-2) var(--size-3);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: var(--font-size-1);
+    border-radius: var(--radius-1);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--size-2);
+    align-items: center;
+  }
+
+  .popover-menu .popover-item:focus-visible {
+    outline: 2px solid var(--brand);
+  }
+
+  /* Context Variations */
+  .popover-menu .edit-action {
+    color: var(--text-1);
+  }
+
+  .popover-menu .edit-action:hover {
+    background: var(--surface-3);
+  }
+
+  .popover-menu .delete-action {
+    color: var(--red-6);
+  }
+
+  .popover-menu .delete-action:hover {
+    background: var(--red-1);
+  }
+
+  /* Semantic line separator controls */
+  .popover-menu .popover-divider {
+    border: 0;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    margin: 0;
+  }
+</style>

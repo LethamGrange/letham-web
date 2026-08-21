@@ -5,264 +5,392 @@ headerImage: /images/logo-high.png
 headerAlt: Letham Grange logo
 ---
 
-<h1 class="ui-h2">Admin: Record Match Score</h1>
-<div id="form-error-banner"></div>
+<div class="breakout">
+  <h1 class="ui-h2">Admin: Record Match Score</h1>
+  <div id="form-error-banner"></div>
 
-<button hx-post="/api/logout" class="logout-btn">Sign Out</button>
+  <button hx-post="/api/logout" class="logout-btn">Sign Out</button>
 
-<scorecard-manager>
-  <form
-    novalidate
-    class="scorecard"
-    hx-post="/admin/submit-scorecard"
-    hx-target="#recent-results"
-    hx-swap="innerHTML"
-  >
-    <!-- 1. Metadata -->
-    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
-      <input type="hidden" name="match_id" value="" />
-      <div>
-        <label>Date:</label><br />
-        <input type="date" name="match_date" required />
+  <scorecard-manager>
+    <form
+      novalidate
+      class="scorecard"
+      hx-post="/admin/submit-scorecard"
+      hx-target="#recent-results"
+      hx-swap="innerHTML"
+    >
+      <!-- 1. Metadata -->
+      <div
+        style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap"
+      >
+        <input type="hidden" name="match_id" value="" />
+        <div>
+          <label>Date:</label><br />
+          <input type="date" name="match_date" required />
+        </div>
+        <div>
+          <label>Time / Draw:</label><br />
+          <input type="time" name="match_time" required />
+        </div>
+        <div>
+          <label>Sheet:</label><br />
+          <select name="sheet" required>
+            <option value="A">Sheet A</option>
+            <option value="B">Sheet B</option>
+            <option value="C">Sheet C</option>
+            <option value="D">Sheet D</option>
+            <option value="E">Sheet E</option>
+            <option value="F">Sheet F</option>
+          </select>
+        </div>
+        <competition-picker></competition-picker>
       </div>
-      <div>
-        <label>Time / Draw:</label><br />
-        <input type="time" name="match_time" required />
-      </div>
-      <div>
-        <label>Sheet:</label><br />
-        <select name="sheet" required>
-          <option value="A">Sheet A</option>
-          <option value="B">Sheet B</option>
-          <option value="C">Sheet C</option>
-          <option value="D">Sheet D</option>
-          <option value="E">Sheet E</option>
-          <option value="F">Sheet F</option>
-        </select>
-      </div>
-      <competition-picker></competition-picker>
-    </div>
 
-    <!-- 2. Teams & Rosters -->
-    <div style="display: flex; gap: 40px">
-      <!-- Team A Column -->
-      <div>
-        <h3>Team A</h3>
-
-        <input
-          type="text"
-          name="team_a_name"
-          placeholder="Team or Rink name"
-          list="club-members"
-          required
-        />
-        <h4>Roster:</h4>
-        <div
-          class="form-input"
-          webc:for="player of ['Skip', 'Third', 'Second','Lead']"
-        >
+      <!-- 2. Teams & Rosters -->
+      <div style="display: flex; gap: 40px">
+        <!-- Team A Column -->
+        <div>
+          <h3>Team A</h3>
           <input
             type="text"
-            :name="`team_a_${player.toLowerCase()}`"
-            :placeholder="player"
+            name="team_a_name"
+            placeholder="Team or Rink name"
             list="club-members"
             required
           />
+          <h4>Roster:</h4>
+          <div
+            class="form-input"
+            webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+          >
+            <input
+              type="text"
+              :name="`team_a_${player.toLowerCase()}`"
+              :placeholder="player"
+              list="club-members"
+              required
+            />
+          </div>
         </div>
-      </div>
 
-      <!-- Team B Column -->
-      <div>
-        <h3>Team B</h3>
-
-        <input
-          type="text"
-          name="team_b_name"
-          placeholder="Team or Rink name"
-          list="club-members"
-          required
-        />
-
-        <h4>Roster:</h4>
-        <div
-          class="form-input"
-          webc:for="player of ['Skip', 'Third', 'Second','Lead']"
-        >
+        <!-- Team B Column -->
+        <div>
+          <h3>Team B</h3>
           <input
             type="text"
-            :name="`team_b_${player.toLowerCase()}`"
-            :placeholder="player"
+            name="team_b_name"
+            placeholder="Team or Rink name"
             list="club-members"
             required
           />
+          <h4>Roster:</h4>
+          <div
+            class="form-input"
+            webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+          >
+            <input
+              type="text"
+              :name="`team_b_${player.toLowerCase()}`"
+              :placeholder="player"
+              list="club-members"
+              required
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 3. End-by-End Linescore Grid -->
-    <h3>Linescore <span>(Leave blank if end wasn't played)i</span></h3>
-    <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
-      Swipe horizontally to view all 8 ends ↔
-    </p>
-    <div class="scorecard-scroll-wrapper">
-      <table
-        border="1"
-        cellpadding="6"
-        style="border-collapse: collapse; text-align: center"
-      >
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>E1</th>
-            <th>E2</th>
-            <th>E3</th>
-            <th>E4</th>
-            <th>E5</th>
-            <th>E6</th>
-            <th>E7</th>
-            <th>E8</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td id="label-team-a">Team A</td>
-            <td webc:for="end of [1,2,3,4,5,6,7,8]">
-              <input
-                type="number"
-                :name="`e${end}_a`"
-                min="0"
-                max="8"
-                onwheel="this.blur()"
-              />
-            </td>
-          </tr>
-          <tr>
-            <td id="label-team-b">Team B</td>
-            <td webc:for="end of [1,2,3,4,5,6,7,8]">
-              <input
-                type="number"
-                :name="`e${end}_b`"
-                min="0"
-                max="8"
-                onwheel="this.blur()"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- 3. End-by-End Linescore Grid -->
+      <h3>Linescore <span>(Leave blank if end wasn't played)</span></h3>
 
-      <span class="error-message" id="linescore-error"></span>
-    </div>
-    <div style="margin-top: 15px">
-      <label
-        ><input type="checkbox" name="conceded" /> Match conceded early / ran
-        out of time</label
-      >
-    </div>
+      <!-- Checkbox to toggle the display layout for extra columns -->
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--size-2);
+          "
+        >
+          <input type="checkbox" id="toggle-extra-ends" />
+          Show Extra Ends (9, 10, EE, EEE)
+        </label>
+      </div>
 
-    <br />
-    <button type="submit">Submit Complete Scorecard</button>
-  </form></scorecard-manager
->
+      <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
+        Swipe horizontally to view all ends ↔
+      </p>
 
-<h2>Recent Results Log</h2>
-<!-- htmx will fetch and load existing scores here automatically when the page opens -->
-<div
-  id="recent-results"
-  hx-get="/api/get-scores"
-  hx-trigger="load"
-  hx-swap="outerHTML"
->
+      <div class="scorecard-scroll-wrapper">
+        <table
+          border="1"
+          cellpadding="6"
+          style="border-collapse: collapse; text-align: center"
+        >
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th webc:for="end of [1,2,3,4,5,6,7,8]" @text="`E${end}`"></th>
+              <th class="extra-end-col">E9</th>
+              <th class="extra-end-col">E10</th>
+              <th class="extra-end-col">EE</th>
+              <th class="extra-end-col">EEE</th>
+              <!-- 1. Added a Total Column Header -->
+              <th style="padding: var(--size-2); background: var(--surface-2)">
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="label-team-a">Team A</td>
+              <td webc:for="end of [1,2,3,4,5,6,7,8]">
+                <input
+                  type="number"
+                  :name="`e${end}_a`"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e9_a"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e10_a"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e11_a"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e12_a"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <!-- 2. Display Slot for Team A's Running Total -->
+              <td
+                id="running-total-a"
+                style="
+                  font-weight: bold;
+                  font-size: 1.1rem;
+                  color: var(--brand);
+                  background: var(--surface-2);
+                "
+              >
+                0
+              </td>
+            </tr>
+            <tr>
+              <td id="label-team-b">Team B</td>
+              <td webc:for="end of [1,2,3,4,5,6,7,8]">
+                <input
+                  type="number"
+                  :name="`e${end}_b`"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e9_b"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e10_b"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e11_b"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <td class="extra-end-col">
+                <input
+                  type="number"
+                  name="e12_b"
+                  min="0"
+                  max="8"
+                  onwheel="this.blur()"
+                />
+              </td>
+              <!-- 3. Display Slot for Team B's Running Total -->
+              <td
+                id="running-total-b"
+                style="
+                  font-weight: bold;
+                  font-size: 1.1rem;
+                  color: var(--brand);
+                  background: var(--surface-2);
+                "
+              >
+                0
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <span class="error-message" id="linescore-error"></span>
+      </div>
+      <br />
+      <button type="submit">Submit Complete Scorecard</button>
+    </form>
+  </scorecard-manager>
+
+  <h2>Recent Results Log</h2>
   <div
-    class="loading-placeholder"
-    style="color: var(--text-3); padding: var(--size-3)"
+    id="recent-results"
+    hx-get="/api/get-scores"
+    hx-trigger="load"
+    hx-swap="outerHTML"
   >
-    Loading latest scorecards...
+    <div
+      class="loading-placeholder"
+      style="color: var(--text-3); padding: var(--size-3)"
+    >
+      Loading latest scorecards...
+    </div>
   </div>
+  <datalist id="club-members"></datalist>
+  <datalist id="competitions-list">
+    <option value="Bank of Scotland"></option>
+    <option value="Contractor's Cup"></option>
+    <option value="Spring League"></option>
+  </datalist>
 </div>
-<datalist id="club-members"></datalist>
-<!-- At the bottom of your admin page, you have a list of all club members -->
-<datalist id="competitions-list">
-  <option value="Bank of Scotland"></option>
-  <option value="Contractor's Cup"></option>
-  <option value="Spring League"></option>
-</datalist>
-
 <script>
   const form = document.querySelector("form");
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const isValid = e.target.checkValidity();
-    const formData = Object.fromEntries(new FormData(form));
-    //console.log(JSON.stringify(formData, null, 2));
-    //console.log(isValid);
+  const toggleCheckbox = document.getElementById("toggle-extra-ends");
+  const totalAEl = document.getElementById("running-total-a");
+  const totalBEl = document.getElementById("running-total-b");
+
+  toggleCheckbox.addEventListener("change", function () {
+    form.classList.toggle("show-extras", this.checked);
+  });
+
+  // Helper function to calculate math for all 12 ends dynamically
+  function updateRunningTotals() {
+    let totalA = 0;
+    let totalB = 0;
+
+    for (let end = 1; end <= 12; end++) {
+      const valA = form.querySelector(`[name="e${end}_a"]`)?.value;
+      const valB = form.querySelector(`[name="e${end}_b"]`)?.value;
+
+      totalA += parseInt(valA) || 0;
+      totalB += parseInt(valB) || 0;
+    }
+
+    // Push the fresh values straight into the UI text nodes
+    totalAEl.textContent = totalA;
+    totalBEl.textContent = totalB;
+  }
+
+  form.addEventListener("submit", function (event) {
+    const isValid = event.target.checkValidity();
 
     if (isValid) {
-      // Loop through all 8 ends to check curling legality
-      for (let end = 1; end <= 8; end++) {
+      // Loop dynamically through ALL 12 possible end columns to check curling legality
+      for (let end = 1; end <= 12; end++) {
         const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
         const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
+
+        // Skip calculations if inputs don't exist in DOM for any reason
+        if (!scoreAInput || !scoreBInput) continue;
 
         const scoreA = parseInt(scoreAInput.value) || 0;
         const scoreB = parseInt(scoreBInput.value) || 0;
 
         // RULE: Both teams cannot score points in the same end
         if (scoreA > 0 && scoreB > 0) {
-          event.preventDefault(); // Stop the form submission completely
-
+          event.preventDefault(); // Stop form submission completely
           event.stopImmediatePropagation();
 
-          // 4. Force the browser to mark them invalid (this triggers :user-invalid)
+          // Force browser invalid styling metrics
           scoreAInput.setCustomValidity("Invalid curling score");
           scoreBInput.setCustomValidity("Invalid curling score");
 
-          // Highlight the offending inputs
           scoreAInput.style.borderColor = "var(--red-6)";
           scoreBInput.style.borderColor = "var(--red-6)";
 
+          // Set clean visual label text metrics
+          let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
           const messageEl = form.querySelector("#linescore-error");
-
-          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in End ${end}. One side must be 0 or blank.`;
+          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
 
           return;
+        } else {
+          // Reset validation flags if user corrected a previous mistake
+          scoreAInput.setCustomValidity("");
+          scoreBInput.setCustomValidity("");
         }
       }
     }
   });
 
-  // Listen for any input changes inside the scorecard table body
+  // Listen for text events to inject auto-zero placeholders up to end 12
   form
     .querySelector(".scorecard-scroll-wrapper tbody")
     .addEventListener("input", function (event) {
-      // Ensure we are interacting with one of our numeric inputs
       if (!event.target.matches('input[type="number"]')) return;
 
       const currentInput = event.target;
       const currentValue = parseInt(currentInput.value) || 0;
 
-      // Only trigger the auto-zero logic if the admin typed a positive score
       if (currentValue > 0) {
-        const currentName = currentInput.name; // e.g., "e1_a"
-
-        // Determine the opponent's input name by swapping '_a' with '_b' (or vice-versa)
+        const currentName = currentInput.name;
         const opponentName = currentName.endsWith("_a")
           ? currentName.replace("_a", "_b")
           : currentName.replace("_b", "_a");
 
-        // Find the opponent's input box within the same form
         const opponentInput = currentInput.form.querySelector(
           `[name="${opponentName}"]`,
         );
 
-        // Rule: Auto-fill 0 ONLY if the opponent box is completely empty
-        // This allows the admin to manually correct numbers without the script overriding them
         if (opponentInput && opponentInput.value === "") {
           opponentInput.value = 0;
         }
+        // RUN THE TOTAL UPDATE IN REAL TIME 🧮
+        updateRunningTotals();
       }
     });
 </script>
-
 <style>
   .scorecard {
     --red: hsl(0, 66%, 54%);
@@ -281,33 +409,44 @@ headerAlt: Letham Grange logo
     font-size: var(--size-3);
   }
 
-  /* Target Chrome, Safari, Edge, and Opera */
+  /* Hide Extra End Columns by default */
+  .scorecard .extra-end-col {
+    display: none;
+  }
+
+  /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
+  .scorecard.show-extras .extra-end-col {
+    display: table-cell;
+  }
+
   .scorecard-scroll-wrapper input[type="number"]::-webkit-outer-spin-button,
   .scorecard-scroll-wrapper input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  /* Target Firefox */
   .scorecard-scroll-wrapper input[type="number"] {
     -moz-appearance: textfield;
   }
-  /* Container forces horizontal scrolling on small screens */
+
   .scorecard-scroll-wrapper {
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
     margin-bottom: 1rem;
   }
 
-  /* Ensure the table doesn't collapse its columns too small */
   .scorecard-scroll-wrapper table {
     width: 100%;
-    min-width: 600px; /* Forces the table to stay wide enough to read on mobile */
+    min-width: 600px;
     border-collapse: collapse;
   }
 
-  /* Give the number inputs a consistent, finger-friendly size */
+  /* Expand minimum width slightly if extra columns are actively rendering */
+  .scorecard.show-extras .scorecard-scroll-wrapper table {
+    min-width: 800px;
+  }
+
   .scorecard-scroll-wrapper input[type="number"] {
     width: 45px;
     height: 35px;
@@ -315,14 +454,13 @@ headerAlt: Letham Grange logo
     font-size: 1rem;
     border: 1px solid transparent;
   }
-  /* Style the input when a user types an invalid number and moves away */
+
   .scorecard-scroll-wrapper input[type="number"]:user-invalid {
     border-color: var(--red-6);
     background-color: var(--red-1);
     color: var(--red-9);
   }
 
-  /* Hide the swipe hint on large screens where scrolling isn't needed */
   .mobile-hint {
     display: none;
   }
