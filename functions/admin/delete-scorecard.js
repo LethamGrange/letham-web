@@ -1,15 +1,26 @@
 import { renderUpdatedResultsList } from '../api/_render.js';
 
+// functions/admin/delete-scorecard.js
 export async function onRequestDelete(context) {
-  const db = context.env.curling_league;
-  const url = new URL(context.request.url);
+  const {
+    env: { curling_league: db },
+    request: { url: requestUrl },
+  } = context;
+
+  const url = new URL(requestUrl);
   const matchId = url.searchParams.get('id');
 
+  if (!matchId) {
+    return new Response('Missing match ID', { status: 400 });
+  }
+
   try {
-    await db.prepare(`DELETE FROM matches WHERE id = ?`).bind(matchId).run();
-    return await renderUpdatedResultsList(db);
+    // Safely execute the deletion query
+    await db.prepare('DELETE FROM matches WHERE id = ?').bind(matchId).run();
+
+    // Return empty string so htmx smoothly swaps/removes the element
+    return new Response('', { status: 200 });
   } catch (error) {
-    // If the database fails to delete, return a targeted 500 error block
-    return new Response(`Failed to delete match record: ${error.message}`, { status: 500 });
+    return new Response('Database error', { status: 500 });
   }
 }
