@@ -1,0 +1,21 @@
+---
+title: 'Syllabus'
+pagetitle: Syllabus
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
+---
+
+<h2>Registered Competitions & Syllabus Profile Profiles</h2>
+
+<!-- htmx fires on load, retrieves the overview list, and drops it into place instantly -->
+<div
+  id="syllabus-viewer"
+  hx-get="/api/get-syllabus"
+  hx-trigger="load"
+  hx-swap="outerHTML"
+>
+  <div style="color: var(--text-3); padding: var(--size-3)">
+    Assembling active registration profiles...
+  </div>
+</div>

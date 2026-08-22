@@ -1,0 +1,126 @@
+<form
+  hx-post="/admin/submit-complete-syllabus"
+  hx-target="#diary-preview"
+  hx-swap="innerHTML"
+>
+  <!-- ZONE 1: FIXED PARAMETERS -->
+  <fieldset
+    style="
+      border: 1px solid var(--border);
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+    "
+  >
+    <legend style="padding: 0 var(--size-1); font-weight: bold">
+      1. Competition Details
+    </legend>
+    <label>Competition Name:</label>
+    <input type="text" name="competition_name" required style="width: 250px" />
+
+    <label style="margin-left: 15px">Format:</label>
+    <select name="competition_kind" required>
+      <option value="league">League</option>
+      <option value="bonspiel">Bonspiel</option>
+      <option value="friendly">Friendly</option>
+    </select>
+
+    <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
+    <div style="margin-top: var(--size-2)">
+      <label>Competition Reserves (Comma separated list):</label><br />
+      <input
+        type="text"
+        name="competition_reserves"
+        placeholder="e.g. John Hall, Jackie Hall"
+        style="width: 100%"
+      />
+    </div>
+  </fieldset>
+
+  <!-- ZONE 2: DYNAMIC TEAMS DECLARATION (Now using the Add Button) -->
+  <fieldset
+    style="
+      border: 1px solid var(--border);
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+    "
+  >
+    <legend style="padding: 0 var(--size-1); font-weight: bold">
+      2. Define Team / Rink Names
+    </legend>
+
+    <div
+      id="teams-input-container"
+      style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+      "
+    >
+      <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
+    </div>
+
+    <button
+      class="ui-button ui-filled ui-tonal"
+      type="button"
+      id="add-team-btn"
+      style="background: var(--surface-3)"
+    >
+      ＋ Add Team / Rink Row
+    </button>
+  </fieldset>
+
+  <!-- ZONE 3: DYNAMIC FIXTURES GRID -->
+  <fieldset
+    id="fixtures-zone"
+    style="
+      border: 1px solid var(--border);
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+      display: none;
+    "
+  >
+    <legend style="padding: 0 var(--size-1); font-weight: bold">
+      3. Draw Schedule & Fixtures
+    </legend>
+    <div id="draw-dates-container"></div>
+
+    <button
+      type="button"
+      id="add-draw-btn"
+      style="background: var(--surface-3)"
+    >
+      ＋ Add Another Draw Date / Round
+    </button>
+  </fieldset>
+
+  <br />
+  <button
+    class="ui-button ui-filled ui-primary"
+    type="submit"
+    styleX="
+      background: var(--brand);
+      color: white;
+      padding: var(--size-2) var(--size-3);
+    "
+  >
+    Save Complete Competition & Schedule 💾
+  </button>
+  <input type="hidden" name="competition_id" value="" />
+  <button
+    type="button"
+    id="cancel-syllabus-edit"
+    style="
+      display: none;
+      background: var(--surface-2);
+      margin-left: var(--size-2);
+    "
+  >
+    Cancel Edit ✕
+  </button>
+</form>
+
+<script src="./system-builder.js"></script>
