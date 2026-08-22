@@ -1,4 +1,5 @@
 import { getDiaryHtml } from '../api/_get-diary-html.js';
+import html from 'html-template-tag';
 
 export async function onRequestDelete(context) {
   const db = context.env.curling_league;

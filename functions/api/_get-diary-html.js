@@ -1,3 +1,5 @@
+import { html } from '../helpers/html.js';
+
 export async function getDiaryHtml(db) {
   const { results } = await db
     .prepare(
@@ -77,6 +79,19 @@ export async function getDiaryHtml(db) {
         `;
         })
         .join('');
+
+      const test = html` <div
+        class="diary-day-card"
+        style="border: 1px solid var(--border); border-radius: var(--radius-2); padding: var(--size-3); margin-bottom: var(--size-3); background: var(--surface-1);"
+      >
+        <h3
+          style="margin: 0 0 var(--size-2) 0; font-size: var(--font-size-1); color: var(--text-1); border-bottom: 2px solid var(--brand); padding-bottom: 4px;"
+        >
+          📅 ${date}
+        </h3>
+        ${dailyGames}
+      </div>`;
+      console.log(test);
 
       return `
         <div class="diary-day-card" style="border: 1px solid var(--border); border-radius: var(--radius-2); padding: var(--size-3); margin-bottom: var(--size-3); background: var(--surface-1);">
