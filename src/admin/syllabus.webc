@@ -1,0 +1,17 @@
+---
+title: 'Syllabus builder'
+pagetitle: Syllabus Builder
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
+---
+
+<h1>Syllabus & Diary Admin Sandbox</h1>
+<div id="form-error-banner"></div>
+
+<syllabus-builder></syllabus-builder>
+
+<h2>Syllabus Diary Live Feed Preview</h2>
+<div id="diary-preview" hx-get="/api/get-diary" hx-trigger="load">
+  <p>Loading active diary timeline...</p>
+</div>
