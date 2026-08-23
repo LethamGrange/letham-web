@@ -1,0 +1,327 @@
+<!-- 3. End-by-End Linescore Grid -->
+<h3>Linescore <span>(Leave blank if end wasn't played)</span></h3>
+
+<!-- Checkbox to toggle the display layout for extra columns -->
+<div style="margin-bottom: 15px">
+  <label
+    style="
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--size-2);
+    "
+  >
+    <input type="checkbox" id="toggle-extra-ends" />
+    Show Extra Ends (9, 10, EE, EEE)
+  </label>
+</div>
+
+<p style="color: #666; font-size: 0.9rem" class="mobile-hint">
+  Swipe horizontally to view all ends ↔
+</p>
+<div class="scorecard-scroll-wrapper">
+  <table
+    border="1"
+    cellpadding="6"
+    style="border-collapse: collapse; text-align: center"
+  >
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th webc:for="end of [1,2,3,4,5,6,7,8]" @text="`E${end}`"></th>
+        <th class="extra-end-col">E9</th>
+        <th class="extra-end-col">E10</th>
+        <th class="extra-end-col">EE</th>
+        <th class="extra-end-col">EEE</th>
+        <!-- 1. Added a Total Column Header -->
+        <th style="padding: var(--size-2); background: var(--surface-2)">
+          Total
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td id="label-team-a">Team A</td>
+        <td
+          :class="end > 8 ? 'extra-end-col':''"
+          webc:for="end of [1,2,3,4,5,6,7,8, 9,10,11,12]"
+        >
+          <input
+            type="number"
+            :name="`e${end}_a`"
+            min="0"
+            max="8"
+            onwheel="this.blur()"
+          />
+        </td>
+        <!-- 2. Display Slot for Team A's Running Total -->
+        <td
+          id="running-total-a"
+          style="
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--brand);
+            background: var(--surface-2);
+          "
+        >
+          0
+        </td>
+      </tr>
+      <tr>
+        <td id="label-team-b">Team B</td>
+        <td
+          :class="end > 8 ? 'extra-end-col':''"
+          webc:for="end of [1,2,3,4,5,6,7,8, 9,10,11,12]"
+        >
+          <input
+            type="number"
+            :name="`e${end}_b`"
+            min="0"
+            max="8"
+            onwheel="this.blur()"
+          />
+        </td>
+        <!-- 3. Display Slot for Team B's Running Total -->
+        <td
+          id="running-total-b"
+          style="
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--brand);
+            background: var(--surface-2);
+          "
+        >
+          0
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <span class="error-message" id="linescore-error"></span>
+</div>
+<script>
+  class LineScores extends HTMLElement {
+    scorecard;
+    totalAEl;
+    totalBEl;
+    labelA;
+    labelB;
+
+    // 1. Tell the browser what attributes to watch for changes
+    static get observedAttributes() {
+      return ['team-a', 'team-b'];
+    }
+
+    // 2. This callback handles changes, even if it fires BEFORE connectedCallback has run!
+    attributeChangedCallback(name, oldValue, newValue) {
+      // If the DOM isn't cached into our class properties yet, fall back to a direct select
+      const label =
+        name === 'team-a'
+          ? this.labelA || this.querySelector('#label-team-a')
+          : this.labelB || this.querySelector('#label-team-b');
+
+      if (label) {
+        const suffix = '';
+        label.textContent =
+          newValue && newValue.trim()
+            ? `${newValue.trim()}${suffix}`
+            : `Team ${name === 'team-a' ? 'A' : 'B'}${suffix}`;
+      }
+    }
+
+    connectedCallback() {
+      this.scorecard = this.querySelector('.scorecard-scroll-wrapper');
+      const tbody = this.scorecard.querySelector('tbody');
+
+      this.labelA = this.querySelector('#label-team-a');
+      this.labelB = this.querySelector('#label-team-b');
+
+      this.totalAEl = document.getElementById('running-total-a');
+      this.totalBEl = document.getElementById('running-total-b');
+
+      tbody.addEventListener('input', event => this.onScorecardInput(event));
+
+      setTimeout(() => this.updateRunningTotals(), 10);
+
+      // THE VALIDATION INTERCEPTOR
+      this.addEventListener('line-scores:validate', event => {
+        const pkg = event.detail; // Grab the shared communication package object reference
+
+        // Clear out any old browser constraints first
+        this.querySelectorAll('input[type="number"]').forEach(inp =>
+          inp.setCustomValidity(''),
+        );
+
+        // Run through all 8 curling ends to verify scores rules
+        for (let end = 1; end <= 12; end++) {
+          const inputA = this.querySelector(`[name="e${end}_a"]`);
+          const inputB = this.querySelector(`[name="e${end}_b"]`);
+
+          const scoreA = parseInt(inputA.value) || 0;
+          const scoreB = parseInt(inputB.value) || 0;
+
+          // CRITICAL CURLING RULE: Both teams cannot score points in the same end
+          if (scoreA > 0 && scoreB > 0) {
+            // Force browser invalid styling metrics
+            inputA.setCustomValidity('Invalid curling score');
+            inputB.setCustomValidity('Invalid curling score');
+
+            inputA.style.borderColor = 'var(--red-6)';
+            inputB.style.borderColor = 'var(--red-6)';
+            // Mutate the parent's package properties directly!
+            pkg.isValid = false;
+            //pkg.errorMessage = `Invalid Scorecard: Both teams recorded scores in End ${end}. One side must be 0 or blank.`;
+            pkg.message = '';
+            pkg.errorInputs = [inputA, inputB];
+            let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
+
+            const messageEl = this.querySelector('#linescore-error');
+            messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+
+            return; // Terminate loop early since we found a breaking error
+          }
+        }
+      });
+    }
+
+    // DYNAMIC NAME SYNC FUNCTION
+    syncLabels(inputA, inputB) {
+      // If a name is typed, show it. Otherwise, fall back to the defaults.
+      this.labelA.textContent = inputA?.trim() || 'Team A';
+      this.labelB.textContent = inputB?.trim() || 'Team B';
+    }
+
+    // Helper function to calculate math for all 12 ends dynamically
+    updateRunningTotals() {
+      let totalA = 0;
+      let totalB = 0;
+
+      for (let end = 1; end <= 12; end++) {
+        const valA = this.querySelector(`[name="e${end}_a"]`)?.value;
+        const valB = this.querySelector(`[name="e${end}_b"]`)?.value;
+
+        totalA += parseInt(valA) || 0;
+        totalB += parseInt(valB) || 0;
+      }
+
+      // Push the fresh values straight into the UI text nodes
+      this.totalAEl.textContent = totalA;
+      this.totalBEl.textContent = totalB;
+    }
+
+    onScorecardInput(event) {
+      if (!event.target.matches('input[type="number"]')) return;
+
+      const currentInput = event.target;
+      const currentValue = parseInt(currentInput.value) || 0;
+
+      if (currentValue > 0) {
+        const currentName = currentInput.name;
+        const opponentName = currentName.endsWith('_a')
+          ? currentName.replace('_a', '_b')
+          : currentName.replace('_b', '_a');
+
+        const opponentInput = currentInput.form.querySelector(
+          `[name="${opponentName}"]`,
+        );
+
+        if (opponentInput && opponentInput.value === '') {
+          opponentInput.value = 0;
+        }
+      } // RUN THE TOTAL UPDATE IN REAL TIME 🧮
+      this.updateRunningTotals();
+    }
+
+    onUpdateLinescores(data) {
+      Object.keys(data).forEach(key => {
+        const input = this.scorecard.querySelector(`[name="${key}"]`);
+        if (input) {
+          if (input.type === 'checkbox') {
+            input.checked = !!data[key];
+          } else {
+            input.value = data[key] !== null ? data[key] : '';
+          }
+          // Manually trigger a dispatch event if your competition picker
+          // component needs to see changes (like toggling 'Other')
+          if (key === 'competition_select') {
+            input.dispatchEvent(new Event('change'));
+          }
+        }
+      });
+
+      this.updateRunningTotals();
+      // alert('test');
+    }
+  }
+
+  if ('customElements' in window) {
+    customElements.define('line-scores', LineScores);
+  }
+</script>
+<style>
+  .scorecard {
+    --red: hsl(0, 66%, 54%);
+    --_critical: var(--red);
+  }
+  /* Hide Extra End Columns by default */
+  .scorecard .extra-end-col {
+    display: none;
+  }
+
+  /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
+  .scorecard.show-extras .extra-end-col {
+    display: table-cell;
+  }
+
+  .scorecard-scroll-wrapper input[type='number']::-webkit-outer-spin-button,
+  .scorecard-scroll-wrapper input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .scorecard-scroll-wrapper input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .scorecard-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+  }
+
+  .scorecard-scroll-wrapper table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+  }
+
+  /* Expand minimum width slightly if extra columns are actively rendering */
+  .scorecard.show-extras .scorecard-scroll-wrapper table {
+    min-width: 800px;
+  }
+
+  .scorecard-scroll-wrapper input[type='number'] {
+    width: 45px;
+    height: 35px;
+    text-align: center;
+    font-size: 1rem;
+    border: 1px solid transparent;
+  }
+
+  .scorecard-scroll-wrapper input[type='number']:user-invalid {
+    border-color: var(--red-6);
+    background-color: var(--red-1);
+    color: var(--red-9);
+  }
+
+  .mobile-hint {
+    display: none;
+  }
+  @media (max-width: 600px) {
+    .mobile-hint {
+      display: block;
+    }
+  }
+</style>

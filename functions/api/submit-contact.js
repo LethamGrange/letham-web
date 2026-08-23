@@ -1,3 +1,5 @@
+import { html } from '../helpers/html.js';
+
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
@@ -34,9 +36,9 @@ export async function onRequestPost(context) {
     // 5. If Turnstile flags the submission as a bot, reject the request immediately!
     if (!verifyResult.success) {
       return new Response(
-        `<p style="color: var(--red); padding: 1rem; border: 1px solid var(--red); border-radius: 0.5rem;">
+        html`<p style="color: var(--red); padding: 1rem; border: 1px solid var(--red); border-radius: 0.5rem;">
           Security verification failed. Please refresh and try again.
-         </p>`,
+        </p>`,
         { status: 403, headers: { 'Content-Type': 'text/html' } },
       );
     }
@@ -53,10 +55,13 @@ export async function onRequestPost(context) {
     // e.g., Send an email via Resend, post to a database, or trigger a Slack webhook.
 
     // Return the clean HTML layout structure that htmx will swap into the DOM
-    const successHTML = `
+    const successHTML = html`
       <div id="contact-container" style="text-align: center; padding: var(--size-4) 0;">
         <h1 style="color: var(--primary, #000); margin-bottom: var(--size-2);">Thank You!</h1>
-        <p>Thanks for reaching out, <strong>${firstName}</strong>. We've received your request regarding "${queryType}" and our team will be in touch with you soon.</p>
+        <p>
+          Thanks for reaching out, <strong>${firstName}</strong>. We've received your request regarding "${queryType}"
+          and our team will be in touch with you soon.
+        </p>
       </div>
     `;
     if (env.CONTACT_TO_ADDRESS) {
@@ -78,7 +83,7 @@ export async function onRequestPost(context) {
           name: `${firstName} ${lastName}`,
         },
         subject: `New Contact Submission: ${queryType}`,
-        htmlContent: `
+        htmlContent: html`
           <h3>New Message Received From Westmuir Website</h3>
           <p><strong>Name:</strong> ${firstName} ${lastName}</p>
           <p><strong>Email:</strong> ${email}</p>
@@ -114,7 +119,7 @@ export async function onRequestPost(context) {
     });
   } catch (error) {
     // Graceful error fallback if something goes wrong on the server side
-    return new Response(`<p style="color: var(--red);">Server error. Please try submitting again later.</p>`, {
+    return new Response(html`<p style="color: var(--red);">Server error. Please try submitting again later.</p>`, {
       status: 500,
       headers: { 'Content-Type': 'text/html' },
     });

@@ -1,4 +1,5 @@
 import { getDiaryHtml } from '../api/_get-diary-html.js';
+import { html } from '../helpers/html.js';
 
 export async function onRequestDelete(context) {
   const db = context.env.curling_league;
@@ -17,12 +18,14 @@ export async function onRequestDelete(context) {
     const diaryHtml = await getDiaryHtml(db);
 
     return new Response(
-      `
-      <div id="diary-preview">
-        <p style="color: var(--green-6); font-weight: bold; margin-bottom: var(--size-2);">✓ Competition permanently deleted.</p>
-        ${diaryHtml}
-      </div>
-    `,
+      html`
+        <div id="diary-preview">
+          <p style="color: var(--green-6); font-weight: bold; margin-bottom: var(--size-2);">
+            ✓ Competition permanently deleted.
+          </p>
+          ${diaryHtml}
+        </div>
+      `,
       { headers: { 'Content-Type': 'text/html' } },
     );
   } catch (error) {

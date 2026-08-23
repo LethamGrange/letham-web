@@ -53,19 +53,20 @@
 
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script webc:keep>
-      const savedTheme = localStorage.getItem("theme-preference");
+      const savedTheme = localStorage.getItem('theme-preference');
 
       // FIXED: If prefers-color-scheme is dark, default to dark; otherwise light.
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
         .matches
-        ? "dark"
-        : "light";
+        ? 'dark'
+        : 'light';
 
       document.documentElement.setAttribute(
-        "data-theme",
+        'data-theme',
         savedTheme || systemTheme,
       );
     </script>
+    <script src="html.js"></script>
   </head>
 
   <body tabindex="-1" class="site-wrapper">

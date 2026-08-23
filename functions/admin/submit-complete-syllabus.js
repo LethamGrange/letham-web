@@ -1,4 +1,6 @@
 import { getDiaryHtml } from '../api/_get-diary-html';
+import { html } from '../helpers/html.js';
+
 export async function onRequestPost(context) {
   const db = context.env.curling_league;
   const formData = await context.request.formData();
@@ -120,7 +122,7 @@ export async function onRequestPost(context) {
 
     // Return the fresh public diary view html component seamlessly
     const diaryHtml = await getDiaryHtml(db);
-    return new Response(`<div id="diary-preview">${diaryHtml}</div>`, {
+    return new Response(html`<div id="diary-preview">${diaryHtml}</div>`, {
       headers: { 'Content-Type': 'text/html' },
     });
   } catch (e) {
@@ -252,7 +254,7 @@ export async function onRequestPut(context) {
 
     // Return the fresh public diary overview HTML fragment
     const diaryHtml = await getDiaryHtml(db);
-    return new Response(`<div id="diary-preview">${diaryHtml}</div>`, {
+    return new Response(html`<div id="diary-preview">${diaryHtml}</div>`, {
       headers: { 'Content-Type': 'text/html' },
     });
   } catch (error) {

@@ -13,7 +13,8 @@
     "dev:backend": "wrangler pages dev _site --live-reload",
     "eleventy:watch": "eleventy --watch",
     "wrangler:dev": "wrangler pages dev _site --live-reload",
-    "dev": "npm-run-all --parallel eleventy:watch wrangler:dev"
+    "dev": "concurrently --kill-others --prefix \"[{name}]\" --prefix-colors \"cyan,orange\" \"npm:eleventy:watch\" \"npm:wrangler:dev\"",
+    "devX": "npm-run-all --parallel eleventy:watch wrangler:dev"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.1.6",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "browserslist": "^4.28.7",
+    "concurrently": "^10.0.5",
     "del-cli": "^7.0.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.9.6",

@@ -1,6 +1,8 @@
 // Ensure you have Node compatibility enabled in wrangler.toml or via compatibility flags
 import crypto from 'node:crypto';
 
+import { html } from '../helpers/html.js';
+
 export async function onRequestPost(context) {
   const formData = await context.request.formData();
   const username = formData.get('username');
@@ -13,7 +15,7 @@ export async function onRequestPost(context) {
   console.log(user, password);
   // 2. Safely verify the scrypt hash
   if (!user || !verifyScrypt(password, user.password_hash)) {
-    return new Response("<p style='color:red;'>Invalid username or password.</p>", {
+    return new Response(html`<p style="color:red;">Invalid username or password.</p>`, {
       status: 200,
     });
   }

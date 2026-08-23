@@ -1,3 +1,5 @@
+import { html } from '../helpers/html.js';
+
 export async function getDiaryHtml(db) {
   const { results } = await db
     .prepare(

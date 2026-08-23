@@ -1,4 +1,5 @@
 import { getDiaryHtml } from '../api/_get-diary-html.js';
+import { html } from '../helpers/html.js';
 
 export async function onRequestDelete(context) {
   const db = context.env.curling_league;
@@ -28,8 +29,9 @@ export async function onRequestDelete(context) {
 
     // Re-render the fresh calendar feed instantly to the user interface
     const diaryHtml = await getDiaryHtml(db);
+    const responseHtml = html`<div id="diary-preview">${diaryHtml}</div>`;
 
-    return new Response(`<div id="diary-preview">${diaryHtml}</div>`, {
+    return new Response(responseHtml, {
       headers: { 'Content-Type': 'text/html' },
     });
   } catch (error) {
