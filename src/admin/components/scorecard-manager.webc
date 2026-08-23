@@ -1,216 +1,412 @@
-<slot></slot>
+<form
+  novalidate
+  class="scorecard"
+  hx-post="/admin/submit-scorecard"
+  hx-target="#recent-results"
+  hx-swap="innerHTML"
+>
+  <!-- 1. Metadata -->
+  <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+    <input type="hidden" name="match_id" value="" />
+    <div>
+      <label>Date:</label><br />
+      <input type="date" name="match_date" required />
+    </div>
+    <div>
+      <label>Time / Draw:</label><br />
+      <input type="time" name="match_time" required />
+    </div>
+    <div>
+      <label>Sheet:</label><br />
+      <select name="sheet" required>
+        <option value="A">Sheet A</option>
+        <option value="B">Sheet B</option>
+        <option value="C">Sheet C</option>
+        <option value="D">Sheet D</option>
+        <option value="E">Sheet E</option>
+        <option value="F">Sheet F</option>
+      </select>
+    </div>
+    <competition-picker></competition-picker>
+  </div>
+
+  <!-- 2. Teams & Rosters -->
+  <div style="display: flex; gap: 40px">
+    <!-- Team A Column -->
+    <div>
+      <h3>Team A</h3>
+      <input
+        type="text"
+        name="team_a_name"
+        placeholder="Team or Rink name"
+        list="club-members"
+        required
+      />
+      <h4>Roster:</h4>
+      <div
+        class="form-input"
+        webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+      >
+        <input
+          type="text"
+          :name="`team_a_${player.toLowerCase()}`"
+          :placeholder="player"
+          list="club-members"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Team B Column -->
+    <div>
+      <h3>Team B</h3>
+      <input
+        type="text"
+        name="team_b_name"
+        placeholder="Team or Rink name"
+        list="club-members"
+        required
+      />
+      <h4>Roster:</h4>
+      <div
+        class="form-input"
+        webc:for="player of ['Skip', 'Third', 'Second','Lead']"
+      >
+        <input
+          type="text"
+          :name="`team_b_${player.toLowerCase()}`"
+          :placeholder="player"
+          list="club-members"
+          required
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. End-by-End Linescore Grid -->
+  <h3>Linescore <span>(Leave blank if end wasn't played)</span></h3>
+
+  <!-- Checkbox to toggle the display layout for extra columns -->
+  <div style="margin-bottom: 15px">
+    <label
+      style="
+        font-weight: bold;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--size-2);
+      "
+    >
+      <input type="checkbox" id="toggle-extra-ends" />
+      Show Extra Ends (9, 10, EE, EEE)
+    </label>
+  </div>
+
+  <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
+    Swipe horizontally to view all ends ↔
+  </p>
+
+  <div class="scorecard-scroll-wrapper">
+    <table
+      border="1"
+      cellpadding="6"
+      style="border-collapse: collapse; text-align: center"
+    >
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th webc:for="end of [1,2,3,4,5,6,7,8]" @text="`E${end}`"></th>
+          <th class="extra-end-col">E9</th>
+          <th class="extra-end-col">E10</th>
+          <th class="extra-end-col">EE</th>
+          <th class="extra-end-col">EEE</th>
+          <!-- 1. Added a Total Column Header -->
+          <th style="padding: var(--size-2); background: var(--surface-2)">
+            Total
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="label-team-a">Team A</td>
+          <td webc:for="end of [1,2,3,4,5,6,7,8]">
+            <input
+              type="number"
+              :name="`e${end}_a`"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e9_a"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e10_a"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e11_a"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e12_a"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <!-- 2. Display Slot for Team A's Running Total -->
+          <td
+            id="running-total-a"
+            style="
+              font-weight: bold;
+              font-size: 1.1rem;
+              color: var(--brand);
+              background: var(--surface-2);
+            "
+          >
+            0
+          </td>
+        </tr>
+        <tr>
+          <td id="label-team-b">Team B</td>
+          <td webc:for="end of [1,2,3,4,5,6,7,8]">
+            <input
+              type="number"
+              :name="`e${end}_b`"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e9_b"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e10_b"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e11_b"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <td class="extra-end-col">
+            <input
+              type="number"
+              name="e12_b"
+              min="0"
+              max="8"
+              onwheel="this.blur()"
+            />
+          </td>
+          <!-- 3. Display Slot for Team B's Running Total -->
+          <td
+            id="running-total-b"
+            style="
+              font-weight: bold;
+              font-size: 1.1rem;
+              color: var(--brand);
+              background: var(--surface-2);
+            "
+          >
+            0
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <span class="error-message" id="linescore-error"></span>
+  </div>
+  <br />
+  <button type="submit">Submit Complete Scorecard</button>
+</form>
+
+<datalist id="club-members"></datalist>
+<datalist id="competitions-list">
+  <option value="Bank of Scotland"></option>
+  <option value="Contractor's Cup"></option>
+  <option value="Spring League"></option>
+</datalist>
+
 <script>
   class ScorecardManager extends HTMLElement {
+    totalAEl;
+    totalBEl;
+    labelA;
+    labelB;
+    errorBanner;
+    submitBtn;
+    inputA;
+    inputB;
+
     connectedCallback() {
       const form = this.querySelector('form');
-      const errorBanner = document.getElementById('form-error-banner');
+      this.errorBanner = document.getElementById('form-error-banner');
 
-      const submitBtn = this.querySelector('button[type="submit"]');
+      this.submitBtn = this.querySelector('button[type="submit"]');
 
-      const inputA = form.querySelector('[name="team_a_name"]');
-      const inputB = form.querySelector('[name="team_b_name"]');
+      this.inputA = form.querySelector('[name="team_a_name"]');
+      this.inputB = form.querySelector('[name="team_b_name"]');
 
-      const labelA = form.querySelector('#label-team-a');
-      const labelB = form.querySelector('#label-team-b');
-      const totalAEl = document.getElementById('running-total-a');
-      const totalBEl = document.getElementById('running-total-b');
+      this.labelA = form.querySelector('#label-team-a');
+      this.labelB = form.querySelector('#label-team-b');
+      this.totalAEl = document.getElementById('running-total-a');
+      this.totalBEl = document.getElementById('running-total-b');
 
-      // Helper function to calculate math for all 12 ends dynamically
-      function updateRunningTotals() {
-        let totalA = 0;
-        let totalB = 0;
+      const toggleCheckbox = document.getElementById('toggle-extra-ends');
 
-        for (let end = 1; end <= 12; end++) {
-          const valA = form.querySelector(`[name="e${end}_a"]`)?.value;
-          const valB = form.querySelector(`[name="e${end}_b"]`)?.value;
-
-          totalA += parseInt(valA) || 0;
-          totalB += parseInt(valB) || 0;
-        }
-
-        // Push the fresh values straight into the UI text nodes
-        totalAEl.textContent = totalA;
-        totalBEl.textContent = totalB;
-      }
-
-      // DYNAMIC NAME SYNC FUNCTION
-      const syncLabels = () => {
-        // If a name is typed, show it. Otherwise, fall back to the defaults.
-        labelA.textContent = inputA.value.trim()
-          ? `${inputA.value.trim()}`
-          : 'Team A';
-        labelB.textContent = inputB.value.trim()
-          ? `${inputB.value.trim()}`
-          : 'Team B';
-      };
+      toggleCheckbox.addEventListener('change', () => {
+        form.classList.toggle('show-extras', this.checked);
+      });
 
       // Listen for real-time keystrokes on both inputs
-      if (inputA && labelA) inputA.addEventListener('input', syncLabels);
-      if (inputB && labelB) inputB.addEventListener('input', syncLabels);
+      if (this.inputA && this.labelA)
+        this.inputA.addEventListener('input', () => this.syncLabels());
+      if (this.inputB && this.labelB)
+        this.inputB.addEventListener('input', () => this.syncLabels());
 
-      setTimeout(syncLabels, 10);
+      setTimeout(() => this.syncLabels(), 10);
 
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
-      let cancelBtn = this.querySelector('#cancel-edit-btn');
-      if (!cancelBtn) {
-        cancelBtn = document.createElement('button');
-        cancelBtn.type = 'button';
-        cancelBtn.id = 'cancel-edit-btn';
-        cancelBtn.textContent = 'Cancel Edit ✕';
-        cancelBtn.style.cssText =
+      this.cancelBtn = this.querySelector('#cancel-edit-btn');
+
+      if (!this.cancelBtn) {
+        this.cancelBtn = document.createElement('button');
+        this.cancelBtn.type = 'button';
+        this.cancelBtn.id = 'cancel-edit-btn';
+        this.cancelBtn.textContent = 'Cancel Edit ✕';
+        this.cancelBtn.style.cssText =
           'display: none; background: var(--surface-2); margin-left: var(--size-2);';
-        submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
+        this.submitBtn.parentNode.insertBefore(
+          this.cancelBtn,
+          this.submitBtn.nextSibling,
+        );
       }
 
       this.populateClubMembers();
 
       // 1. CATCH THE BUBBLED EVENT FROM ANY DEEP MATCH CARD CLICK
-      document.body.addEventListener('edit-scorecard-request', async event => {
-        const matchId = event.detail.matchId;
-
-        try {
-          // 2. FETCH PURE JSON FROM CLOUDFLARE
-          const response = await fetch(
-            `/admin/get-raw-scorecard-json?id=${matchId}`,
-          );
-          if (!response.ok)
-            throw new Error('Could not pull scorecard database records.');
-
-          const data = await response.json();
-
-          // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
-          const hiddenIdInput = form.querySelector('[name="match_id"]');
-          if (hiddenIdInput) {
-            hiddenIdInput.value = matchId;
-          }
-
-          // 3. AUTOMATED DOM DATA MAPPER
-          // Loop keys and search form for matching named elements
-          Object.keys(data).forEach(key => {
-            const input = form.querySelector(`[name="${key}"]`);
-            if (input) {
-              if (input.type === 'checkbox') {
-                input.checked = !!data[key];
-              } else {
-                input.value = data[key] !== null ? data[key] : '';
-              }
-              // Manually trigger a dispatch event if your competition picker
-              // component needs to see changes (like toggling 'Other')
-              if (key === 'competition_select') {
-                input.dispatchEvent(new Event('change'));
-              }
-            }
-          });
-
-          // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
-          form.setAttribute('hx-put', '/admin/submit-scorecard');
-          form.removeAttribute('hx-post');
-          htmx.process(form); // Rebinds the active lifecycle handlers to PUT
-
-          submitBtn.textContent = 'Save Modifications 💾';
-          cancelBtn.style.display = 'inline-block';
-
-          // Bring workspace focus smoothly into window view
-          this.scrollIntoView({ behavior: 'smooth' });
-        } catch (error) {
-          const errorBanner = document.getElementById('form-error-banner');
-          if (errorBanner) {
-            errorBanner.innerHTML = html`<div style="color:var(--red-6)">
-              ⚠️ ${error.message}
-            </div>`;
-          }
-        }
-        setTimeout(syncLabels, 10);
-
-        // Add this right after you populate your form fields with JSON edit data:
-        updateRunningTotals();
-      });
+      document.body.addEventListener('edit-scorecard-request', async event =>
+        this.onEditScorecard(form),
+      );
 
       // 5. THE CLEAN RESET PATHway TO CREATE MODE
-      cancelBtn.addEventListener('click', () => {
-        form.reset();
+      this.cancelBtn.addEventListener('click', () => this.onCancel(form));
 
-        // Wipe the hidden identifier completely
-        const hiddenId = form.querySelector('[name="match_id"]');
-        if (hiddenId) hiddenId.value = '';
-
-        // Revert from PUT back to standard POST
-        form.setAttribute('hx-post', '/admin/submit-scorecard');
-        form.removeAttribute('hx-put');
-        htmx.process(form);
-
-        submitBtn.textContent = 'Log New Scorecard';
-        cancelBtn.style.display = 'none';
-
-        // If your competition picker element hides custom text strings on reset, trigger it
-        const compSelect = form.querySelector('[name="competition_select"]');
-        if (compSelect) compSelect.dispatchEvent(new Event('change'));
-
-        setTimeout(syncLabels, 10);
-      });
-
-      document.addEventListener('htmx:responseError', function (event) {
-        const status = event.detail.xhr.status;
-
-        if (status === 401 || status === 403) {
-          // Prevent htmx from making a mess of the DOM
-          event.preventDefault();
-
-          // Grab the current path and redirect
-          const currentPath = window.location.pathname;
-          window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
-        }
-      });
+      document.addEventListener('htmx:responseError', event =>
+        this.onResponseError(event),
+      );
 
       // Event 1: Before htmx swaps data, inspect the server status code
-      document.body.addEventListener('htmx:beforeOnLoad', event => {
-        const status = event.detail.xhr.status;
+      document.body.addEventListener('htmx:beforeOnLoad', event =>
+        this.onBeforeLoad(event, form),
+      );
 
-        // 1. Handle session expiration / unauthorised access
-        if (status === 401 || status === 403) {
-          // Stop htmx from processing anything else
-          event.detail.shouldSwap = false;
+      form.addEventListener('submit', event => this.onSubmit(event)); // Listen for text events to inject auto-zero placeholders up to end 12
+      form
+        .querySelector('.scorecard-scroll-wrapper tbody')
+        .addEventListener('input', event => this.onScorecardInput(event, form));
+    }
 
-          // Grab the current path and jump to login
-          const currentPath = window.location.pathname;
-          window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
-          return;
-        }
+    onSubmit(event) {
+      const isValid = event.target.checkValidity();
 
-        if (status === 400 || status === 500) {
-          // 1. Stop htmx from swapping the error message into the #recent-results list
-          event.detail.shouldSwap = false;
+      if (isValid) {
+        // Loop dynamically through ALL 12 possible end columns to check curling legality
+        for (let end = 1; end <= 12; end++) {
+          const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
+          const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
 
-          // 2. Inject the server's error message straight into our safe static banner
-          errorBanner.innerHTML = html`
-            <div
-              style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;"
-            >
-              ⚠️ ${event.detail.xhr.responseText}
-            </div>
-          `;
-        } else if (status === 200) {
-          errorBanner.innerHTML = '';
+          // Skip calculations if inputs don't exist in DOM for any reason
+          if (!scoreAInput || !scoreBInput) continue;
 
-          const isJustRefreshingList =
-            event.detail.target.id === 'recent-results';
+          const scoreA = parseInt(scoreAInput.value) || 0;
+          const scoreB = parseInt(scoreBInput.value) || 0;
 
-          if (!isJustRefreshingList) {
-            submitBtn.textContent = 'Log New Scorecard';
-            cancelBtn.style.display = 'none';
+          // RULE: Both teams cannot score points in the same end
+          if (scoreA > 0 && scoreB > 0) {
+            event.preventDefault(); // Stop form submission completely
+            event.stopImmediatePropagation();
 
-            const compSelect = form.querySelector(
-              '[name="competition_select"]',
-            );
-            if (compSelect) compSelect.dispatchEvent(new Event('change'));
+            // Force browser invalid styling metrics
+            scoreAInput.setCustomValidity('Invalid curling score');
+            scoreBInput.setCustomValidity('Invalid curling score');
 
-            setTimeout(() => {
-              form.reset();
-            }, 50);
-            setTimeout(syncLabels, 10);
+            scoreAInput.style.borderColor = 'var(--red-6)';
+            scoreBInput.style.borderColor = 'var(--red-6)';
+
+            // Set clean visual label text metrics
+            let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
+            const messageEl = form.querySelector('#linescore-error');
+            messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+
+            return;
+          } else {
+            // Reset validation flags if user corrected a previous mistake
+            scoreAInput.setCustomValidity('');
+            scoreBInput.setCustomValidity('');
           }
         }
-      });
+      }
+    }
+
+    onScorecardInput(event, form) {
+      if (!event.target.matches('input[type="number"]')) return;
+
+      const currentInput = event.target;
+      const currentValue = parseInt(currentInput.value) || 0;
+
+      if (currentValue > 0) {
+        const currentName = currentInput.name;
+        const opponentName = currentName.endsWith('_a')
+          ? currentName.replace('_a', '_b')
+          : currentName.replace('_b', '_a');
+
+        const opponentInput = currentInput.form.querySelector(
+          `[name="${opponentName}"]`,
+        );
+
+        if (opponentInput && opponentInput.value === '') {
+          opponentInput.value = 0;
+        }
+        // RUN THE TOTAL UPDATE IN REAL TIME 🧮
+        this.updateRunningTotals(form);
+      }
     }
 
     // 4. Isolate the async network logic into a dedicated method
@@ -230,6 +426,176 @@
         console.error('Background autocomplete population failed:', err);
       }
     }
+    // Helper function to calculate math for all 12 ends dynamically
+    updateRunningTotals(form) {
+      let totalA = 0;
+      let totalB = 0;
+
+      for (let end = 1; end <= 12; end++) {
+        const valA = form.querySelector(`[name="e${end}_a"]`)?.value;
+        const valB = form.querySelector(`[name="e${end}_b"]`)?.value;
+
+        totalA += parseInt(valA) || 0;
+        totalB += parseInt(valB) || 0;
+      }
+
+      // Push the fresh values straight into the UI text nodes
+      this.totalAEl.textContent = totalA;
+      this.totalBEl.textContent = totalB;
+    }
+
+    // DYNAMIC NAME SYNC FUNCTION
+    syncLabels() {
+      // If a name is typed, show it. Otherwise, fall back to the defaults.
+      this.labelA.textContent = this.inputA.value.trim()
+        ? `${this.inputA.value.trim()}`
+        : 'Team A';
+      this.labelB.textContent = this.inputB.value.trim()
+        ? `${this.inputB.value.trim()}`
+        : 'Team B';
+    }
+
+    onCancel(form) {
+      form.reset();
+
+      // Wipe s.the hidden identifier completely
+      const hiddenId = form.querySelector('[name="match_id"]');
+      if (hiddenId) hiddenId.value = '';
+
+      // Revert from PUT back to standard POST
+      form.setAttribute('hx-post', '/admin/submit-scorecard');
+      form.removeAttribute('hx-put');
+      htmx.process(form);
+
+      this.submitBtn.textContent = 'Log New Scorecard';
+      this.cancelBtn.style.display = 'none';
+
+      // If your competition picker element hides custom text strings on reset, trigger it
+      const compSelect = form.querySelector('[name="competition_select"]');
+      if (compSelect) compSelect.dispatchEvent(new Event('change'));
+
+      setTimeout(() => this.syncLabels(), 10);
+    }
+
+    async onEditScorecard(form) {
+      const matchId = event.detail.matchId;
+
+      try {
+        // 2. FETCH PURE JSON FROM CLOUDFLARE
+        const response = await fetch(
+          `/admin/get-raw-scorecard-json?id=${matchId}`,
+        );
+        if (!response.ok)
+          throw new Error('Could not pull scorecard database records.');
+
+        const data = await response.json();
+
+        // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
+        const hiddenIdInput = form.querySelector('[name="match_id"]');
+        if (hiddenIdInput) {
+          hiddenIdInput.value = matchId;
+        }
+
+        // 3. AUTOMATED DOM DATA MAPPER
+        // Loop keys and search form for matching named elements
+        Object.keys(data).forEach(key => {
+          const input = form.querySelector(`[name="${key}"]`);
+          if (input) {
+            if (input.type === 'checkbox') {
+              input.checked = !!data[key];
+            } else {
+              input.value = data[key] !== null ? data[key] : '';
+            }
+            // Manually trigger a dispatch event if your competition picker
+            // component needs to see changes (like toggling 'Other')
+            if (key === 'competition_select') {
+              input.dispatchEvent(new Event('change'));
+            }
+          }
+        });
+
+        // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
+        form.setAttribute('hx-put', '/admin/submit-scorecard');
+        form.removeAttribute('hx-post');
+        htmx.process(form); // Rebinds the active lifecycle handlers to PUT
+
+        this.submitBtn.textContent = 'Save Modifications 💾';
+        this.cancelBtn.style.display = 'inline-block';
+
+        // Bring workspace focus smoothly into window view
+        this.scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        if (this.errorBanner) {
+          this.errorBanner.innerHTML = html`<div style="color:var(--red-6)">
+            ⚠️ ${error.message}
+          </div>`;
+        }
+      }
+      setTimeout(() => this.syncLabels(), 10);
+
+      // Add this right after you populate your form fields with JSON edit data:
+      this.updateRunningTotals(form);
+    }
+
+    onResponseError(event) {
+      const status = event.detail.xhr.status;
+
+      if (status === 401 || status === 403) {
+        // Prevent htmx from making a mess of the DOM
+        event.preventDefault();
+
+        // Grab the current path and redirect
+        const currentPath = window.location.pathname;
+        window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+      }
+    }
+
+    onBeforeLoad(event, form) {
+      const status = event.detail.xhr.status;
+
+      // 1. Handle session expiration / unauthorised access
+      if (status === 401 || status === 403) {
+        // Stop htmx from processing anything else
+        event.detail.shouldSwap = false;
+
+        // Grab the current path and jump to login
+        const currentPath = window.location.pathname;
+        window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
+        return;
+      }
+
+      if (status === 400 || status === 500) {
+        // 1. Stop htmx from swapping the error message into the #recent-results list
+        event.detail.shouldSwap = false;
+
+        // 2. Inject the server's error message straight into our safe static banner
+        this.errorBanner.innerHTML = html`
+          <div
+            style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;"
+          >
+            ⚠️ ${event.detail.xhr.responseText}
+          </div>
+        `;
+      } else if (status === 200) {
+        this.errorBanner.innerHTML = '';
+
+        const isJustRefreshingList =
+          event.detail.target.id === 'recent-results';
+
+        if (!isJustRefreshingList) {
+          this.submitBtn.textContent = 'Log New Scorecard';
+          this.cancelBtn.style.display = 'none';
+
+          const compSelect = form.querySelector('[name="competition_select"]');
+          if (compSelect) compSelect.dispatchEvent(new Event('change'));
+
+          setTimeout(() => {
+            form.reset();
+          }, 50);
+          setTimeout(() => this.syncLabels(), 10);
+        }
+      }
+    }
   }
 
   if ('customElements' in window) {
@@ -240,6 +606,37 @@
   /* ==========================================================================
    SCORECARD ADMISSIONS & CONTEXT MENU GRID COMPONENTS
    ========================================================================== */
+  :where(form) {
+    --_border-color: light-dark(var(--color-7), var(--color-10));
+
+    input,
+    button,
+    textarea {
+      background-color: var(--surface-default);
+    }
+
+    input,
+    textarea {
+      border: 1px solid var(--_border-color);
+      border-radius: 0.5rem;
+      padding: 0.5em 0.75em;
+
+      &:focus-visible {
+        outline-color: var(--primary);
+      }
+    }
+    > fieldset {
+      border: 1px solid var(--border, var(--gray-8));
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+
+      legend {
+        padding: 0 var(--size-1);
+        font-weight: bold;
+      }
+    }
+  }
 
   /* Anchor assignment bridge */
   .popover-trigger {
@@ -323,5 +720,82 @@
     border-top: 1px solid var(--border);
     width: 100%;
     margin: 0;
+  }
+  .scorecard {
+    --red: hsl(0, 66%, 54%);
+    --_critical: var(--red);
+  }
+  h1,
+  h2,
+  h3 {
+    max-inline-size: 100%;
+  }
+  h3 span {
+    font-size: var(--size-3);
+  }
+  .error-message {
+    color: var(--_critical);
+    font-size: var(--size-3);
+  }
+
+  /* Hide Extra End Columns by default */
+  .scorecard .extra-end-col {
+    display: none;
+  }
+
+  /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
+  .scorecard.show-extras .extra-end-col {
+    display: table-cell;
+  }
+
+  .scorecard-scroll-wrapper input[type='number']::-webkit-outer-spin-button,
+  .scorecard-scroll-wrapper input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .scorecard-scroll-wrapper input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  .scorecard-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+  }
+
+  .scorecard-scroll-wrapper table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+  }
+
+  /* Expand minimum width slightly if extra columns are actively rendering */
+  .scorecard.show-extras .scorecard-scroll-wrapper table {
+    min-width: 800px;
+  }
+
+  .scorecard-scroll-wrapper input[type='number'] {
+    width: 45px;
+    height: 35px;
+    text-align: center;
+    font-size: 1rem;
+    border: 1px solid transparent;
+  }
+
+  .scorecard-scroll-wrapper input[type='number']:user-invalid {
+    border-color: var(--red-6);
+    background-color: var(--red-1);
+    color: var(--red-9);
+  }
+
+  .mobile-hint {
+    display: none;
+  }
+  @media (max-width: 600px) {
+    .mobile-hint {
+      display: block;
+    }
   }
 </style>

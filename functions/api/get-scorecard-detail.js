@@ -1,4 +1,5 @@
 import { getSessionRole } from '../helpers/auth.js';
+import { html } from '../helpers/html.js';
 
 export async function onRequestGet(context) {
   const {
@@ -54,7 +55,7 @@ export async function onRequestGet(context) {
     // Determine how many columns to print (default to 8, but scale if extra ends exist)
     const maxEndRecorded = ends.reduce((max, e) => Math.max(max, e.end_number), 8);
 
-    let tableHeaders = '<th style="text-align: left; padding: var(--size-2);">Team Rink</th>';
+    let tableHeaders = html`<th style="text-align: left; padding: var(--size-2);">Team Rink</th>`;
     let teamARows = '';
     let teamBRows = '';
 
@@ -68,63 +69,104 @@ export async function onRequestGet(context) {
 
       const activeEnd = ends.find(e => e.end_number === i);
       if (activeEnd) {
-        teamARows += `<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_a}</td>`;
-        teamBRows += `<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_b}</td>`;
+        teamARows += html`<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_a}</td>`;
+        teamBRows += html`<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_b}</td>`;
       } else {
         const filler = i <= 8 ? 'X' : '-';
         const color = i <= 8 ? 'var(--text-3)' : 'var(--text-4)';
-        teamARows += `<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
-        teamBRows += `<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
+        teamARows += html`<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
+        teamBRows += html`<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
       }
     }
-    tableHeaders += '<th style="padding: var(--size-2);">Total</th>';
+    tableHeaders += html`<th style="padding: var(--size-2);">Total</th>`;
 
     const adminButtons = isAdmin
-      ? `
-  <div class="scorecard-admin-actions" style="--anchor-id: --menu-${match.id};">
-    <button class="popover-trigger" popovertarget="menu-${match.id}" title="Scorecard Actions">⋮</button>
-    <div id="menu-${match.id}" class="popover-menu" popover>
-      <button type="button" class="popover-item edit-action" popovertarget="menu-${match.id}" popovertargetaction="hide"
-        onclick="this.dispatchEvent(new CustomEvent('edit-scorecard-request', { bubbles: true, detail: { matchId: ${match.id} } }))">
-        <span>✏️</span> <span>Edit Scorecard</span>
-      </button>
-      <hr class="popover-divider">
-      <button class="popover-item delete-action" hx-delete="/admin/delete-scorecard?id=${match.id}" hx-target="#expanded-scorecard-${match.id}" hx-swap="outerHTML"
-        hx-confirm="⚠️ CRITICAL WARNING:\n\nAre you completely sure you want to permanently delete this scorecard?">
-        <span>🗑️</span> <span>Delete Scorecard</span>
-      </button>
-    </div>
-  </div>
-  `
+      ? html`
+          <div class="scorecard-admin-actions" style="--anchor-id: --menu-${match.id};">
+            <button class="popover-trigger" popovertarget="menu-${match.id}" title="Scorecard Actions">⋮</button>
+            <div id="menu-${match.id}" class="popover-menu" popover>
+              <button
+                type="button"
+                class="popover-item edit-action"
+                popovertarget="menu-${match.id}"
+                popovertargetaction="hide"
+                onclick="this.dispatchEvent(new CustomEvent('edit-scorecard-request', { bubbles: true, detail: { matchId: ${match.id} } }))"
+              >
+                <span>✏️</span> <span>Edit Scorecard</span>
+              </button>
+              <hr class="popover-divider" />
+              <button
+                class="popover-item delete-action"
+                hx-delete="/admin/delete-scorecard?id=${match.id}"
+                hx-target="#expanded-scorecard-${match.id}"
+                hx-swap="outerHTML"
+                hx-confirm="⚠️ CRITICAL WARNING:
+
+Are you completely sure you want to permanently delete this scorecard?"
+              >
+                <span>🗑️</span> <span>Delete Scorecard</span>
+              </button>
+            </div>
+          </div>
+        `
       : '';
 
-    const detailHtml = `
-      <div id="expanded-scorecard-${match.id}" class="match-card detailed-view"
-           style="border: 2px solid var(--brand, var(--link)); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);">
-        <header style="display: flex; justify-content: space-between; font-size: var(--font-size-0); color: var(--text-2); margin-bottom: var(--size-3); border-bottom: 1px solid var(--border); padding-bottom: var(--size-1);">
+    const detailHtml = html`
+      <div
+        id="expanded-scorecard-${match.id}"
+        class="match-card detailed-view"
+        style="border: 2px solid var(--brand, var(--link)); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);"
+      >
+        <header
+          style="display: flex; justify-content: space-between; font-size: var(--font-size-0); color: var(--text-2); margin-bottom: var(--size-3); border-bottom: 1px solid var(--border); padding-bottom: var(--size-1);"
+        >
           <span><strong>${match.competition_name}</strong></span>
           <span>${match.match_date} @ ${match.match_time} — <strong>Sheet ${match.sheet}</strong></span>
         </header>
         <div class="scorecard-scroll-wrapper" style="width: 100%; overflow-x: auto; margin-bottom: var(--size-3);">
-          <table border="1" style="border-collapse: collapse; width: 100%; text-align: center; min-width: 500px; border: 1px solid var(--border);">
+          <table
+            border="1"
+            style="border-collapse: collapse; width: 100%; text-align: center; min-width: 500px; border: 1px solid var(--border);"
+          >
             <thead style="background: var(--surface-2);">
-              <tr>${tableHeaders}</tr>
+              <tr>
+                ${tableHeaders}
+              </tr>
             </thead>
             <tbody>
               <tr>
-                <td style="text-align: left; padding: var(--size-2); font-weight: ${match.final_score_a > match.final_score_b ? 'bold' : 'normal'};">${match.team_a_name}</td>
+                <td
+                  style="text-align: left; padding: var(--size-2); font-weight: ${match.final_score_a > match.final_score_b ? 'bold' : 'normal'};"
+                >
+                  ${match.team_a_name}
+                </td>
                 ${teamARows}
-                <td style="background: var(--surface-2); font-weight: bold; padding: var(--size-2); font-size: var(--font-size-2); color: var(--brand);">${match.final_score_a}</td>
+                <td
+                  style="background: var(--surface-2); font-weight: bold; padding: var(--size-2); font-size: var(--font-size-2); color: var(--brand);"
+                >
+                  ${match.final_score_a}
+                </td>
               </tr>
               <tr>
-                <td style="text-align: left; padding: var(--size-2); font-weight: ${match.final_score_b > match.final_score_a ? 'bold' : 'normal'};">${match.team_b_name}</td>
+                <td
+                  style="text-align: left; padding: var(--size-2); font-weight: ${match.final_score_b > match.final_score_a ? 'bold' : 'normal'};"
+                >
+                  ${match.team_b_name}
+                </td>
                 ${teamBRows}
-                <td style="background: var(--surface-2); font-weight: bold; padding: var(--size-2); font-size: var(--font-size-2); color: var(--brand);">${match.final_score_b}</td>
+                <td
+                  style="background: var(--surface-2); font-weight: bold; padding: var(--size-2); font-size: var(--font-size-2); color: var(--brand);"
+                >
+                  ${match.final_score_b}
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="rosters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--size-3); font-size: var(--font-size-1); background: var(--surface-2); padding: var(--size-3); border-radius: var(--radius-1);">
+        <div
+          class="rosters-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--size-3); font-size: var(--font-size-1); background: var(--surface-2); padding: var(--size-3); border-radius: var(--radius-1);"
+        >
           <div>
             <strong style="color: var(--text-1);">${match.team_a_name} Lineup:</strong>
             <ul style="list-style: none; padding: 0; margin: var(--size-1) 0 0 0; color: var(--text-2);">
@@ -146,8 +188,12 @@ export async function onRequestGet(context) {
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--size-3);">
           ${adminButtons}
-          <button hx-get="/api/get-scores" hx-target="#recent-results" hx-swap="innerHTML"
-                  style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;">
+          <button
+            hx-get="/api/get-scores"
+            hx-target="#recent-results"
+            hx-swap="innerHTML"
+            style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;"
+          >
             Close Details ▴
           </button>
         </div>
@@ -156,8 +202,11 @@ export async function onRequestGet(context) {
 
     return new Response(detailHtml, { headers: { 'Content-Type': 'text/html' } });
   } catch (error) {
-    return new Response(`<p style="color:var(--red-6);">Error loading scorecard line detail: ${error.message}</p>`, {
-      status: 500,
-    });
+    return new Response(
+      html`<p style="color:var(--red-6);">Error loading scorecard line detail: ${error.message}</p>`,
+      {
+        status: 500,
+      },
+    );
   }
 }

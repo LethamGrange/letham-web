@@ -1,10 +1,12 @@
+import { html } from '../helpers/html.js';
+
 export async function onRequestGet(context) {
   const db = context.env.curling_league;
   const url = new URL(context.request.url);
   const compId = url.searchParams.get('id');
 
   if (!compId) {
-    return new Response('<p>Missing identifier.</p>', { status: 400 });
+    return new Response(html`<p>Missing identifier.</p>`, { status: 400 });
   }
 
   try {
@@ -70,16 +72,23 @@ export async function onRequestGet(context) {
         const regularList = regularPlayers.length > 0 ? regularPlayers.join(', ') : 'No additional players listed';
         const poolList = teamPool.length > 0 ? teamPool.map(p => p.player_name).join(', ') : 'None';
 
-        return `
-        <div style="background: var(--surface-2); padding: var(--size-3); border-radius: var(--radius-1); border-left: 4px solid var(--brand);">
-          <strong style="font-size: var(--font-size-1); display: block; margin-bottom: var(--size-1); color: var(--text-1);">${team.team_name}</strong>
-          <ul style="list-style: none; padding: 0; margin: 0; font-size: var(--font-size-0); color: var(--text-2); line-height: var(--font-lineheight-2);">
-            <li><strong>Skip:</strong> ${skipName}</li>
-            <li><strong>Roster Pool:</strong> ${regularList}</li>
-            <li><strong>Sub Pool:</strong> ${poolList}</li>
-          </ul>
-        </div>
-      `;
+        return html`
+          <div
+            style="background: var(--surface-2); padding: var(--size-3); border-radius: var(--radius-1); border-left: 4px solid var(--brand);"
+          >
+            <strong
+              style="font-size: var(--font-size-1); display: block; margin-bottom: var(--size-1); color: var(--text-1);"
+              >${team.team_name}</strong
+            >
+            <ul
+              style="list-style: none; padding: 0; margin: 0; font-size: var(--font-size-0); color: var(--text-2); line-height: var(--font-lineheight-2);"
+            >
+              <li><strong>Skip:</strong> ${skipName}</li>
+              <li><strong>Roster Pool:</strong> ${regularList}</li>
+              <li><strong>Sub Pool:</strong> ${poolList}</li>
+            </ul>
+          </div>
+        `;
       })
       .join('');
 
@@ -88,7 +97,9 @@ export async function onRequestGet(context) {
     // ==========================================
     let fixturesHtml = '';
     if (fixtures.length === 0) {
-      fixturesHtml = `<p style="color: var(--text-3); font-style: italic;">No fixtures scheduled for this competition yet.</p>`;
+      fixturesHtml = html`<p style="color: var(--text-3); font-style: italic;">
+        No fixtures scheduled for this competition yet.
+      </p>`;
     } else {
       // Group fixtures by Date locally
       const fixturesByDate = {};
@@ -118,32 +129,47 @@ export async function onRequestGet(context) {
 
               const timeString = g.fixture_time ? `@ ${g.fixture_time}` : '';
               const sheetString = g.sheet
-                ? ` — <span style="background: var(--surface-3); padding: 1px 5px; border-radius: var(--radius-1); font-size: var(--font-size-0);">Sheet ${g.sheet}</span>`
+                ? html` —
+                    <span
+                      style="background: var(--surface-3); padding: 1px 5px; border-radius: var(--radius-1); font-size: var(--font-size-0);"
+                      >Sheet ${g.sheet}</span
+                    >`
                 : '';
 
-              return `<li style="padding: var(--size-1) 0; border-bottom: 1px dashed var(--border);">${matchupStr} ${timeString} ${sheetString}</li>`;
+              return html`<li style="padding: var(--size-1) 0; border-bottom: 1px dashed var(--border);">
+                ${matchupStr} ${timeString} ${sheetString}
+              </li>`;
             })
             .join('');
 
-          return `
-  <div style="margin-bottom: var(--size-2); border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 4px; margin-bottom: var(--size-2);">
-      <strong style="color: var(--brand); font-size: var(--font-size-1);">📅 ${date}</strong>
+          return html`
+            <div
+              style="margin-bottom: var(--size-2); border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);"
+            >
+              <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 4px; margin-bottom: var(--size-2);"
+              >
+                <strong style="color: var(--brand); font-size: var(--font-size-1);">📅 ${date}</strong>
 
-      <!-- Targeted Round Deletion Trigger -->
-      <button
-        hx-delete="/admin/delete-fixture-round?compId=${comp.id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(fixturesByDate[date][0].fixture_time || '')}"
-        hx-target="#diary-preview"
-        hx-swap="outerHTML"
-        hx-confirm="Are you sure you want to completely cancel and delete this entire draw round for ${date}?"
-        style="background: none; border: none; color: var(--red-6); font-size: var(--font-size-0); cursor: pointer; font-weight: bold;">
-        ✕ Cancel Draw Round
-      </button>
-    </div>
+                <!-- Targeted Round Deletion Trigger -->
+                <button
+                  hx-delete="/admin/delete-fixture-round?compId=${comp.id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(fixturesByDate[date][0].fixture_time || '')}"
+                  hx-target="#diary-preview"
+                  hx-swap="outerHTML"
+                  hx-confirm="Are you sure you want to completely cancel and delete this entire draw round for ${date}?"
+                  style="background: none; border: none; color: var(--red-6); font-size: var(--font-size-0); cursor: pointer; font-weight: bold;"
+                >
+                  ✕ Cancel Draw Round
+                </button>
+              </div>
 
-    <ul style="list-style: none; padding: 0 0 0 var(--size-2); margin: 0; font-size: var(--font-size-1); color: var(--text-2);">${gamesList}</ul>
-  </div>
-`;
+              <ul
+                style="list-style: none; padding: 0 0 0 var(--size-2); margin: 0; font-size: var(--font-size-1); color: var(--text-2);"
+              >
+                ${gamesList}
+              </ul>
+            </div>
+          `;
         })
         .join('');
     }
@@ -152,53 +178,76 @@ export async function onRequestGet(context) {
     const reservesText =
       reserves.length > 0 ? reserves.map(r => r.player_name).join(', ') : 'No competition-specific reserves listed.';
 
-    const detailHtml = `
-      <div class="syllabus-card detailed-view"
-           style="border: 2px solid var(--brand); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);">
-
-        <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: var(--size-2); margin-bottom: var(--size-3);">
+    const detailHtml = html`
+      <div
+        class="syllabus-card detailed-view"
+        style="border: 2px solid var(--brand); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);"
+      >
+        <header
+          style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: var(--size-2); margin-bottom: var(--size-3);"
+        >
           <h3 style="margin: 0; font-size: var(--font-size-3); color: var(--brand);">${comp.name}</h3>
           <span style="font-weight: bold; color: var(--text-3);">${comp.season_year}</span>
         </header>
 
         <!-- League Wide Reserves Banner -->
-        <div style="background: var(--surface-3); padding: var(--size-2); border-radius: var(--radius-1); margin-bottom: var(--size-3); font-size: var(--font-size-1);">
+        <div
+          style="background: var(--surface-3); padding: var(--size-2); border-radius: var(--radius-1); margin-bottom: var(--size-3); font-size: var(--font-size-1);"
+        >
           <strong>League Reserves:</strong> <span style="color: var(--text-2);">${reservesText}</span>
         </div>
 
         <!-- Section 1: Teams Grid -->
-        <h4 style="margin: 0 0 var(--size-2) 0; color: var(--text-1); font-size: var(--font-size-2);">Registered Lineups / Rinks</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--size-2); margin-bottom: var(--size-4);">
+        <h4 style="margin: 0 0 var(--size-2) 0; color: var(--text-1); font-size: var(--font-size-2);">
+          Registered Lineups / Rinks
+        </h4>
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--size-2); margin-bottom: var(--size-4);"
+        >
           ${teamsHtml}
         </div>
 
         <!-- Section 2: Fixtures Timeline -->
-        <h4 style="margin: 0 0 var(--size-2) 0; color: var(--text-1); font-size: var(--font-size-2);">Competition Draw Schedule</h4>
-        <div class="syllabus-fixtures-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--size-3); margin-bottom: var(--size-3);">
+        <h4 style="margin: 0 0 var(--size-2) 0; color: var(--text-1); font-size: var(--font-size-2);">
+          Competition Draw Schedule
+        </h4>
+        <div
+          class="syllabus-fixtures-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--size-3); margin-bottom: var(--size-3);"
+        >
           ${fixturesHtml}
         </div>
 
         <!-- Trigger Controls Dashboard Footer -->
-        <div style="display: flex; justify-content: flex-end; gap: var(--size-2); border-top: 1px solid var(--border); padding-top: var(--size-2);">
-      // Replace the old disabled button in functions/api/get-syllabus-detail.js with this:
-<button
-  hx-delete="/admin/delete-syllabus?id=${comp.id}"
-  hx-target="#syllabus-viewer"
-  hx-swap="outerHTML"
-  hx-confirm="⚠️ CRITICAL WARNING:\n\nAre you sure you want to permanently delete '${comp.name}'?\n\nThis will purge the league, all registered team rinks, all player rosters, and the entire draw calendar from the system."
-  style="background: var(--red-1); color: var(--red-7); border: 1px solid var(--red-3); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;">
-  Delete Entire Competition 🗑️
-</button>
-<button
-  type="button"
-  onclick="window.location.href='/admin/syllabus?id=${comp.id}'"
-  style="background: var(--surface-3); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;">
-  Edit Profile ✏️
-</button>
-          <button hx-get="/api/get-syllabus"
-                  hx-target="#syllabus-viewer"
-                  hx-swap="outerHTML"
-                  style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;">
+        <div
+          style="display: flex; justify-content: flex-end; gap: var(--size-2); border-top: 1px solid var(--border); padding-top: var(--size-2);"
+        >
+          <button
+            hx-delete="/admin/delete-syllabus?id=${comp.id}"
+            hx-target="#syllabus-viewer"
+            hx-swap="outerHTML"
+            hx-confirm="⚠️ CRITICAL WARNING:
+
+Are you sure you want to permanently delete '${comp.name}'?
+
+This will purge the league, all registered team rinks, all player rosters, and the entire draw calendar from the system."
+            style="background: var(--red-1); color: var(--red-7); border: 1px solid var(--red-3); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;"
+          >
+            Delete Entire Competition 🗑️
+          </button>
+          <button
+            type="button"
+            onclick="window.location.href='/admin/syllabus?id=${comp.id}'"
+            style="background: var(--surface-3); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-weight: bold;"
+          >
+            Edit Profile ✏️
+          </button>
+          <button
+            hx-get="/api/get-syllabus"
+            hx-target="#syllabus-viewer"
+            hx-swap="outerHTML"
+            style="background: var(--surface-3); color: var(--text-1); border: 1px solid var(--border); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer;"
+          >
             Close Details ▴
           </button>
         </div>
@@ -207,7 +256,7 @@ export async function onRequestGet(context) {
 
     return new Response(detailHtml, { headers: { 'Content-Type': 'text/html' } });
   } catch (error) {
-    return new Response(`<p style="color:var(--red-6)">Error loading detail summary: ${error.message}</p>`, {
+    return new Response(html`<p style="color:var(--red-6)">Error loading detail summary: ${error.message}</p>`, {
       status: 500,
     });
   }
