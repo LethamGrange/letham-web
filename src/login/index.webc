@@ -1,5 +1,5 @@
 ---
-title: "Login"
+title: 'Login'
 pagetitle: Letham Grange Curling
 headerImage: /images/logo-high.png
 headerAlt: Letham Grange logo
@@ -14,7 +14,7 @@ permalink: /login/index.html
   <form
     hx-post="/api/login"
     hx-target="#login-error"
-    hx-vals="js:{next: new URLSearchParams(window.location.search).get('next') || '/admin'}"
+    hx-vals="js:{next: new URLSearchParams(window.location.search).get('next') || '/admin/scorecards'}"
   >
     <div>
       <label for="username">Username</label>
@@ -38,8 +38,51 @@ permalink: /login/index.html
       />
     </div>
 
-    <button type="submit">Log In</button>
+    <button class="ui-button ui-filled ui-primary" type="submit">Log In</button>
   </form>
 
   <div id="login-error" style="color: red; margin-top: 10px"></div>
 </div>
+<style>
+  input,
+  textarea {
+    background-color: var(--surface-default);
+    color: contrast-color(var(--surface-default));
+  }
+
+  :where(.login-container) {
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f5f5f5;
+      margin: 0;
+    }
+    form {
+      background: white;
+      color: black;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 300px;
+    }
+    h2 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+      color: light-dark(var(--gray-12), var(--gray-4));
+      text-align: center;
+    }
+    input {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+  }
+</style>
