@@ -173,41 +173,84 @@
       const isValid = event.target.checkValidity();
 
       if (isValid) {
-        // Loop dynamically through ALL 12 possible end columns to check curling legality
-        for (let end = 1; end <= 12; end++) {
-          const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
-          const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
+        const lineScoresComp = this.querySelector('line-scores');
+        if (!lineScoresComp) return;
 
-          // Skip calculations if inputs don't exist in DOM for any reason
-          if (!scoreAInput || !scoreBInput) continue;
+        // 1. Prepare a shared package for the child to write into
+        const validationPackage = {
+          isValid: true, // Assumed valid until proven otherwise
+          errorMessage: '',
+          errorInputs: [], // To pass back exactly which boxes failed
+        };
 
-          const scoreA = parseInt(scoreAInput.value) || 0;
-          const scoreB = parseInt(scoreBInput.value) || 0;
+        // 2. Dispatch the event directly down to the child synchronously
+        lineScoresComp.dispatchEvent(
+          new CustomEvent('line-scores:validate', {
+            detail: validationPackage,
+          }),
+        );
 
-          // RULE: Both teams cannot score points in the same end
-          if (scoreA > 0 && scoreB > 0) {
-            event.preventDefault(); // Stop form submission completely
-            event.stopImmediatePropagation();
+        // 3. THE MAGIC: Read the results instantly right here!
+        if (!validationPackage.isValid) {
+          // Stop htmx from sending the request to Cloudflare completely!
+          event.preventDefault();
+          event.stopImmediatePropagation();
 
-            // Force browser invalid styling metrics
-            scoreAInput.setCustomValidity('Invalid curling score');
-            scoreBInput.setCustomValidity('Invalid curling score');
+          // Force the specific offending inputs into your visual :user-invalid CSS state
+          validationPackage.errorInputs.forEach(input => {
+            input.setCustomValidity(validationPackage.errorMessage);
+          });
 
-            scoreAInput.style.borderColor = 'var(--red-6)';
-            scoreBInput.style.borderColor = 'var(--red-6)';
-
-            // Set clean visual label text metrics
-            let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
-            const messageEl = form.querySelector('#linescore-error');
-            messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
-
-            return;
-          } else {
-            // Reset validation flags if user corrected a previous mistake
-            scoreAInput.setCustomValidity('');
-            scoreBInput.setCustomValidity('');
+          // Output the failure message to your static form-error-banner
+          const errorBanner = document.getElementById('form-error-banner');
+          if (errorBanner && validationPackage.message) {
+            errorBanner.innerHTML = `
+          <div style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;">
+            ⚠️ ${validationPackage.errorMessage}
+          </div>
+        `;
           }
+          return;
         }
+        // If it's valid, clear any historical banner errors and let htmx process normally
+        const errorBanner = document.getElementById('form-error-banner');
+        if (errorBanner) errorBanner.innerHTML = '';
+
+        // // Loop dynamically through ALL 12 possible end columns to check curling legality
+        // for (let end = 1; end <= 12; end++) {
+        //   const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
+        //   const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
+        //
+        //   // Skip calculations if inputs don't exist in DOM for any reason
+        //   if (!scoreAInput || !scoreBInput) continue;
+        //
+        //   const scoreA = parseInt(scoreAInput.value) || 0;
+        //   const scoreB = parseInt(scoreBInput.value) || 0;
+        //
+        //   // RULE: Both teams cannot score points in the same end
+        //   if (scoreA > 0 && scoreB > 0) {
+        //     event.preventDefault(); // Stop form submission completely
+        //     event.stopImmediatePropagation();
+        //
+        //     // Force browser invalid styling metrics
+        //     scoreAInput.setCustomValidity('Invalid curling score');
+        //     scoreBInput.setCustomValidity('Invalid curling score');
+        //
+        //     scoreAInput.style.borderColor = 'var(--red-6)';
+        //     scoreBInput.style.borderColor = 'var(--red-6)';
+        //
+        //     // Set clean visual label text metrics
+        //     let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
+        //     const messageEl = form.querySelector('#linescore-error');
+        //     messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+        //
+        //     return;
+        //   } else {
+        //     // Reset validation flags if user corrected a previous mistake
+        //     scoreAInput.setCustomValidity('');
+        //     scoreBInput.setCustomValidity('');
+        //   }
+        // }
       } else {
         event.preventDefault();
         event.stopImmediatePropagation();

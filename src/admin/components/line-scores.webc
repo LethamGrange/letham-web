@@ -143,6 +143,46 @@
       tbody.addEventListener('input', event => this.onScorecardInput(event));
 
       setTimeout(() => this.updateRunningTotals(), 10);
+
+      // THE VALIDATION INTERCEPTOR
+      this.addEventListener('line-scores:validate', event => {
+        const pkg = event.detail; // Grab the shared communication package object reference
+
+        // Clear out any old browser constraints first
+        this.querySelectorAll('input[type="number"]').forEach(inp =>
+          inp.setCustomValidity(''),
+        );
+
+        // Run through all 8 curling ends to verify scores rules
+        for (let end = 1; end <= 12; end++) {
+          const inputA = this.querySelector(`[name="e${end}_a"]`);
+          const inputB = this.querySelector(`[name="e${end}_b"]`);
+
+          const scoreA = parseInt(inputA.value) || 0;
+          const scoreB = parseInt(inputB.value) || 0;
+
+          // CRITICAL CURLING RULE: Both teams cannot score points in the same end
+          if (scoreA > 0 && scoreB > 0) {
+            // Force browser invalid styling metrics
+            inputA.setCustomValidity('Invalid curling score');
+            inputB.setCustomValidity('Invalid curling score');
+
+            inputA.style.borderColor = 'var(--red-6)';
+            inputB.style.borderColor = 'var(--red-6)';
+            // Mutate the parent's package properties directly!
+            pkg.isValid = false;
+            //pkg.errorMessage = `Invalid Scorecard: Both teams recorded scores in End ${end}. One side must be 0 or blank.`;
+            pkg.message = '';
+            pkg.errorInputs = [inputA, inputB];
+            let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
+
+            const messageEl = this.querySelector('#linescore-error');
+            messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+
+            return; // Terminate loop early since we found a breaking error
+          }
+        }
+      });
     }
 
     // DYNAMIC NAME SYNC FUNCTION
