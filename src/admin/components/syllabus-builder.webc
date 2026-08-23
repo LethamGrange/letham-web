@@ -107,6 +107,7 @@
 
       addTeamBtn.addEventListener('click', () => this.addTeam());
       addDrawBtn.addEventListener('click', () => this.addDrawBtn());
+
       document.body.addEventListener('edit-syllabus-request', async event =>
         this.onEditSyllabus(event, form),
       );
@@ -121,8 +122,6 @@
     } // connectedCallback
 
     reindexFormElements() {
-      const drawsContainer = this.querySelector('#draw-dates-container');
-
       // 1. Re-index Team Cards
       const teamCards =
         this.teamsContainer.querySelectorAll('.team-entry-card');
@@ -143,7 +142,9 @@
       this.currentTeamCount = teamCards.length;
 
       // 2. Re-index Draw Blocks
-      const drawBlocks = drawsContainer.querySelectorAll('.draw-round-block');
+      const drawBlocks =
+        this.drawsContainer.querySelectorAll('.draw-round-block');
+
       drawBlocks.forEach((block, dIdx) => {
         const newDIdx = dIdx + 1;
 
@@ -258,7 +259,7 @@
           `;
           div.querySelector('.remove-row-btn').addEventListener('click', () => {
             div.remove();
-            reindexFormElements(); // Automatically updates names dynamically!
+            this.reindexFormElements(); // Automatically updates names dynamically!
           });
           div
             .querySelector('input[type="text"]')
@@ -350,7 +351,7 @@
             .querySelector('.remove-draw-btn')
             .addEventListener('click', () => {
               drawBlock.remove();
-              reindexFormElements(); // Automatically re-sequences draw_date_1, draw_date_2 etc.!
+              this.reindexFormElements(); // Automatically re-sequences draw_date_1, draw_date_2 etc.!
             });
           this.drawsContainer.appendChild(drawBlock);
           // Force the correct dropdown indices to bind once the elements are rendered
@@ -394,9 +395,8 @@
 
     // Utility: Live synchronization updater strings text fields names down to fixtures options nodes
     updateAllFixtureDropdowns() {
-      const drawsContainer = this.querySelector('#draw-dates-container');
-
-      const selectNodes = drawsContainer.querySelectorAll('.team-select-node');
+      const selectNodes =
+        this.drawsContainer.querySelectorAll('.team-select-node');
       selectNodes.forEach(select => {
         const savedValue = select.value;
         select.innerHTML = this.getActiveTeamOptions();
@@ -499,20 +499,46 @@
           div.className = 'team-entry-card';
           div.style.cssText =
             'border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);';
-          div.innerHTML = `
-                     <div style="margin-bottom: 8px;">
-                       <label style="font-weight: bold;">Team ${this.currentTeamCount} Rink Name:</label>
-                       <input type="text" name="team_name_${this.currentTeamCount}" value="${t.team_name}" style="width:100%;" required>
-                     </div>
-                     <div>
-                       <label style="font-size: var(--font-size-0); color: var(--text-2);">Team Roster (Comma separated, append (s) for skip):</label>
-                       <input type="text" name="team_${this.currentTeamCount}_roster" value="${t.roster_string}" list="club-members" style="width:100%;">
-                     </div>
-                     <div style="margin-top: 4px;">
-                       <label style="font-size: var(--font-size-0); color: var(--text-2);">Sub / Pool Players (Comma separated):</label>
-                       <input type="text" name="team_${this.rrentTeamCount}_pool" value="${t.pool_string}" list="club-members" style="width:100%;">
-                     </div>
-                   `;
+          div.innerHTML = html`
+            <div style="margin-bottom: 8px;">
+              <label style="font-weight: bold;"
+                >Team ${this.currentTeamCount} Rink Name:</label
+              >
+              <input
+                type="text"
+                name="team_name_${this.currentTeamCount}"
+                value="${t.team_name}"
+                style="width:100%;"
+                required
+              />
+            </div>
+            <div>
+              <label
+                style="font-size: var(--font-size-0); color: var(--text-2);"
+                >Team Roster (Comma separated, append (s) for skip):</label
+              >
+              <input
+                type="text"
+                name="team_${this.currentTeamCount}_roster"
+                value="${t.roster_string}"
+                list="club-members"
+                style="width:100%;"
+              />
+            </div>
+            <div style="margin-top: 4px;">
+              <label
+                style="font-size: var(--font-size-0); color: var(--text-2);"
+                >Sub / Pool Players (Comma separated):</label
+              >
+              <input
+                type="text"
+                name="team_${this.rrentTeamCount}_pool"
+                value="${t.pool_string}"
+                list="club-members"
+                style="width:100%;"
+              />
+            </div>
+          `;
           div
             .querySelector('input[type="text"]')
             .addEventListener('input', this.updateAllFixtureDropdowns);
