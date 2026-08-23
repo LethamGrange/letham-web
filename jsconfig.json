@@ -8,17 +8,18 @@
   ],
   "exclude": [
     "node_modules",
-    "_site"
+    "_site",
+    ".wrangler"
   ],
   "compilerOptions": {
     "checkJs": false,
     "resolveJsonModule": true,
-    "module": "es2020",
+    "module": "NodeNext",
+    "target": "es2022",
     "paths": {
       "~/*": [
         "./src/*"
       ]
-    },
-    "target": "es2022"
+    }
   }
 }
