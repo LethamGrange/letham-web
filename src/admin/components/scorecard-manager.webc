@@ -1,3 +1,4 @@
+<div id="form-error-message"></div>
 <form
   novalidate
   class="scorecard"
@@ -52,7 +53,6 @@
           :name="`team_a_${player.toLowerCase()}`"
           :placeholder="player"
           list="club-members"
-          required
         />
       </div>
     </div>
@@ -77,183 +77,17 @@
           :name="`team_b_${player.toLowerCase()}`"
           :placeholder="player"
           list="club-members"
-          required
         />
       </div>
     </div>
   </div>
 
-  <!-- 3. End-by-End Linescore Grid -->
-  <h3>Linescore <span>(Leave blank if end wasn't played)</span></h3>
+  <line-scores></line-scores>
 
-  <!-- Checkbox to toggle the display layout for extra columns -->
-  <div style="margin-bottom: 15px">
-    <label
-      style="
-        font-weight: bold;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: var(--size-2);
-      "
-    >
-      <input type="checkbox" id="toggle-extra-ends" />
-      Show Extra Ends (9, 10, EE, EEE)
-    </label>
-  </div>
-
-  <p style="color: #666; font-size: 0.9rem" class="mobile-hint">
-    Swipe horizontally to view all ends ↔
-  </p>
-
-  <div class="scorecard-scroll-wrapper">
-    <table
-      border="1"
-      cellpadding="6"
-      style="border-collapse: collapse; text-align: center"
-    >
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th webc:for="end of [1,2,3,4,5,6,7,8]" @text="`E${end}`"></th>
-          <th class="extra-end-col">E9</th>
-          <th class="extra-end-col">E10</th>
-          <th class="extra-end-col">EE</th>
-          <th class="extra-end-col">EEE</th>
-          <!-- 1. Added a Total Column Header -->
-          <th style="padding: var(--size-2); background: var(--surface-2)">
-            Total
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td id="label-team-a">Team A</td>
-          <td webc:for="end of [1,2,3,4,5,6,7,8]">
-            <input
-              type="number"
-              :name="`e${end}_a`"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e9_a"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e10_a"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e11_a"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e12_a"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <!-- 2. Display Slot for Team A's Running Total -->
-          <td
-            id="running-total-a"
-            style="
-              font-weight: bold;
-              font-size: 1.1rem;
-              color: var(--brand);
-              background: var(--surface-2);
-            "
-          >
-            0
-          </td>
-        </tr>
-        <tr>
-          <td id="label-team-b">Team B</td>
-          <td webc:for="end of [1,2,3,4,5,6,7,8]">
-            <input
-              type="number"
-              :name="`e${end}_b`"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e9_b"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e10_b"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e11_b"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <td class="extra-end-col">
-            <input
-              type="number"
-              name="e12_b"
-              min="0"
-              max="8"
-              onwheel="this.blur()"
-            />
-          </td>
-          <!-- 3. Display Slot for Team B's Running Total -->
-          <td
-            id="running-total-b"
-            style="
-              font-weight: bold;
-              font-size: 1.1rem;
-              color: var(--brand);
-              background: var(--surface-2);
-            "
-          >
-            0
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <span class="error-message" id="linescore-error"></span>
-  </div>
   <br />
-  <button type="submit">Submit Complete Scorecard</button>
+  <button class="ui-button ui-filled ui-primary" type="submit">
+    Submit Complete Scorecard
+  </button>
 </form>
 
 <datalist id="club-members"></datalist>
@@ -265,42 +99,36 @@
 
 <script>
   class ScorecardManager extends HTMLElement {
-    totalAEl;
-    totalBEl;
-    labelA;
-    labelB;
     errorBanner;
     submitBtn;
-    inputA;
-    inputB;
+    lineScores;
 
     connectedCallback() {
       const form = this.querySelector('form');
       this.errorBanner = document.getElementById('form-error-banner');
-
       this.submitBtn = this.querySelector('button[type="submit"]');
 
-      this.inputA = form.querySelector('[name="team_a_name"]');
-      this.inputB = form.querySelector('[name="team_b_name"]');
+      const inputA = form.querySelector('[name="team_a_name"]');
+      const inputB = form.querySelector('[name="team_b_name"]');
 
-      this.labelA = form.querySelector('#label-team-a');
-      this.labelB = form.querySelector('#label-team-b');
-      this.totalAEl = document.getElementById('running-total-a');
-      this.totalBEl = document.getElementById('running-total-b');
+      this.lineScores = form.querySelector('line-scores');
 
       const toggleCheckbox = document.getElementById('toggle-extra-ends');
+
+      // 1. RE-ACTIVE SYNC: Push text values down as attributes as the admin types
+      const updateAttributes = () => {
+        if (this.lineScores) {
+          this.lineScores.setAttribute('team-a', inputA.value);
+          this.lineScores.setAttribute('team-b', inputB.value);
+        }
+      };
+
+      inputA?.addEventListener('input', updateAttributes);
+      inputB?.addEventListener('input', updateAttributes);
 
       toggleCheckbox.addEventListener('change', () => {
         form.classList.toggle('show-extras', this.checked);
       });
-
-      // Listen for real-time keystrokes on both inputs
-      if (this.inputA && this.labelA)
-        this.inputA.addEventListener('input', () => this.syncLabels());
-      if (this.inputB && this.labelB)
-        this.inputB.addEventListener('input', () => this.syncLabels());
-
-      setTimeout(() => this.syncLabels(), 10);
 
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
       this.cancelBtn = this.querySelector('#cancel-edit-btn');
@@ -318,15 +146,16 @@
         );
       }
 
+      // 5. THE CLEAN RESET PATHway TO CREATE MODE
+      this.cancelBtn.addEventListener('click', () => this.onCancel(form));
       this.populateClubMembers();
+
+      setTimeout(() => updateAttributes(), 10);
 
       // 1. CATCH THE BUBBLED EVENT FROM ANY DEEP MATCH CARD CLICK
       document.body.addEventListener('edit-scorecard-request', async event =>
         this.onEditScorecard(form),
       );
-
-      // 5. THE CLEAN RESET PATHway TO CREATE MODE
-      this.cancelBtn.addEventListener('click', () => this.onCancel(form));
 
       document.addEventListener('htmx:responseError', event =>
         this.onResponseError(event),
@@ -337,13 +166,10 @@
         this.onBeforeLoad(event, form),
       );
 
-      form.addEventListener('submit', event => this.onSubmit(event)); // Listen for text events to inject auto-zero placeholders up to end 12
-      form
-        .querySelector('.scorecard-scroll-wrapper tbody')
-        .addEventListener('input', event => this.onScorecardInput(event, form));
+      form.addEventListener('submit', event => this.onSubmit(event, form)); // Listen for text events to inject auto-zero placeholders up to end 12
     }
 
-    onSubmit(event) {
+    onSubmit(event, form) {
       const isValid = event.target.checkValidity();
 
       if (isValid) {
@@ -382,30 +208,11 @@
             scoreBInput.setCustomValidity('');
           }
         }
-      }
-    }
-
-    onScorecardInput(event, form) {
-      if (!event.target.matches('input[type="number"]')) return;
-
-      const currentInput = event.target;
-      const currentValue = parseInt(currentInput.value) || 0;
-
-      if (currentValue > 0) {
-        const currentName = currentInput.name;
-        const opponentName = currentName.endsWith('_a')
-          ? currentName.replace('_a', '_b')
-          : currentName.replace('_b', '_a');
-
-        const opponentInput = currentInput.form.querySelector(
-          `[name="${opponentName}"]`,
-        );
-
-        if (opponentInput && opponentInput.value === '') {
-          opponentInput.value = 0;
-        }
-        // RUN THE TOTAL UPDATE IN REAL TIME 🧮
-        this.updateRunningTotals(form);
+      } else {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const messageEl = document.body.querySelector('#form-error-message');
+        messageEl.textContent = `Invalid form - check your data.`;
       }
     }
 
@@ -426,34 +233,6 @@
         console.error('Background autocomplete population failed:', err);
       }
     }
-    // Helper function to calculate math for all 12 ends dynamically
-    updateRunningTotals(form) {
-      let totalA = 0;
-      let totalB = 0;
-
-      for (let end = 1; end <= 12; end++) {
-        const valA = form.querySelector(`[name="e${end}_a"]`)?.value;
-        const valB = form.querySelector(`[name="e${end}_b"]`)?.value;
-
-        totalA += parseInt(valA) || 0;
-        totalB += parseInt(valB) || 0;
-      }
-
-      // Push the fresh values straight into the UI text nodes
-      this.totalAEl.textContent = totalA;
-      this.totalBEl.textContent = totalB;
-    }
-
-    // DYNAMIC NAME SYNC FUNCTION
-    syncLabels() {
-      // If a name is typed, show it. Otherwise, fall back to the defaults.
-      this.labelA.textContent = this.inputA.value.trim()
-        ? `${this.inputA.value.trim()}`
-        : 'Team A';
-      this.labelB.textContent = this.inputB.value.trim()
-        ? `${this.inputB.value.trim()}`
-        : 'Team B';
-    }
 
     onCancel(form) {
       form.reset();
@@ -473,8 +252,6 @@
       // If your competition picker element hides custom text strings on reset, trigger it
       const compSelect = form.querySelector('[name="competition_select"]');
       if (compSelect) compSelect.dispatchEvent(new Event('change'));
-
-      setTimeout(() => this.syncLabels(), 10);
     }
 
     async onEditScorecard(form) {
@@ -514,6 +291,8 @@
           }
         });
 
+        this.lineScores.onUpdateLinescores(data);
+
         // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
         form.setAttribute('hx-put', '/admin/submit-scorecard');
         form.removeAttribute('hx-post');
@@ -531,10 +310,13 @@
           </div>`;
         }
       }
-      setTimeout(() => this.syncLabels(), 10);
+      // setTimeout(
+      //   () => this.lineScores.syncLabels(this.inputA.value, this.inputB.value),
+      //   10,
+      // );
 
       // Add this right after you populate your form fields with JSON edit data:
-      this.updateRunningTotals(form);
+      //this.updateRunningTotals(form);
     }
 
     onResponseError(event) {
@@ -592,7 +374,6 @@
           setTimeout(() => {
             form.reset();
           }, 50);
-          setTimeout(() => this.syncLabels(), 10);
         }
       }
     }
@@ -603,6 +384,14 @@
   }
 </script>
 <style>
+  #form-error-message {
+    --red: hsl(0, 66%, 54%);
+    --_critical: var(--red);
+
+    color: var(--_critical);
+    font-size: var(--size-4);
+  }
+
   /* ==========================================================================
    SCORECARD ADMISSIONS & CONTEXT MENU GRID COMPONENTS
    ========================================================================== */
@@ -610,7 +399,6 @@
     --_border-color: light-dark(var(--color-7), var(--color-10));
 
     input,
-    button,
     textarea {
       background-color: var(--surface-default);
     }
@@ -721,10 +509,7 @@
     width: 100%;
     margin: 0;
   }
-  .scorecard {
-    --red: hsl(0, 66%, 54%);
-    --_critical: var(--red);
-  }
+
   h1,
   h2,
   h3 {
@@ -736,66 +521,5 @@
   .error-message {
     color: var(--_critical);
     font-size: var(--size-3);
-  }
-
-  /* Hide Extra End Columns by default */
-  .scorecard .extra-end-col {
-    display: none;
-  }
-
-  /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
-  .scorecard.show-extras .extra-end-col {
-    display: table-cell;
-  }
-
-  .scorecard-scroll-wrapper input[type='number']::-webkit-outer-spin-button,
-  .scorecard-scroll-wrapper input[type='number']::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  .scorecard-scroll-wrapper input[type='number'] {
-    -moz-appearance: textfield;
-  }
-
-  .scorecard-scroll-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 1rem;
-  }
-
-  .scorecard-scroll-wrapper table {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-  }
-
-  /* Expand minimum width slightly if extra columns are actively rendering */
-  .scorecard.show-extras .scorecard-scroll-wrapper table {
-    min-width: 800px;
-  }
-
-  .scorecard-scroll-wrapper input[type='number'] {
-    width: 45px;
-    height: 35px;
-    text-align: center;
-    font-size: 1rem;
-    border: 1px solid transparent;
-  }
-
-  .scorecard-scroll-wrapper input[type='number']:user-invalid {
-    border-color: var(--red-6);
-    background-color: var(--red-1);
-    color: var(--red-9);
-  }
-
-  .mobile-hint {
-    display: none;
-  }
-  @media (max-width: 600px) {
-    .mobile-hint {
-      display: block;
-    }
   }
 </style>
