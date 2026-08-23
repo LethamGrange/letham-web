@@ -2,18 +2,18 @@
 <script>
   class ScorecardManager extends HTMLElement {
     connectedCallback() {
-      const form = this.querySelector("form");
-      const errorBanner = document.getElementById("form-error-banner");
+      const form = this.querySelector('form');
+      const errorBanner = document.getElementById('form-error-banner');
 
       const submitBtn = this.querySelector('button[type="submit"]');
 
       const inputA = form.querySelector('[name="team_a_name"]');
       const inputB = form.querySelector('[name="team_b_name"]');
 
-      const labelA = form.querySelector("#label-team-a");
-      const labelB = form.querySelector("#label-team-b");
-      const totalAEl = document.getElementById("running-total-a");
-      const totalBEl = document.getElementById("running-total-b");
+      const labelA = form.querySelector('#label-team-a');
+      const labelB = form.querySelector('#label-team-b');
+      const totalAEl = document.getElementById('running-total-a');
+      const totalBEl = document.getElementById('running-total-b');
 
       // Helper function to calculate math for all 12 ends dynamically
       function updateRunningTotals() {
@@ -38,119 +38,118 @@
         // If a name is typed, show it. Otherwise, fall back to the defaults.
         labelA.textContent = inputA.value.trim()
           ? `${inputA.value.trim()}`
-          : "Team A";
+          : 'Team A';
         labelB.textContent = inputB.value.trim()
           ? `${inputB.value.trim()}`
-          : "Team B";
+          : 'Team B';
       };
 
       // Listen for real-time keystrokes on both inputs
-      if (inputA && labelA) inputA.addEventListener("input", syncLabels);
-      if (inputB && labelB) inputB.addEventListener("input", syncLabels);
+      if (inputA && labelA) inputA.addEventListener('input', syncLabels);
+      if (inputB && labelB) inputB.addEventListener('input', syncLabels);
 
       setTimeout(syncLabels, 10);
 
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
-      let cancelBtn = this.querySelector("#cancel-edit-btn");
+      let cancelBtn = this.querySelector('#cancel-edit-btn');
       if (!cancelBtn) {
-        cancelBtn = document.createElement("button");
-        cancelBtn.type = "button";
-        cancelBtn.id = "cancel-edit-btn";
-        cancelBtn.textContent = "Cancel Edit ✕";
+        cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.id = 'cancel-edit-btn';
+        cancelBtn.textContent = 'Cancel Edit ✕';
         cancelBtn.style.cssText =
-          "display: none; background: var(--surface-2); margin-left: var(--size-2);";
+          'display: none; background: var(--surface-2); margin-left: var(--size-2);';
         submitBtn.parentNode.insertBefore(cancelBtn, submitBtn.nextSibling);
       }
 
       this.populateClubMembers();
 
       // 1. CATCH THE BUBBLED EVENT FROM ANY DEEP MATCH CARD CLICK
-      document.body.addEventListener(
-        "edit-scorecard-request",
-        async (event) => {
-          const matchId = event.detail.matchId;
+      document.body.addEventListener('edit-scorecard-request', async event => {
+        const matchId = event.detail.matchId;
 
-          try {
-            // 2. FETCH PURE JSON FROM CLOUDFLARE
-            const response = await fetch(
-              `/admin/get-raw-scorecard-json?id=${matchId}`,
-            );
-            if (!response.ok)
-              throw new Error("Could not pull scorecard database records.");
+        try {
+          // 2. FETCH PURE JSON FROM CLOUDFLARE
+          const response = await fetch(
+            `/admin/get-raw-scorecard-json?id=${matchId}`,
+          );
+          if (!response.ok)
+            throw new Error('Could not pull scorecard database records.');
 
-            const data = await response.json();
+          const data = await response.json();
 
-            // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
-            const hiddenIdInput = form.querySelector('[name="match_id"]');
-            if (hiddenIdInput) {
-              hiddenIdInput.value = matchId;
-            }
-
-            // 3. AUTOMATED DOM DATA MAPPER
-            // Loop keys and search form for matching named elements
-            Object.keys(data).forEach((key) => {
-              const input = form.querySelector(`[name="${key}"]`);
-              if (input) {
-                if (input.type === "checkbox") {
-                  input.checked = !!data[key];
-                } else {
-                  input.value = data[key] !== null ? data[key] : "";
-                }
-                // Manually trigger a dispatch event if your competition picker
-                // component needs to see changes (like toggling 'Other')
-                if (key === "competition_select") {
-                  input.dispatchEvent(new Event("change"));
-                }
-              }
-            });
-
-            // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
-            form.setAttribute("hx-put", "/admin/submit-scorecard");
-            form.removeAttribute("hx-post");
-            htmx.process(form); // Rebinds the active lifecycle handlers to PUT
-
-            submitBtn.textContent = "Save Modifications 💾";
-            cancelBtn.style.display = "inline-block";
-
-            // Bring workspace focus smoothly into window view
-            this.scrollIntoView({ behavior: "smooth" });
-          } catch (error) {
-            const errorBanner = document.getElementById("form-error-banner");
-            if (errorBanner) {
-              errorBanner.innerHTML = `<div style="color:var(--red-6)">⚠️ ${error.message}</div>`;
-            }
+          // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
+          const hiddenIdInput = form.querySelector('[name="match_id"]');
+          if (hiddenIdInput) {
+            hiddenIdInput.value = matchId;
           }
-          setTimeout(syncLabels, 10);
 
-          // Add this right after you populate your form fields with JSON edit data:
-          updateRunningTotals();
-        },
-      );
+          // 3. AUTOMATED DOM DATA MAPPER
+          // Loop keys and search form for matching named elements
+          Object.keys(data).forEach(key => {
+            const input = form.querySelector(`[name="${key}"]`);
+            if (input) {
+              if (input.type === 'checkbox') {
+                input.checked = !!data[key];
+              } else {
+                input.value = data[key] !== null ? data[key] : '';
+              }
+              // Manually trigger a dispatch event if your competition picker
+              // component needs to see changes (like toggling 'Other')
+              if (key === 'competition_select') {
+                input.dispatchEvent(new Event('change'));
+              }
+            }
+          });
+
+          // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
+          form.setAttribute('hx-put', '/admin/submit-scorecard');
+          form.removeAttribute('hx-post');
+          htmx.process(form); // Rebinds the active lifecycle handlers to PUT
+
+          submitBtn.textContent = 'Save Modifications 💾';
+          cancelBtn.style.display = 'inline-block';
+
+          // Bring workspace focus smoothly into window view
+          this.scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+          const errorBanner = document.getElementById('form-error-banner');
+          if (errorBanner) {
+            errorBanner.innerHTML = html`<div style="color:var(--red-6)">
+              ⚠️ ${error.message}
+            </div>`;
+          }
+        }
+        setTimeout(syncLabels, 10);
+
+        // Add this right after you populate your form fields with JSON edit data:
+        updateRunningTotals();
+      });
 
       // 5. THE CLEAN RESET PATHway TO CREATE MODE
-      cancelBtn.addEventListener("click", () => {
+      cancelBtn.addEventListener('click', () => {
         form.reset();
 
         // Wipe the hidden identifier completely
         const hiddenId = form.querySelector('[name="match_id"]');
-        if (hiddenId) hiddenId.value = "";
+        if (hiddenId) hiddenId.value = '';
 
         // Revert from PUT back to standard POST
-        form.setAttribute("hx-post", "/admin/submit-scorecard");
-        form.removeAttribute("hx-put");
+        form.setAttribute('hx-post', '/admin/submit-scorecard');
+        form.removeAttribute('hx-put');
         htmx.process(form);
 
-        submitBtn.textContent = "Log New Scorecard";
-        cancelBtn.style.display = "none";
+        submitBtn.textContent = 'Log New Scorecard';
+        cancelBtn.style.display = 'none';
 
         // If your competition picker element hides custom text strings on reset, trigger it
         const compSelect = form.querySelector('[name="competition_select"]');
-        if (compSelect) compSelect.dispatchEvent(new Event("change"));
+        if (compSelect) compSelect.dispatchEvent(new Event('change'));
 
         setTimeout(syncLabels, 10);
       });
 
-      document.addEventListener("htmx:responseError", function (event) {
+      document.addEventListener('htmx:responseError', function (event) {
         const status = event.detail.xhr.status;
 
         if (status === 401 || status === 403) {
@@ -164,7 +163,7 @@
       });
 
       // Event 1: Before htmx swaps data, inspect the server status code
-      document.body.addEventListener("htmx:beforeOnLoad", (event) => {
+      document.body.addEventListener('htmx:beforeOnLoad', event => {
         const status = event.detail.xhr.status;
 
         // 1. Handle session expiration / unauthorised access
@@ -183,27 +182,27 @@
           event.detail.shouldSwap = false;
 
           // 2. Inject the server's error message straight into our safe static banner
-          errorBanner.innerHTML = `
-           <div style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;">
-             ⚠️ ${event.detail.xhr.responseText}
-           </div>
-         `;
+          errorBanner.innerHTML = html`
+            <div
+              style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;"
+            >
+              ⚠️ ${event.detail.xhr.responseText}
+            </div>
+          `;
         } else if (status === 200) {
-          errorBanner.innerHTML = "";
+          errorBanner.innerHTML = '';
 
-          // 🚨 FIX: Check if the HTMX target is the recent-results container.
-          // If it is, we are just closing details/refreshing the list—do NOT reset the form!
           const isJustRefreshingList =
-            event.detail.target.id === "recent-results";
+            event.detail.target.id === 'recent-results';
 
           if (!isJustRefreshingList) {
-            submitBtn.textContent = "Log New Scorecard";
-            cancelBtn.style.display = "none";
+            submitBtn.textContent = 'Log New Scorecard';
+            cancelBtn.style.display = 'none';
 
             const compSelect = form.querySelector(
               '[name="competition_select"]',
             );
-            if (compSelect) compSelect.dispatchEvent(new Event("change"));
+            if (compSelect) compSelect.dispatchEvent(new Event('change'));
 
             setTimeout(() => {
               form.reset();
@@ -216,25 +215,25 @@
 
     // 4. Isolate the async network logic into a dedicated method
     async populateClubMembers() {
-      const datalist = document.getElementById("club-members");
+      const datalist = document.getElementById('club-members');
       if (!datalist) return;
 
       try {
-        const response = await fetch("/admin/get-club-members");
+        const response = await fetch('/admin/get-club-members');
         if (response.ok) {
           const members = await response.json();
           datalist.innerHTML = members
-            .map((name) => `<option value="${name}"></option>`)
-            .join("");
+            .map(name => html`<option value="${name}"></option>`)
+            .join('');
         }
       } catch (err) {
-        console.error("Background autocomplete population failed:", err);
+        console.error('Background autocomplete population failed:', err);
       }
     }
   }
 
-  if ("customElements" in window) {
-    customElements.define("scorecard-manager", ScorecardManager);
+  if ('customElements' in window) {
+    customElements.define('scorecard-manager', ScorecardManager);
   }
 </script>
 <style>
