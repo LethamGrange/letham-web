@@ -121,49 +121,157 @@
       this.totalAEl = document.getElementById("running-total-a");
       this.totalBEl = document.getElementById("running-total-b");
 
-      tbody.addEventListener("input", (event) => this.onScorecardInput(event));
+      this.addEventListener("input", (event) => this.onScorecardInput(event));
 
-      setTimeout(() => this.updateRunningTotals(), 10);
+      setTimeout(() => {
+        this.updateRunningTotals();
+        this.validateScores();
+      }, 10);
+    }
 
-      // THE VALIDATION INTERCEPTOR
-      this.addEventListener("line-scores:validate", (event) => {
-        const pkg = event.detail; // Grab the shared communication package object reference
+    get hasSemanticErrors() {
+      // Check if any of your inner inputs have an active custom validity message
+      const inputs = Array.from(this.querySelectorAll("input"));
+      return inputs.some((input) => input.validationMessage !== "");
+    }
 
-        // Clear out any old browser constraints first
-        this.querySelectorAll('input[type="number"]').forEach((inp) =>
-          inp.setCustomValidity(""),
-        );
+    onScorecardInput(event) {
+      if (!event.target.matches('input[type="number"]')) return;
 
-        // Run through all 8 curling ends to verify scores rules
-        for (let end = 1; end <= 12; end++) {
-          const inputA = this.querySelector(`[name="e${end}_a"]`);
-          const inputB = this.querySelector(`[name="e${end}_b"]`);
+      const currentInput = event.target;
+      const currentValue = parseInt(currentInput.value) || 0;
+      const currentName = currentInput.name;
+      const opponentName = currentName.endsWith("_a")
+        ? currentName.replace("_a", "_b")
+        : currentName.replace("_b", "_a");
+      const opponentInput = currentInput.form.querySelector(
+        `[name="${opponentName}"]`,
+      );
 
-          const scoreA = parseInt(inputA.value) || 0;
-          const scoreB = parseInt(inputB.value) || 0;
-
-          // CRITICAL CURLING RULE: Both teams cannot score points in the same end
-          if (scoreA > 0 && scoreB > 0) {
-            // Force browser invalid styling metrics
-            inputA.setCustomValidity("Invalid curling score");
-            inputB.setCustomValidity("Invalid curling score");
-
-            inputA.style.borderColor = "var(--red-6)";
-            inputB.style.borderColor = "var(--red-6)";
-            // Mutate the parent's package properties directly!
-            pkg.isValid = false;
-            //pkg.errorMessage = `Invalid Scorecard: Both teams recorded scores in End ${end}. One side must be 0 or blank.`;
-            pkg.message = "";
-            pkg.errorInputs = [inputA, inputB];
-            let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
-
-            const messageEl = this.querySelector("#linescore-error");
-            messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
-
-            return; // Terminate loop early since we found a breaking error
-          }
+      if (currentValue > 0) {
+        if (opponentInput && opponentInput.value === "") {
+          opponentInput.value = 0;
         }
-      });
+      }
+      const opponentValue = parseInt(opponentInput.value) || 0;
+
+      // Clear previous custom errors first
+      currentInput.setCustomValidity("");
+      opponentInput.setCustomValidity("");
+      currentInput.classList.remove("is-invalid");
+      opponentInput.classList.remove("is-invalid");
+      const messageEl = this.querySelector("#linescore-error");
+
+      // 2. Run your semantic check: Both teams cannot score in the same end
+      if (currentValue > 0 && opponentValue > 0) {
+        //dev/let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
+
+        const errorMsg = ` Both teams cannot score in the same end.`;
+
+        // Setting this instantly makes the form invalid for htmx
+        currentInput.setCustomValidity(errorMsg);
+        opponentInput.setCustomValidity(errorMsg);
+        currentInput.classList.add("is-invalid");
+        opponentInput.classList.add("is-invalid");
+
+        // Set clean visual label text metrics
+        messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in same end. One side must be 0 or blank.`;
+      } else {
+        messageEl.textContent = "";
+      }
+
+      // RUN THE TOTAL UPDATE IN REAL TIME 🧮
+      this.updateRunningTotals();
+    }
+
+    validateScores(event) {
+      let isInvalid = false;
+
+      for (let end = 1; end <= 12; end++) {
+        const scoreAInput = this.querySelector(`[name="e${end}_a"]`);
+        const scoreBInput = this.querySelector(`[name="e${end}_b"]`);
+
+        // Skip calculations if inputs don't exist in DOM for any reason
+        if (!scoreAInput || !scoreBInput) continue;
+
+        const scoreA = parseInt(scoreAInput.value) || 0;
+        const scoreB = parseInt(scoreBInput.value) || 0;
+
+        // Clear previous custom errors first
+        scoreAInput.setCustomValidity("");
+        scoreBInput.setCustomValidity("");
+
+        // 2. Run your semantic check: Both teams cannot score in the same end
+        if (scoreA > 0 && scoreB > 0) {
+          let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
+
+          const errorMsg = `End ${endLabel}: Both teams cannot score in the same end.`;
+
+          // Setting this instantly makes the form invalid for htmx
+          scoreAInput.setCustomValidity(errorMsg);
+          scoreBInput.setCustomValidity(errorMsg);
+
+          isInvalid = true;
+
+          // Set clean visual label text metrics
+          const messageEl = this.querySelector("#linescore-error");
+          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+        }
+      }
+    }
+
+    // // Loop dynamically through ALL 12 possible end columns to check curling legality
+    // for (let end = 1; end <= 12; end++) {
+    //   const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
+    //   const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
+    //
+    //   // Skip calculations if inputs don't exist in DOM for any reason
+    //   if (!scoreAInput || !scoreBInput) continue;
+    //
+    //   const scoreA = parseInt(scoreAInput.value) || 0;
+    //   const scoreB = parseInt(scoreBInput.value) || 0;
+    //
+    //   // RULE: Both teams cannot score points in the same end
+    //   if (scoreA > 0 && scoreB > 0) {
+    //     event.preventDefault(); // Stop form submission completely
+    //     event.stopImmediatePropagation();
+    //
+    //     // Force browser invalid styling metrics
+    //     scoreAInput.setCustomValidity('Invalid curling score');
+    //     scoreBInput.setCustomValidity('Invalid curling score');
+    //
+    //     scoreAInput.style.borderColor = 'var(--red-6)';
+    //     scoreBInput.style.borderColor = 'var(--red-6)';
+    //
+    //     // Set clean visual label text metrics
+    //     let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
+    //     const messageEl = form.querySelector('#linescore-error');
+    //     messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
+    //
+    //     return;
+    //   } else {
+    //     // Reset validation flags if user corrected a previous mistake
+    //     scoreAInput.setCustomValidity('');
+    //     scoreBInput.setCustomValidity('');
+    //   }
+    // }
+
+    focusFirstInvalid() {
+      // Find the first input containing an active semantic error message
+      const firstInvalidInput = Array.from(this.querySelectorAll("input")).find(
+        (input) => input.validationMessage !== "",
+      );
+
+      if (firstInvalidInput) {
+        // Smoothly scroll the row into view so the user has context
+        firstInvalidInput.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+
+        // Move keyboard focus to it
+        firstInvalidInput.focus();
+      }
     }
 
     // DYNAMIC NAME SYNC FUNCTION
@@ -189,29 +297,6 @@
       // Push the fresh values straight into the UI text nodes
       this.totalAEl.textContent = totalA;
       this.totalBEl.textContent = totalB;
-    }
-
-    onScorecardInput(event) {
-      if (!event.target.matches('input[type="number"]')) return;
-
-      const currentInput = event.target;
-      const currentValue = parseInt(currentInput.value) || 0;
-
-      if (currentValue > 0) {
-        const currentName = currentInput.name;
-        const opponentName = currentName.endsWith("_a")
-          ? currentName.replace("_a", "_b")
-          : currentName.replace("_b", "_a");
-
-        const opponentInput = currentInput.form.querySelector(
-          `[name="${opponentName}"]`,
-        );
-
-        if (opponentInput && opponentInput.value === "") {
-          opponentInput.value = 0;
-        }
-      } // RUN THE TOTAL UPDATE IN REAL TIME 🧮
-      this.updateRunningTotals();
     }
 
     onUpdateLinescores(data) {
@@ -305,10 +390,18 @@
     border: 1px solid transparent;
   }
 
-  .scorecard-scroll-wrapper input[type="number"]:user-invalid {
+  .scorecard-scroll-wrapper input[type="number"]:user-invalid,
+  .scorecard-scroll-wrapper input[type="number"].is-invalid {
     border-color: var(--red-6);
     background-color: var(--red-1);
     color: var(--red-9);
+  }
+
+  /* Ensure that when they focus the untouched input to fix it, it pops out cleanly */
+  .scorecard-scroll-wrapper input[type="number"].is-invalid:focus {
+    outline: 3px solid var(--red-8);
+    outline-offset: 2px;
+    background-color: #fef2f2;
   }
 
   .mobile-hint {
