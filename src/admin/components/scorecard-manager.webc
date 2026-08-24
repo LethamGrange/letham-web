@@ -156,6 +156,7 @@
     }
 
     onSubmit(event, form) {
+      this.lineScores.validateAllScores({ checkGaps: true });
       // Clear any leftover server-side errors the moment they try again
       const isFormValid = event.target.checkValidity();
 

@@ -123,6 +123,10 @@
 
       this.addEventListener("input", (event) => this.onScorecardInput(event));
 
+      // 2. Safely inject zeros ONLY when the user steps away from an end
+      this.addEventListener("blur", (e) => this.onScorecardBlur(e), {
+        capture: true,
+      });
       setTimeout(() => {
         this.updateRunningTotals();
         this.validateScores();
@@ -135,7 +139,140 @@
       return inputs.some((input) => input.validationMessage !== "");
     }
 
+    // NEW: Handle the zero-fill safely on blur
+    onScorecardBlur(event) {
+      if (!event.target.matches('input[type="number"]')) return;
+
+      const currentInput = event.target;
+      const currentName = currentInput.name;
+
+      // Find the opponent input
+      const opponentName = currentName.endsWith("_a")
+        ? currentName.replace("_a", "_b")
+        : currentName.replace("_b", "_a");
+      const opponentInput = this.querySelector(`[name="${opponentName}"]`);
+
+      if (!opponentInput) return;
+
+      const currentValue = parseInt(currentInput.value, 10) || 0;
+      const opponentValue = parseInt(opponentInput.value, 10) || 0;
+
+      // If I just finished typing a score, and my opponent's field is totally blank, fill it with a 0
+      if (currentValue > 0 && opponentInput.value === "") {
+        opponentInput.value = 0;
+      }
+      // If my opponent has a score, and I left my field totally blank, fill mine with a 0
+      if (opponentValue > 0 && currentInput.value === "") {
+        currentInput.value = 0;
+      }
+
+      // Refresh everything once values settle
+      this.validateAllScores();
+      this.updateRunningTotals();
+    }
+
+    validateSingleEnd(end, inputA, inputB, isSkipped = false) {
+      if (!inputA || !inputB) return { isInvalid: false, label: "" };
+
+      const rawA = inputA.value.trim();
+      const rawB = inputB.value.trim();
+
+      const scoreA = parseInt(rawA, 10) || 0;
+      const scoreB = parseInt(rawB, 10) || 0;
+
+      // Clear previous validation states
+      inputA.setCustomValidity("");
+      inputB.setCustomValidity("");
+      inputA.classList.remove("is-invalid");
+      inputB.classList.remove("is-invalid");
+
+      const endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
+
+      // RULE 1: Skipped End Detection
+      if (isSkipped && rawA === "" && rawB === "") {
+        const errorMsg = `This end cannot be left completely blank if subsequent ends have scores. Enter 0 for both teams if it was a blank end.`;
+        inputA.setCustomValidity(errorMsg);
+        inputB.setCustomValidity(errorMsg);
+        inputA.classList.add("is-invalid");
+        inputB.classList.add("is-invalid");
+        return { isInvalid: true, label: endLabel, type: "skipped" };
+      }
+
+      // RULE 2: Both teams cannot score in the same end
+      if (scoreA > 0 && scoreB > 0) {
+        const errorMsg = `Both teams cannot score in the same end.`;
+        inputA.setCustomValidity(errorMsg);
+        inputB.setCustomValidity(errorMsg);
+        inputA.classList.add("is-invalid");
+        inputB.classList.add("is-invalid");
+        return { isInvalid: true, label: endLabel, type: "conflict" };
+      }
+
+      return { isInvalid: false, label: "", type: "" };
+    }
+
+    // 2. Used when setLinescores() or bulk data updates occur
+    validateAllScores({ checkGaps = false } = {}) {
+      let lastActiveEnd = 0;
+
+      // 1. Only run the expensive "furthest end" sweep if we are actually checking for gaps
+      if (checkGaps) {
+        for (let end = 1; end <= 12; end++) {
+          const inputA = this.querySelector(`[name="e${end}_a"]`);
+          const inputB = this.querySelector(`[name="e${end}_b"]`);
+
+          if (inputA?.value.trim() !== "" || inputB?.value.trim() !== "") {
+            lastActiveEnd = end;
+          }
+        }
+      }
+
+      let formHasErrors = false;
+      let firstErrorLabel = "";
+      let errorType = "";
+
+      // 2. Run the main validation loop across all ends
+      for (let end = 1; end <= 12; end++) {
+        const inputA = this.querySelector(`[name="e${end}_a"]`);
+        const inputB = this.querySelector(`[name="e${end}_b"]`);
+
+        // A gap is only checked if checkGaps is true AND this end is behind the furthest entry
+        const isSkipped = checkGaps && end < lastActiveEnd;
+
+        const result = this.validateSingleEnd(end, inputA, inputB, isSkipped);
+
+        // Only capture the very first error encountered to display in the banner
+        if (result.isInvalid && !formHasErrors) {
+          formHasErrors = true;
+          firstErrorLabel = result.label;
+          errorType = result.type;
+        }
+      }
+
+      // 3. Update the global message banner based on the context
+      const messageEl = this.querySelector("#linescore-error");
+      if (formHasErrors) {
+        if (errorType === "skipped") {
+          messageEl.textContent = `Invalid Scorecard: ${firstErrorLabel} has been skipped. Please enter scores or fill 0-0 for a blank end.`;
+        } else {
+          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${firstErrorLabel}. One side must be 0 or blank.`;
+        }
+      } else {
+        messageEl.textContent = "";
+      }
+    }
+
+    // 3. Used for speedy live typing updates
     onScorecardInput(event) {
+      if (!event.target.matches('input[type="number"]')) return;
+      // Run the shared single end evaluator to toggle invalid states instantly
+      this.validateAllScores();
+
+      // RUN THE TOTAL UPDATE IN REAL TIME 🧮
+      this.updateRunningTotals();
+    }
+
+    onScorecardInputX(event) {
       if (!event.target.matches('input[type="number"]')) return;
 
       const currentInput = event.target;
@@ -183,6 +320,23 @@
       // RUN THE TOTAL UPDATE IN REAL TIME 🧮
       this.updateRunningTotals();
     }
+    // Helper function to calculate math for all 12 ends dynamically
+    updateRunningTotals() {
+      let totalA = 0;
+      let totalB = 0;
+
+      for (let end = 1; end <= 12; end++) {
+        const valA = this.querySelector(`[name="e${end}_a"]`)?.value;
+        const valB = this.querySelector(`[name="e${end}_b"]`)?.value;
+
+        totalA += parseInt(valA) || 0;
+        totalB += parseInt(valB) || 0;
+      }
+
+      // Push the fresh values straight into the UI text nodes
+      this.totalAEl.textContent = totalA;
+      this.totalBEl.textContent = totalB;
+    }
 
     validateScores(event) {
       let isInvalid = false;
@@ -220,42 +374,6 @@
       }
     }
 
-    // // Loop dynamically through ALL 12 possible end columns to check curling legality
-    // for (let end = 1; end <= 12; end++) {
-    //   const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
-    //   const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
-    //
-    //   // Skip calculations if inputs don't exist in DOM for any reason
-    //   if (!scoreAInput || !scoreBInput) continue;
-    //
-    //   const scoreA = parseInt(scoreAInput.value) || 0;
-    //   const scoreB = parseInt(scoreBInput.value) || 0;
-    //
-    //   // RULE: Both teams cannot score points in the same end
-    //   if (scoreA > 0 && scoreB > 0) {
-    //     event.preventDefault(); // Stop form submission completely
-    //     event.stopImmediatePropagation();
-    //
-    //     // Force browser invalid styling metrics
-    //     scoreAInput.setCustomValidity('Invalid curling score');
-    //     scoreBInput.setCustomValidity('Invalid curling score');
-    //
-    //     scoreAInput.style.borderColor = 'var(--red-6)';
-    //     scoreBInput.style.borderColor = 'var(--red-6)';
-    //
-    //     // Set clean visual label text metrics
-    //     let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
-    //     const messageEl = form.querySelector('#linescore-error');
-    //     messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
-    //
-    //     return;
-    //   } else {
-    //     // Reset validation flags if user corrected a previous mistake
-    //     scoreAInput.setCustomValidity('');
-    //     scoreBInput.setCustomValidity('');
-    //   }
-    // }
-
     focusFirstInvalid() {
       // Find the first input containing an active semantic error message
       const firstInvalidInput = Array.from(this.querySelectorAll("input")).find(
@@ -279,24 +397,6 @@
       // If a name is typed, show it. Otherwise, fall back to the defaults.
       this.labelA.textContent = inputA?.trim() || "Team A";
       this.labelB.textContent = inputB?.trim() || "Team B";
-    }
-
-    // Helper function to calculate math for all 12 ends dynamically
-    updateRunningTotals() {
-      let totalA = 0;
-      let totalB = 0;
-
-      for (let end = 1; end <= 12; end++) {
-        const valA = this.querySelector(`[name="e${end}_a"]`)?.value;
-        const valB = this.querySelector(`[name="e${end}_b"]`)?.value;
-
-        totalA += parseInt(valA) || 0;
-        totalB += parseInt(valB) || 0;
-      }
-
-      // Push the fresh values straight into the UI text nodes
-      this.totalAEl.textContent = totalA;
-      this.totalBEl.textContent = totalB;
     }
 
     onUpdateLinescores(data) {
