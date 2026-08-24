@@ -118,6 +118,7 @@
       const form = this.querySelector("form");
       this.errorBanner = document.getElementById("form-error-banner");
       this.submitBtn = this.querySelector('button[type="submit"]');
+      this.competitionPicker = this.querySelector("competition-picker");
 
       const inputA = form.querySelector('[name="team_a_name"]');
       const inputB = form.querySelector('[name="team_b_name"]');
@@ -237,21 +238,24 @@
 
         // 3. AUTOMATED DOM DATA MAPPER
         // Loop keys and search form for matching named elements
-        Object.keys(data).forEach((key) => {
+        //        Object.keys(data).forEach((key) => {
+        for (const [key, value] of Object.entries(data)) {
+          // Manually trigger a dispatch event if your competition picker
+          // component needs to see changes (like toggling 'Other')
+          if (key === "competition_name") {
+            this.competitionPicker.competitionName = value;
+            continue;
+          }
+
           const input = form.querySelector(`[name="${key}"]`);
           if (input) {
             if (input.type === "checkbox") {
-              input.checked = !!data[key];
+              input.checked = !!value;
             } else {
-              input.value = data[key] !== null ? data[key] : "";
-            }
-            // Manually trigger a dispatch event if your competition picker
-            // component needs to see changes (like toggling 'Other')
-            if (key === "competition_name") {
-              input.dispatchEvent(new Event("change"));
+              input.value = value !== null ? value : "";
             }
           }
-        });
+        }
 
         this.lineScores.onUpdateLinescores(data);
 

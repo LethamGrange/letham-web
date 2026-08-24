@@ -1,10 +1,6 @@
 <!-- components/competition-picker.webc -->
-<div
-  class="competition-picker"
-  id="custom-field-container"
-  style="margin-top: var(--size-2)"
->
-  <label for="custom_competition_name">Competition / League:</label><br />
+<div class="competition-picker" style="margin-top: var(--size-2)">
+  <label for="competition_name">Competition / League:</label><br />
   <input
     type="text"
     id="competition_input"
@@ -17,7 +13,7 @@
   />
   <!-- 4. The Typo Hint div sits cleanly below the input for soft corrections -->
   <div
-    id="typo-hint"
+    class="typo-hint"
     style="min-height: var(--size-4); margin-top: var(--size-1)"
   ></div>
 </div>
@@ -31,7 +27,32 @@
 
 <script>
   class CompetitionPicker extends HTMLElement {
+    // A static counter guarantees sequential, unique IDs across all instances
+    static instanceCount = 8;
+    // 1. Tell the browser what attributes to watch for changes
+    static get observedAttributes() {
+      return ["competition_name"];
+    }
+    // 2. This callback handles changes, even if it fires BEFORE connectedCallback has run!
+    attributeChangedCallback(name, oldValue, newValue) {
+      // If the DOM isn't cached into our class properties yet, fall back to a direct select
+      if (name === "competition_name") {
+        this.input.value = newValue.trim();
+      }
+    }
+
+    get competitionName() {
+      return this.getAttribute("competition_name");
+    }
+    set competitionName(value) {
+      if (this.competitionName !== value) {
+        this.setAttribute("competition_name", value);
+      }
+    }
+
     connectedCallback() {
+      CompetitionPicker.instanceCount++;
+      const idSuffix = CompetitionPicker.instanceCount;
       // Your canonical list
       this.canonicalLeagues = [
         "Bank of Scotland",
@@ -40,8 +61,23 @@
         "Mixed Doubles",
       ];
 
-      this.input = this.querySelector("#competition_input");
-      this.hintContainer = this.querySelector("#typo-hint");
+      this.input = this.querySelector("input");
+      this.hintContainer = this.querySelector(".typo-hint");
+      const label = this.querySelector("label");
+
+      if (this.input) {
+        this.input.id = `comp-input-${idSuffix}`;
+
+        if (label) {
+          label.setAttribute("for", this.input.id);
+        }
+
+        if (this.hintContainer) {
+          this.hintContainer.id = `comp-hint-${idSuffix}`;
+          // Screen readers will now announce your typo corrections automatically!
+          this.input.setAttribute("aria-describedby", this.hintContainer.id);
+        }
+      }
 
       this.input.addEventListener("input", () => this.checkForSoftMatch());
       // NEW: Clean up capitalization when the user finishes typing and leaves the field
@@ -96,13 +132,13 @@
       // If we found a close canonical match, offer a soft correction link
       if (closeMatch) {
         this.hintContainer.innerHTML = `
-        <span style="font-size: var(--font-size-0); color: var(--gray-6);">
-          Did you mean <strong>${closeMatch}</strong>?
-          <button type="button" class="ui-button ui-primary">
-            Click to fix
-          </button>
-        </span>
-      `;
+         <span style="font-size: var(--font-size-0); color: var(--gray-6);">
+           Did you mean <strong>${closeMatch}</strong>?
+           <button type="button" class="ui-button ui-primary">
+             Click to fix
+           </button>
+         </span>
+       `;
 
         // If they click the hint, update the input seamlessly
         this.hintContainer

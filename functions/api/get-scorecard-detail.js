@@ -170,19 +170,19 @@ Are you completely sure you want to permanently delete this scorecard?"
           <div>
             <strong style="color: var(--text-1);">${match.team_a_name} Lineup:</strong>
             <ul style="list-style: none; padding: 0; margin: var(--size-1) 0 0 0; color: var(--text-2);">
-              <li><strong>Skip:</strong> ${match.team_a_skip || 'Unlisted'}</li>
-              <li><strong>Third:</strong> ${match.team_a_third || 'Unlisted'}</li>
-              <li><strong>Second:</strong> ${match.team_a_second || 'Unlisted'}</li>
-              <li><strong>Lead:</strong> ${match.team_a_lead || 'Unlisted'}</li>
+              <li><strong>Skip:</strong> ${match.team_a_skip || ''}</li>
+              <li><strong>Third:</strong> ${match.team_a_third || ''}</li>
+              <li><strong>Second:</strong> ${match.team_a_second || ''}</li>
+              <li><strong>Lead:</strong> ${match.team_a_lead || ''}</li>
             </ul>
           </div>
           <div>
             <strong style="color: var(--text-1);">${match.team_b_name} Lineup:</strong>
             <ul style="list-style: none; padding: 0; margin: var(--size-1) 0 0 0; color: var(--text-2);">
-              <li><strong>Skip:</strong> ${match.team_b_skip || 'Unlisted'}</li>
-              <li><strong>Third:</strong> ${match.team_b_third || 'Unlisted'}</li>
-              <li><strong>Second:</strong> ${match.team_b_second || 'Unlisted'}</li>
-              <li><strong>Lead:</strong> ${match.team_b_lead || 'Unlisted'}</li>
+              <li><strong>Skip:</strong> ${match.team_b_skip || ''}</li>
+              <li><strong>Third:</strong> ${match.team_b_third || ''}</li>
+              <li><strong>Second:</strong> ${match.team_b_second || ''}</li>
+              <li><strong>Lead:</strong> ${match.team_b_lead || ''}</li>
             </ul>
           </div>
         </div>
