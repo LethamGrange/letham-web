@@ -11,7 +11,10 @@ export async function onRequestGet(context) {
 
   try {
     // 1. Fetch Competition Meta Details
-    const comp = await db.prepare(`SELECT * FROM syllabus_competitions WHERE id = ?`).bind(compId).first();
+    const comp = await db
+      .prepare(html`SELECT * FROM syllabus_competitions WHERE id = ?`)
+      .bind(compId)
+      .first();
 
     // 2. Fetch Competition Reserves
     const { results: reserves } = await db

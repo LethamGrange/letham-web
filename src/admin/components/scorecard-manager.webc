@@ -6,33 +6,47 @@
   hx-target="#recent-results"
   hx-swap="innerHTML"
 >
-  <!-- 1. Metadata -->
-  <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
-    <input type="hidden" name="match_id" value="" />
-    <div>
-      <label>Date:</label><br />
-      <input type="date" name="match_date" required />
+  <fieldset style="display: flex; gap: 40px">
+    <legend>Details</legend>
+
+    <!-- 1. Metadata -->
+    <div
+      style="
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        flex: 1;
+      "
+    >
+      <input type="hidden" name="match_id" value="" />
+      <div>
+        <label>Date:</label><br />
+        <input type="date" name="match_date" required />
+      </div>
+      <div>
+        <label>Time / Draw:</label><br />
+        <input type="time" step="300" name="match_time" required />
+      </div>
+      <div>
+        <label>Sheet:</label><br />
+        <select name="sheet" required>
+          <option value="A">Sheet A</option>
+          <option value="B">Sheet B</option>
+          <option value="C">Sheet C</option>
+          <option value="D">Sheet D</option>
+          <option value="E">Sheet E</option>
+          <option value="F">Sheet F</option>
+        </select>
+      </div>
+      <competition-picker></competition-picker>
     </div>
-    <div>
-      <label>Time / Draw:</label><br />
-      <input type="time" name="match_time" required />
-    </div>
-    <div>
-      <label>Sheet:</label><br />
-      <select name="sheet" required>
-        <option value="A">Sheet A</option>
-        <option value="B">Sheet B</option>
-        <option value="C">Sheet C</option>
-        <option value="D">Sheet D</option>
-        <option value="E">Sheet E</option>
-        <option value="F">Sheet F</option>
-      </select>
-    </div>
-    <competition-picker></competition-picker>
-  </div>
+  </fieldset>
 
   <!-- 2. Teams & Rosters -->
-  <div style="display: flex; gap: 40px">
+  <fieldset style="display: flex; gap: 40px">
+    <legend>Teams</legend>
+
     <!-- Team A Column -->
     <div>
       <h3>Team A</h3>
@@ -43,7 +57,7 @@
         list="club-members"
         required
       />
-      <h4>Roster:</h4>
+      <h4>Names:</h4>
       <div
         class="form-input"
         webc:for="player of ['Skip', 'Third', 'Second','Lead']"
@@ -67,7 +81,7 @@
         list="club-members"
         required
       />
-      <h4>Roster:</h4>
+      <h4>Names:</h4>
       <div
         class="form-input"
         webc:for="player of ['Skip', 'Third', 'Second','Lead']"
@@ -80,22 +94,19 @@
         />
       </div>
     </div>
-  </div>
+  </fieldset>
 
   <line-scores></line-scores>
 
   <br />
   <button class="ui-button ui-filled ui-primary" type="submit">
-    Submit Complete Scorecard
+    Submit Complete Scorecard</button
+  ><button class="ui-button ui-tonal" id="cancel-edit-btn">
+    Cancel Edit ✕
   </button>
 </form>
 
 <datalist id="club-members"></datalist>
-<datalist id="competitions-list">
-  <option value="Bank of Scotland"></option>
-  <option value="Contractor's Cup"></option>
-  <option value="Spring League"></option>
-</datalist>
 
 <script>
   class ScorecardManager extends HTMLElement {
@@ -104,176 +115,85 @@
     lineScores;
 
     connectedCallback() {
-      const form = this.querySelector('form');
-      this.errorBanner = document.getElementById('form-error-banner');
+      const form = this.querySelector("form");
+      this.errorBanner = document.getElementById("form-error-banner");
       this.submitBtn = this.querySelector('button[type="submit"]');
+      this.competitionPicker = this.querySelector("competition-picker");
 
       const inputA = form.querySelector('[name="team_a_name"]');
       const inputB = form.querySelector('[name="team_b_name"]');
 
-      this.lineScores = form.querySelector('line-scores');
-
-      const toggleCheckbox = document.getElementById('toggle-extra-ends');
+      this.lineScores = form.querySelector("line-scores");
 
       // 1. RE-ACTIVE SYNC: Push text values down as attributes as the admin types
       const updateAttributes = () => {
         if (this.lineScores) {
-          this.lineScores.setAttribute('team-a', inputA.value);
-          this.lineScores.setAttribute('team-b', inputB.value);
+          this.lineScores.teamA = inputA.value;
+          this.lineScores.setAttribute("team-b", inputB.value);
         }
       };
 
-      inputA?.addEventListener('input', updateAttributes);
-      inputB?.addEventListener('input', updateAttributes);
-
-      toggleCheckbox.addEventListener('change', () => {
-        form.classList.toggle('show-extras', this.checked);
-      });
+      inputA?.addEventListener("input", updateAttributes);
+      inputB?.addEventListener("input", updateAttributes);
 
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
-      this.cancelBtn = this.querySelector('#cancel-edit-btn');
-
-      if (!this.cancelBtn) {
-        this.cancelBtn = document.createElement('button');
-        this.cancelBtn.type = 'button';
-        this.cancelBtn.id = 'cancel-edit-btn';
-        this.cancelBtn.textContent = 'Cancel Edit ✕';
-        this.cancelBtn.style.cssText =
-          'display: none; background: var(--surface-2); margin-left: var(--size-2);';
-        this.submitBtn.parentNode.insertBefore(
-          this.cancelBtn,
-          this.submitBtn.nextSibling,
-        );
-      }
+      this.cancelBtn = this.querySelector("#cancel-edit-btn");
 
       // 5. THE CLEAN RESET PATHway TO CREATE MODE
-      this.cancelBtn.addEventListener('click', () => this.onCancel(form));
+      this.cancelBtn.addEventListener("click", () => this.onCancel(form));
       this.populateClubMembers();
 
       setTimeout(() => updateAttributes(), 10);
 
       // 1. CATCH THE BUBBLED EVENT FROM ANY DEEP MATCH CARD CLICK
-      document.body.addEventListener('edit-scorecard-request', async event =>
+      document.body.addEventListener("edit-scorecard-request", async (event) =>
         this.onEditScorecard(form),
       );
 
-      document.addEventListener('htmx:responseError', event =>
-        this.onResponseError(event),
-      );
-
       // Event 1: Before htmx swaps data, inspect the server status code
-      document.body.addEventListener('htmx:beforeOnLoad', event =>
+      document.body.addEventListener("htmx:beforeOnLoad", (event) =>
         this.onBeforeLoad(event, form),
       );
 
-      form.addEventListener('submit', event => this.onSubmit(event, form)); // Listen for text events to inject auto-zero placeholders up to end 12
+      form.addEventListener("submit", (event) => this.onSubmit(event, form)); // Listen for text events to inject auto-zero placeholders up to end 12
     }
 
     onSubmit(event, form) {
-      const isValid = event.target.checkValidity();
+      this.lineScores.validateAllScores({ checkGaps: true });
+      // Clear any leftover server-side errors the moment they try again
+      const isFormValid = event.target.checkValidity();
 
-      if (isValid) {
-        const lineScoresComp = this.querySelector('line-scores');
-        if (!lineScoresComp) return;
-
-        // 1. Prepare a shared package for the child to write into
-        const validationPackage = {
-          isValid: true, // Assumed valid until proven otherwise
-          errorMessage: '',
-          errorInputs: [], // To pass back exactly which boxes failed
-        };
-
-        // 2. Dispatch the event directly down to the child synchronously
-        lineScoresComp.dispatchEvent(
-          new CustomEvent('line-scores:validate', {
-            detail: validationPackage,
-          }),
-        );
-
-        // 3. THE MAGIC: Read the results instantly right here!
-        if (!validationPackage.isValid) {
-          // Stop htmx from sending the request to Cloudflare completely!
-          event.preventDefault();
-          event.stopImmediatePropagation();
-
-          // Force the specific offending inputs into your visual :user-invalid CSS state
-          validationPackage.errorInputs.forEach(input => {
-            input.setCustomValidity(validationPackage.errorMessage);
-          });
-
-          // Output the failure message to your static form-error-banner
-          const errorBanner = document.getElementById('form-error-banner');
-          if (errorBanner && validationPackage.message) {
-            errorBanner.innerHTML = `
-          <div style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;">
-            ⚠️ ${validationPackage.errorMessage}
-          </div>
-        `;
-          }
-          return;
-        }
-        // If it's valid, clear any historical banner errors and let htmx process normally
-        const errorBanner = document.getElementById('form-error-banner');
-        if (errorBanner) errorBanner.innerHTML = '';
-
-        // // Loop dynamically through ALL 12 possible end columns to check curling legality
-        // for (let end = 1; end <= 12; end++) {
-        //   const scoreAInput = event.target.querySelector(`[name="e${end}_a"]`);
-        //   const scoreBInput = event.target.querySelector(`[name="e${end}_b"]`);
-        //
-        //   // Skip calculations if inputs don't exist in DOM for any reason
-        //   if (!scoreAInput || !scoreBInput) continue;
-        //
-        //   const scoreA = parseInt(scoreAInput.value) || 0;
-        //   const scoreB = parseInt(scoreBInput.value) || 0;
-        //
-        //   // RULE: Both teams cannot score points in the same end
-        //   if (scoreA > 0 && scoreB > 0) {
-        //     event.preventDefault(); // Stop form submission completely
-        //     event.stopImmediatePropagation();
-        //
-        //     // Force browser invalid styling metrics
-        //     scoreAInput.setCustomValidity('Invalid curling score');
-        //     scoreBInput.setCustomValidity('Invalid curling score');
-        //
-        //     scoreAInput.style.borderColor = 'var(--red-6)';
-        //     scoreBInput.style.borderColor = 'var(--red-6)';
-        //
-        //     // Set clean visual label text metrics
-        //     let endLabel = end <= 10 ? `End ${end}` : end === 11 ? 'EE' : 'EEE';
-        //     const messageEl = form.querySelector('#linescore-error');
-        //     messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
-        //
-        //     return;
-        //   } else {
-        //     // Reset validation flags if user corrected a previous mistake
-        //     scoreAInput.setCustomValidity('');
-        //     scoreBInput.setCustomValidity('');
-        //   }
-        // }
-      } else {
+      if (!isFormValid) {
+        // Stop htmx from sending the request to Cloudflare completely!
         event.preventDefault();
         event.stopImmediatePropagation();
-        const messageEl = document.body.querySelector('#form-error-message');
-        messageEl.textContent = `Invalid form - check your data.`;
+
+        if (this.lineScores && this.lineScores.hasSemanticErrors) {
+          lineScores.focusFirstInvalid();
+        }
+
+        // EXIT EARLY: The old server error banner stays visible
+        return;
       }
+
+      if (this.errorBanner) this.errorBanner.innerHTML = "";
     }
 
     // 4. Isolate the async network logic into a dedicated method
     async populateClubMembers() {
-      const datalist = document.getElementById('club-members');
+      const datalist = document.getElementById("club-members");
       if (!datalist) return;
 
       try {
-        const response = await fetch('/admin/get-club-members');
+        const response = await fetch("/admin/get-club-members");
         if (response.ok) {
           const members = await response.json();
           datalist.innerHTML = members
-            .map(name => html`<option value="${name}"></option>`)
-            .join('');
+            .map((name) => html`<option value="${name}"></option>`)
+            .join("");
         }
       } catch (err) {
-        console.error('Background autocomplete population failed:', err);
+        console.error("Background autocomplete population failed:", err);
       }
     }
 
@@ -282,19 +202,19 @@
 
       // Wipe s.the hidden identifier completely
       const hiddenId = form.querySelector('[name="match_id"]');
-      if (hiddenId) hiddenId.value = '';
+      if (hiddenId) hiddenId.value = "";
 
       // Revert from PUT back to standard POST
-      form.setAttribute('hx-post', '/admin/submit-scorecard');
-      form.removeAttribute('hx-put');
+      form.setAttribute("hx-post", "/admin/submit-scorecard");
+      form.removeAttribute("hx-put");
       htmx.process(form);
 
-      this.submitBtn.textContent = 'Log New Scorecard';
-      this.cancelBtn.style.display = 'none';
+      this.submitBtn.textContent = "Log New Scorecard";
+      this.cancelBtn.style.display = "none";
 
       // If your competition picker element hides custom text strings on reset, trigger it
       const compSelect = form.querySelector('[name="competition_select"]');
-      if (compSelect) compSelect.dispatchEvent(new Event('change'));
+      if (compSelect) compSelect.dispatchEvent(new Event("change"));
     }
 
     async onEditScorecard(form) {
@@ -306,7 +226,7 @@
           `/admin/get-raw-scorecard-json?id=${matchId}`,
         );
         if (!response.ok)
-          throw new Error('Could not pull scorecard database records.');
+          throw new Error("Could not pull scorecard database records.");
 
         const data = await response.json();
 
@@ -318,60 +238,43 @@
 
         // 3. AUTOMATED DOM DATA MAPPER
         // Loop keys and search form for matching named elements
-        Object.keys(data).forEach(key => {
+        //        Object.keys(data).forEach((key) => {
+        for (const [key, value] of Object.entries(data)) {
+          // Manually trigger a dispatch event if your competition picker
+          // component needs to see changes (like toggling 'Other')
+          if (key === "competition_name") {
+            this.competitionPicker.competitionName = value;
+            continue;
+          }
+
           const input = form.querySelector(`[name="${key}"]`);
           if (input) {
-            if (input.type === 'checkbox') {
-              input.checked = !!data[key];
+            if (input.type === "checkbox") {
+              input.checked = !!value;
             } else {
-              input.value = data[key] !== null ? data[key] : '';
-            }
-            // Manually trigger a dispatch event if your competition picker
-            // component needs to see changes (like toggling 'Other')
-            if (key === 'competition_select') {
-              input.dispatchEvent(new Event('change'));
+              input.value = value !== null ? value : "";
             }
           }
-        });
+        }
 
         this.lineScores.onUpdateLinescores(data);
 
         // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
-        form.setAttribute('hx-put', '/admin/submit-scorecard');
-        form.removeAttribute('hx-post');
+        form.setAttribute("hx-put", "/admin/submit-scorecard");
+        form.removeAttribute("hx-post");
         htmx.process(form); // Rebinds the active lifecycle handlers to PUT
 
-        this.submitBtn.textContent = 'Save Modifications 💾';
-        this.cancelBtn.style.display = 'inline-block';
+        this.submitBtn.textContent = "Save Modifications 💾";
+        this.cancelBtn.style.display = "inline-block";
 
         // Bring workspace focus smoothly into window view
-        this.scrollIntoView({ behavior: 'smooth' });
+        this.scrollIntoView({ behavior: "smooth" });
       } catch (error) {
         if (this.errorBanner) {
           this.errorBanner.innerHTML = html`<div style="color:var(--red-6)">
             ⚠️ ${error.message}
           </div>`;
         }
-      }
-      // setTimeout(
-      //   () => this.lineScores.syncLabels(this.inputA.value, this.inputB.value),
-      //   10,
-      // );
-
-      // Add this right after you populate your form fields with JSON edit data:
-      //this.updateRunningTotals(form);
-    }
-
-    onResponseError(event) {
-      const status = event.detail.xhr.status;
-
-      if (status === 401 || status === 403) {
-        // Prevent htmx from making a mess of the DOM
-        event.preventDefault();
-
-        // Grab the current path and redirect
-        const currentPath = window.location.pathname;
-        window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
       }
     }
 
@@ -389,30 +292,40 @@
         return;
       }
 
-      if (status === 400 || status === 500) {
+      if (status >= 400 && status <= 599) {
         // 1. Stop htmx from swapping the error message into the #recent-results list
         event.detail.shouldSwap = false;
+        // Protect against raw HTML debug pages leaking on a 500 crash
+        const isHtml = event.detail.xhr
+          .getResponseHeader("Content-Type")
+          ?.includes("text/html");
+        const message = isHtml
+          ? "A server error occurred. Please try again later."
+          : event.detail.xhr.responseText;
 
-        // 2. Inject the server's error message straight into our safe static banner
+        // Inject cleanly into our safe, managed static banner
         this.errorBanner.innerHTML = html`
           <div
             style="background: var(--red-1); color: var(--red-9); border: 1px solid var(--red-3); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); font-weight: bold;"
           >
-            ⚠️ ${event.detail.xhr.responseText}
+            ⚠️ ${message}
           </div>
         `;
-      } else if (status === 200) {
-        this.errorBanner.innerHTML = '';
+        return;
+      }
+
+      if (status === 200) {
+        this.errorBanner.innerHTML = "";
 
         const isJustRefreshingList =
-          event.detail.target.id === 'recent-results';
+          event.detail.target.id === "recent-results";
 
         if (!isJustRefreshingList) {
-          this.submitBtn.textContent = 'Log New Scorecard';
-          this.cancelBtn.style.display = 'none';
+          this.submitBtn.textContent = "Log New Scorecard";
+          this.cancelBtn.style.display = "none";
 
           const compSelect = form.querySelector('[name="competition_select"]');
-          if (compSelect) compSelect.dispatchEvent(new Event('change'));
+          if (compSelect) compSelect.dispatchEvent(new Event("change"));
 
           setTimeout(() => {
             form.reset();
@@ -422,8 +335,8 @@
     }
   }
 
-  if ('customElements' in window) {
-    customElements.define('scorecard-manager', ScorecardManager);
+  if ("customElements" in window) {
+    customElements.define("scorecard-manager", ScorecardManager);
   }
 </script>
 <style>
@@ -441,9 +354,26 @@
   :where(form) {
     --_border-color: light-dark(var(--color-7), var(--color-10));
 
+    > fieldset {
+      border: 1px solid var(--border, var(--gray-8));
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+
+      legend {
+        padding: 0 var(--size-1);
+        font-weight: bold;
+      }
+    }
+
     input,
     textarea {
       background-color: var(--surface-default);
+    }
+    select {
+      color: var(--text-primary);
+      background: var(--surface-default);
+      border: 1px solid var(--color-8);
     }
 
     input,
@@ -466,6 +396,10 @@
         padding: 0 var(--size-1);
         font-weight: bold;
       }
+    }
+
+    #cancel-edit-btn {
+      display: none;
     }
   }
 

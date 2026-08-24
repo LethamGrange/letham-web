@@ -163,9 +163,7 @@ async function parseAndValidateScorecard(formData, db) {
   const matchTime = formData.get('match_time');
   const sheet = formData.get('sheet');
 
-  const selectValue = formData.get('competition_select');
-  const customValue = formData.get('custom_competition_name');
-  const competitionName = selectValue === 'Other' ? customValue?.trim() : selectValue;
+  const competitionName = formData.get('competition_name');
 
   const teamAName = formData.get('team_a_name')?.trim();
   const teamBName = formData.get('team_b_name')?.trim();
