@@ -12,7 +12,7 @@
       gap: var(--size-2);
     "
   >
-    <input type="checkbox" id="toggle-extra-ends" />
+    <input type="checkbox" class="toggle-extra-ends" />
     Show Extra Ends (9, 10, EE, EEE)
   </label>
 </div>
@@ -48,7 +48,7 @@
           />
         </td>
         <!-- 2. Display Slot for Team A's Running Total -->
-        <td class="running-total" id="running-total-a">0</td>
+        <td class="running-total-a">0</td>
       </tr>
       <tr>
         <td id="label-team-b">Team B</td>
@@ -65,12 +65,12 @@
           />
         </td>
         <!-- 3. Display Slot for Team B's Running Total -->
-        <td class="running-total" id="running-total-b">0</td>
+        <td class="running-total-b">0</td>
       </tr>
     </tbody>
   </table>
 
-  <span class="error-message" id="linescore-error"></span>
+  <span class="linescore-error-message"></span>
 </div>
 <script>
   class LineScores extends HTMLElement {
@@ -117,8 +117,8 @@
       this.labelA = this.querySelector("#label-team-a");
       this.labelB = this.querySelector("#label-team-b");
 
-      this.totalAEl = document.getElementById("running-total-a");
-      this.totalBEl = document.getElementById("running-total-b");
+      this.totalAEl = this.querySelector(".running-total-a");
+      this.totalBEl = this.querySelector(".running-total-b");
 
       // 2. Cache references to all 12 end rows in one clean pass
       this.cachedEnds = [];
@@ -131,7 +131,7 @@
         });
       }
 
-      this.toggleCheckbox = document.getElementById("toggle-extra-ends");
+      this.toggleCheckbox = this.querySelector(".toggle-extra-ends");
       this.toggleCheckbox.addEventListener("change", () =>
         this.handleExtraEndsToggle(),
       );
@@ -297,7 +297,7 @@
       }
 
       // Update the macro text wrapper at the bottom
-      const messageEl = this.querySelector("#linescore-error");
+      const messageEl = this.querySelector(".linescore-error-message");
       if (formHasErrors) {
         if (errorType === "skipped") {
           messageEl.textContent = `Invalid Scorecard: ${firstErrorLabel} has been skipped. Please enter scores or fill 0-0 for a blank end.`;
@@ -391,92 +391,100 @@
   }
 </script>
 <style>
-  .running-total {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: var(--brand);
-    background: var(--surface-2);
-  }
-  .scorecard {
-    --red: hsl(0, 66%, 54%);
-    --_critical: var(--red);
-  }
-  /* Hide Extra End Columns by default */
-  .scorecard-scroll-wrapper .extra-end-col {
-    display: none;
-  }
+  :where(line-scores) {
+    .running-total-a,
+    .running-total-b {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--brand);
+      background: var(--surface-2);
+    }
 
-  /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
-  .scorecard-scroll-wrapper.show-extras .extra-end-col {
-    display: table-cell;
-  }
+    [type="radio"],
+    [type="checkbox"] {
+      width: var(--size-3);
+      height: var(--size-3);
+      margin: 0;
+      flex-shrink: 0;
+    }
 
-  .scorecard-scroll-wrapper input[type="number"]::-webkit-outer-spin-button,
-  .scorecard-scroll-wrapper input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+    .scorecard {
+      --red: hsl(0, 66%, 54%);
+      --_critical: var(--red);
+    }
+    /* Hide Extra End Columns by default */
+    .scorecard-scroll-wrapper .extra-end-col {
+      display: none;
+    }
 
-  .scorecard-scroll-wrapper input[type="number"] {
-    -moz-appearance: textfield;
-  }
+    /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
+    .scorecard-scroll-wrapper.show-extras .extra-end-col {
+      display: table-cell;
+    }
 
-  .scorecard-scroll-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 1rem;
-    table {
-      border-collapse: collapse;
-      text-align: center;
-      th {
-        padding: var(--size-2);
-        background: var(--surface-2);
+    .scorecard-scroll-wrapper input[type="number"]::-webkit-outer-spin-button,
+    .scorecard-scroll-wrapper input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .scorecard-scroll-wrapper input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .scorecard-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: var(--size-3);
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        th {
+          padding: var(--size-2);
+          background: var(--surface-2);
+        }
       }
     }
-  }
 
-  .scorecard-scroll-wrapper table {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-  }
+    .scorecard-scroll-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-  /* Expand minimum width slightly if extra columns are actively rendering */
-  .scorecard.show-extras .scorecard-scroll-wrapper table {
-    min-width: 800px;
-  }
+    .scorecard-scroll-wrapper input[type="number"] {
+      text-align: center;
+      font-size: 1rem;
+      border: 1px solid transparent;
+      width: var(--size-8); /* Predictable input box dimensioning */
+      height: var(--size-7);
+      border-radius: var(--radius-2);
+    }
 
-  .scorecard-scroll-wrapper input[type="number"] {
-    width: 45px;
-    height: 35px;
-    text-align: center;
-    font-size: 1rem;
-    border: 1px solid transparent;
-  }
+    .scorecard-scroll-wrapper input[type="number"]:user-invalid,
+    .scorecard-scroll-wrapper input[type="number"].is-invalid {
+      border-color: var(--red-6);
+      background-color: var(--red-1);
+      color: var(--red-9);
+    }
 
-  .scorecard-scroll-wrapper input[type="number"]:user-invalid,
-  .scorecard-scroll-wrapper input[type="number"].is-invalid {
-    border-color: var(--red-6);
-    background-color: var(--red-1);
-    color: var(--red-9);
-  }
+    /* Ensure that when they focus the untouched input to fix it, it pops out cleanly */
+    .scorecard-scroll-wrapper input[type="number"].is-invalid:focus {
+      outline: var(--border-size-3) solid var(--red-8); /* Adaptive border weight */
+      outline-offset: 2px;
+      background-color: var(--red-1); /* Clean Open Props system light tint */
+    }
 
-  /* Ensure that when they focus the untouched input to fix it, it pops out cleanly */
-  .scorecard-scroll-wrapper input[type="number"].is-invalid:focus {
-    outline: 3px solid var(--red-8);
-    outline-offset: 2px;
-    background-color: #fef2f2;
-  }
-
-  .mobile-hint {
-    display: none;
-    color: #666;
-    font-size: 0.9rem;
-  }
-  @media (max-width: 600px) {
     .mobile-hint {
-      display: block;
+      display: none;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 600px) {
+      .mobile-hint {
+        display: block;
+      }
     }
   }
 </style>

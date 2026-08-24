@@ -10,7 +10,15 @@
     <legend>Details</legend>
 
     <!-- 1. Metadata -->
-    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap">
+    <div
+      style="
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        flex: 1;
+      "
+    >
       <input type="hidden" name="match_id" value="" />
       <div>
         <label>Date:</label><br />
@@ -18,7 +26,7 @@
       </div>
       <div>
         <label>Time / Draw:</label><br />
-        <input type="time" name="match_time" required />
+        <input type="time" step="300" name="match_time" required />
       </div>
       <div>
         <label>Sheet:</label><br />
@@ -357,6 +365,11 @@
     input,
     textarea {
       background-color: var(--surface-default);
+    }
+    select {
+      color: var(--text-primary);
+      background: var(--surface-default);
+      border: 1px solid var(--color-8);
     }
 
     input,

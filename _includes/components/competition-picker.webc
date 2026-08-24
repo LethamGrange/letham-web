@@ -1,5 +1,9 @@
 <!-- components/competition-picker.webc -->
-<div id="custom-field-container" style="margin-top: var(--size-2)">
+<div
+  class="competition-picker"
+  id="custom-field-container"
+  style="margin-top: var(--size-2)"
+>
   <label for="custom_competition_name">Competition / League:</label><br />
   <input
     type="text"
@@ -117,3 +121,15 @@
     customElements.define("competition-picker", CompetitionPicker);
   }
 </script>
+<style>
+  competition-picker {
+    display: block;
+    flex: 1; /* Instructs the parent flexbox to let this tag expand */
+    min-width: 280px; /* Adjust based on your preferred design footprint */
+  }
+
+  /* 2. Clean up your internal wrapper layout */
+  .competition-picker {
+    width: 100%;
+  }
+</style>
