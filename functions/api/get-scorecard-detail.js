@@ -115,7 +115,7 @@ Are you completely sure you want to permanently delete this scorecard?"
       <div
         id="expanded-scorecard-${match.id}"
         class="match-card detailed-view"
-        style="border: 2px solid var(--brand, var(--link)); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-1);"
+        style="border: 2px solid var(--brand, var(--link)); padding: var(--size-3); margin-bottom: var(--size-3); border-radius: var(--radius-2); background: var(--surface-default);"
       >
         <header
           style="display: flex; justify-content: space-between; font-size: var(--font-size-0); color: var(--text-2); margin-bottom: var(--size-3); border-bottom: 1px solid var(--border); padding-bottom: var(--size-1);"

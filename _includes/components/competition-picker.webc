@@ -1,52 +1,114 @@
 <!-- components/competition-picker.webc -->
-<div class="competition-picker-group" style="margin-bottom: var(--size-3)">
-  <label for="competition_select">Competition / League:</label><br />
-
-  <select id="competition_select" name="competition_select" required>
-    <option value="">-- Select Competition --</option>
-    <option value="Bank of Scotland">Bank of Scotland</option>
-    <option value="Contractor's Cup">Contractor's Cup</option>
-    <option value="Spring League">Spring League</option>
-    <option value="Mixed Doubles">Mixed Doubles</option>
-    <option value="Other">Other (Friendly / External Trophy / Bonspiel)</option>
-  </select>
-
-  <!-- The custom text field starts hidden via inline style -->
+<div id="custom-field-container" style="margin-top: var(--size-2)">
+  <label for="custom_competition_name">Competition / League:</label><br />
+  <input
+    type="text"
+    id="competition_input"
+    name="competition_name"
+    placeholder="e.g., Bank of Scotland, Spring League, Friendly..."
+    list="canonical-leagues-list"
+    required
+    autocomplete="off"
+    style="width: 100%"
+  />
+  <!-- 4. The Typo Hint div sits cleanly below the input for soft corrections -->
   <div
-    id="custom-field-container"
-    style="display: none; margin-top: var(--size-2)"
-  >
-    <label for="custom_competition_name">Specify Match/Trophy Name:</label
-    ><br />
-    <input
-      type="text"
-      id="custom_competition_name"
-      name="custom_competition_name"
-      placeholder="e.g., Agricar, Friendly vs Forfar"
-    />
-  </div>
+    id="typo-hint"
+    style="min-height: var(--size-4); margin-top: var(--size-1)"
+  ></div>
 </div>
+
+<datalist id="canonical-leagues-list">
+  <option value="Bank of Scotland"></option>
+  <option value="Contractor's Cup"></option>
+  <option value="Spring League"></option>
+  <option value="Mixed Doubles"></option>
+</datalist>
 
 <script>
   class CompetitionPicker extends HTMLElement {
     connectedCallback() {
-      const select = this.querySelector("#competition_select");
-      const container = this.querySelector("#custom-field-container");
-      const customInput = this.querySelector("#custom_competition_name");
+      // Your canonical list
+      this.canonicalLeagues = [
+        "Bank of Scotland",
+        "Contractor's Cup",
+        "Spring League",
+        "Mixed Doubles",
+      ];
 
-      select.addEventListener("change", () => {
-        if (select.value === "Other") {
-          // Show the custom text field and make it mandatory
-          container.style.display = "block";
-          customInput.setAttribute("required", "");
-          customInput.focus();
-        } else {
-          // Hide it, clear any entered text, and remove the required flag
-          container.style.display = "none";
-          customInput.removeAttribute("required");
-          customInput.value = "";
-        }
+      this.input = this.querySelector("#competition_input");
+      this.hintContainer = this.querySelector("#typo-hint");
+
+      this.input.addEventListener("input", () => this.checkForSoftMatch());
+      // NEW: Clean up capitalization when the user finishes typing and leaves the field
+      this.input.addEventListener("blur", () => this.normalizeCaseOnLeave());
+    }
+
+    normalizeCaseOnLeave() {
+      const value = this.input.value.trim();
+      if (value === "") return;
+
+      // Search for a case-insensitive perfect match in your array
+      const perfectCaseInsensitiveMatch = this.canonicalLeagues.find(
+        (league) => league.toLowerCase() === value.toLowerCase(),
+      );
+
+      // If they typed "spring league", silently swap it to "Spring League"
+      if (
+        perfectCaseInsensitiveMatch &&
+        perfectCaseInsensitiveMatch !== value
+      ) {
+        this.input.value = perfectCaseInsensitiveMatch;
+
+        // Clean up the typo hint container just in case it was showing
+        this.hintContainer.innerHTML = "";
+      }
+    }
+
+    checkForSoftMatch() {
+      const value = this.input.value.trim().toLowerCase();
+      this.hintContainer.innerHTML = ""; // Clear old hints
+
+      if (value.length < 3) return; // Don't check tiny strings
+
+      // Skip checking if it's already a perfect canonical match
+      const perfectMatch = this.canonicalLeagues.some(
+        (l) => l.toLowerCase() === value,
+      );
+      if (perfectMatch) return;
+
+      // Run a tolerant check: ignore spaces, punctuation, and casing
+      const cleanString = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const cleanValue = cleanString(value);
+
+      const closeMatch = this.canonicalLeagues.find((league) => {
+        const cleanLeague = cleanString(league);
+        // Catch if they are missing a letter, or typed a partial substring
+        return (
+          cleanLeague.includes(cleanValue) || cleanValue.includes(cleanLeague)
+        );
       });
+
+      // If we found a close canonical match, offer a soft correction link
+      if (closeMatch) {
+        this.hintContainer.innerHTML = `
+        <span style="font-size: var(--font-size-0); color: var(--gray-6);">
+          Did you mean <strong>${closeMatch}</strong>?
+          <button type="button" class="ui-button ui-primary">
+            Click to fix
+          </button>
+        </span>
+      `;
+
+        // If they click the hint, update the input seamlessly
+        this.hintContainer
+          .querySelector("button")
+          .addEventListener("click", () => {
+            this.input.value = closeMatch;
+            this.hintContainer.innerHTML = "";
+            this.input.focus();
+          });
+      }
     }
   }
 

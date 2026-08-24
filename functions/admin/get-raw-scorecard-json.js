@@ -49,7 +49,7 @@ export async function onRequestGet(context) {
       match_date: match.match_date,
       match_time: match.match_time,
       sheet: match.sheet,
-      competition_select: match.competition_name,
+      competition_name: match.competition_name,
       team_a_name: match.team_a_name,
       team_b_name: match.team_b_name,
       team_a_skip: match.team_a_skip,
