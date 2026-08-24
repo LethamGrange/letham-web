@@ -116,8 +116,6 @@
 
       this.lineScores = form.querySelector("line-scores");
 
-      const toggleCheckbox = document.getElementById("toggle-extra-ends");
-
       // 1. RE-ACTIVE SYNC: Push text values down as attributes as the admin types
       const updateAttributes = () => {
         if (this.lineScores) {
@@ -128,10 +126,6 @@
 
       inputA?.addEventListener("input", updateAttributes);
       inputB?.addEventListener("input", updateAttributes);
-
-      toggleCheckbox.addEventListener("change", () => {
-        form.classList.toggle("show-extras", this.checked);
-      });
 
       // Create a Cancel button dynamically if you haven't placed one in HTML yet
       this.cancelBtn = this.querySelector("#cancel-edit-btn");

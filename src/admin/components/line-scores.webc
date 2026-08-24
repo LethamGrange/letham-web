@@ -113,13 +113,28 @@
 
     connectedCallback() {
       this.scorecard = this.querySelector(".scorecard-scroll-wrapper");
-      const tbody = this.scorecard.querySelector("tbody");
 
       this.labelA = this.querySelector("#label-team-a");
       this.labelB = this.querySelector("#label-team-b");
 
       this.totalAEl = document.getElementById("running-total-a");
       this.totalBEl = document.getElementById("running-total-b");
+
+      // 2. Cache references to all 12 end rows in one clean pass
+      this.cachedEnds = [];
+      for (let end = 1; end <= 12; end++) {
+        this.cachedEnds.push({
+          end: end,
+          isExtra: end > 8, // Mark ends 9-12 as extra ends
+          inputA: this.querySelector(`[name="e${end}_a"]`),
+          inputB: this.querySelector(`[name="e${end}_b"]`),
+        });
+      }
+
+      this.toggleCheckbox = document.getElementById("toggle-extra-ends");
+      this.toggleCheckbox.addEventListener("change", () =>
+        this.handleExtraEndsToggle(),
+      );
 
       this.addEventListener("input", (event) => this.onScorecardInput(event));
 
@@ -129,7 +144,6 @@
       });
       setTimeout(() => {
         this.updateRunningTotals();
-        this.validateScores();
       }, 10);
     }
 
@@ -137,6 +151,27 @@
       // Check if any of your inner inputs have an active custom validity message
       const inputs = Array.from(this.querySelectorAll("input"));
       return inputs.some((input) => input.validationMessage !== "");
+    }
+
+    handleExtraEndsToggle() {
+      const showExtra = this.toggleCheckbox.checked;
+
+      // 1. Let your CSS handle the visual layout changes
+      if (this.scorecard) {
+        this.scorecard.classList.toggle("show-extras", showExtra);
+      }
+
+      // 2. Control database serialization by disabling/enabling hidden inputs
+      this.cachedEnds.forEach((row) => {
+        if (row.isExtra) {
+          if (row.inputA) row.inputA.disabled = !showExtra;
+          if (row.inputB) row.inputB.disabled = !showExtra;
+        }
+      });
+
+      // 3. Keep validation states and aggregates updated in real time
+      this.validateAllScores();
+      this.updateRunningTotals();
     }
 
     // NEW: Handle the zero-fill safely on blur
@@ -215,14 +250,17 @@
     validateAllScores({ checkGaps = false } = {}) {
       let lastActiveEnd = 0;
 
-      // 1. Only run the expensive "furthest end" sweep if we are actually checking for gaps
+      // Pass 1: Find the furthest end with a value (using the cache)
       if (checkGaps) {
-        for (let end = 1; end <= 12; end++) {
-          const inputA = this.querySelector(`[name="e${end}_a"]`);
-          const inputB = this.querySelector(`[name="e${end}_b"]`);
+        for (const row of this.cachedEnds) {
+          // CRITICAL: If the input is disabled, it doesn't exist to our layout pipeline
+          if (row.inputA?.disabled || row.inputB?.disabled) continue;
 
-          if (inputA?.value.trim() !== "" || inputB?.value.trim() !== "") {
-            lastActiveEnd = end;
+          if (
+            row.inputA?.value.trim() !== "" ||
+            row.inputB?.value.trim() !== ""
+          ) {
+            lastActiveEnd = row.end;
           }
         }
       }
@@ -231,17 +269,26 @@
       let firstErrorLabel = "";
       let errorType = "";
 
-      // 2. Run the main validation loop across all ends
-      for (let end = 1; end <= 12; end++) {
-        const inputA = this.querySelector(`[name="e${end}_a"]`);
-        const inputB = this.querySelector(`[name="e${end}_b"]`);
+      // Pass 2: Run validation loop using the exact same cache
+      for (const row of this.cachedEnds) {
+        // CRITICAL: If extra ends are hidden and disabled, clear their legacy errors and skip them!
+        if (row.inputA?.disabled || row.inputB?.disabled) {
+          row.inputA?.setCustomValidity("");
+          row.inputB?.setCustomValidity("");
+          row.inputA?.classList.remove("is-invalid");
+          row.inputB?.classList.remove("is-invalid");
+          continue;
+        }
+        // A gap is only checked if checkGaps is true AND this end index is behind our furthest entry
+        const isSkipped = checkGaps && row.end < lastActiveEnd;
 
-        // A gap is only checked if checkGaps is true AND this end is behind the furthest entry
-        const isSkipped = checkGaps && end < lastActiveEnd;
+        const result = this.validateSingleEnd(
+          row.end,
+          row.inputA,
+          row.inputB,
+          isSkipped,
+        );
 
-        const result = this.validateSingleEnd(end, inputA, inputB, isSkipped);
-
-        // Only capture the very first error encountered to display in the banner
         if (result.isInvalid && !formHasErrors) {
           formHasErrors = true;
           firstErrorLabel = result.label;
@@ -249,7 +296,7 @@
         }
       }
 
-      // 3. Update the global message banner based on the context
+      // Update the macro text wrapper at the bottom
       const messageEl = this.querySelector("#linescore-error");
       if (formHasErrors) {
         if (errorType === "skipped") {
@@ -272,106 +319,23 @@
       this.updateRunningTotals();
     }
 
-    onScorecardInputX(event) {
-      if (!event.target.matches('input[type="number"]')) return;
-
-      const currentInput = event.target;
-      const currentValue = parseInt(currentInput.value) || 0;
-      const currentName = currentInput.name;
-      const opponentName = currentName.endsWith("_a")
-        ? currentName.replace("_a", "_b")
-        : currentName.replace("_b", "_a");
-      const opponentInput = currentInput.form.querySelector(
-        `[name="${opponentName}"]`,
-      );
-
-      if (currentValue > 0) {
-        if (opponentInput && opponentInput.value === "") {
-          opponentInput.value = 0;
-        }
-      }
-      const opponentValue = parseInt(opponentInput.value) || 0;
-
-      // Clear previous custom errors first
-      currentInput.setCustomValidity("");
-      opponentInput.setCustomValidity("");
-      currentInput.classList.remove("is-invalid");
-      opponentInput.classList.remove("is-invalid");
-      const messageEl = this.querySelector("#linescore-error");
-
-      // 2. Run your semantic check: Both teams cannot score in the same end
-      if (currentValue > 0 && opponentValue > 0) {
-        //dev/let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
-
-        const errorMsg = ` Both teams cannot score in the same end.`;
-
-        // Setting this instantly makes the form invalid for htmx
-        currentInput.setCustomValidity(errorMsg);
-        opponentInput.setCustomValidity(errorMsg);
-        currentInput.classList.add("is-invalid");
-        opponentInput.classList.add("is-invalid");
-
-        // Set clean visual label text metrics
-        messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in same end. One side must be 0 or blank.`;
-      } else {
-        messageEl.textContent = "";
-      }
-
-      // RUN THE TOTAL UPDATE IN REAL TIME 🧮
-      this.updateRunningTotals();
-    }
     // Helper function to calculate math for all 12 ends dynamically
     updateRunningTotals() {
       let totalA = 0;
       let totalB = 0;
 
-      for (let end = 1; end <= 12; end++) {
-        const valA = this.querySelector(`[name="e${end}_a"]`)?.value;
-        const valB = this.querySelector(`[name="e${end}_b"]`)?.value;
-
-        totalA += parseInt(valA) || 0;
-        totalB += parseInt(valB) || 0;
-      }
-
+      this.cachedEnds.forEach((row) => {
+        // Only add up the scores if the inputs are active and enabled!
+        if (row.inputA && !row.inputA.disabled) {
+          totalA += parseInt(row.inputA.value, 10) || 0;
+        }
+        if (row.inputB && !row.inputB.disabled) {
+          totalB += parseInt(row.inputB.value, 10) || 0;
+        }
+      });
       // Push the fresh values straight into the UI text nodes
       this.totalAEl.textContent = totalA;
       this.totalBEl.textContent = totalB;
-    }
-
-    validateScores(event) {
-      let isInvalid = false;
-
-      for (let end = 1; end <= 12; end++) {
-        const scoreAInput = this.querySelector(`[name="e${end}_a"]`);
-        const scoreBInput = this.querySelector(`[name="e${end}_b"]`);
-
-        // Skip calculations if inputs don't exist in DOM for any reason
-        if (!scoreAInput || !scoreBInput) continue;
-
-        const scoreA = parseInt(scoreAInput.value) || 0;
-        const scoreB = parseInt(scoreBInput.value) || 0;
-
-        // Clear previous custom errors first
-        scoreAInput.setCustomValidity("");
-        scoreBInput.setCustomValidity("");
-
-        // 2. Run your semantic check: Both teams cannot score in the same end
-        if (scoreA > 0 && scoreB > 0) {
-          let endLabel = end <= 10 ? `End ${end}` : end === 11 ? "EE" : "EEE";
-
-          const errorMsg = `End ${endLabel}: Both teams cannot score in the same end.`;
-
-          // Setting this instantly makes the form invalid for htmx
-          scoreAInput.setCustomValidity(errorMsg);
-          scoreBInput.setCustomValidity(errorMsg);
-
-          isInvalid = true;
-
-          // Set clean visual label text metrics
-          const messageEl = this.querySelector("#linescore-error");
-          messageEl.textContent = `Invalid Scorecard: Both teams cannot score points in ${endLabel}. One side must be 0 or blank.`;
-        }
-      }
     }
 
     focusFirstInvalid() {
@@ -417,6 +381,7 @@
       });
 
       this.updateRunningTotals();
+      this.validateAllScores(true);
       // alert('test');
     }
   }
@@ -437,12 +402,12 @@
     --_critical: var(--red);
   }
   /* Hide Extra End Columns by default */
-  .scorecard .extra-end-col {
+  .scorecard-scroll-wrapper .extra-end-col {
     display: none;
   }
 
   /* Reveal Extra End Columns cleanly when form has .show-extras utility flag applied */
-  .scorecard.show-extras .extra-end-col {
+  .scorecard-scroll-wrapper.show-extras .extra-end-col {
     display: table-cell;
   }
 
