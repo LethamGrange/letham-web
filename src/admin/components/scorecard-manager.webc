@@ -19,18 +19,18 @@
         flex: 1;
       "
     >
-      <input type="hidden" name="match_id" value="" />
+      <input type="hidden" name="match[id]" value="" />
       <div>
         <label>Date:</label><br />
-        <input type="date" name="match_date" required />
+        <input type="date" name="match[date]" required />
       </div>
       <div>
         <label>Time / Draw:</label><br />
-        <input type="time" step="300" name="match_time" required />
+        <input type="time" step="300" name="match[time]" required />
       </div>
       <div>
         <label>Sheet:</label><br />
-        <select name="sheet" required>
+        <select name="match[sheet]" required>
           <option value="A">Sheet A</option>
           <option value="B">Sheet B</option>
           <option value="C">Sheet C</option>
@@ -52,7 +52,7 @@
       <h3>Team A</h3>
       <input
         type="text"
-        name="team_a_name"
+        name="team[a][name]"
         placeholder="Team or Rink name"
         list="club-members"
         required
@@ -64,7 +64,7 @@
       >
         <input
           type="text"
-          :name="`team_a_${player.toLowerCase()}`"
+          :name="`team[a][players][${player.toLowerCase()}]`"
           :placeholder="player"
           list="club-members"
         />
@@ -76,7 +76,7 @@
       <h3>Team B</h3>
       <input
         type="text"
-        name="team_b_name"
+        name="team[b][name]"
         placeholder="Team or Rink name"
         list="club-members"
         required
@@ -88,7 +88,7 @@
       >
         <input
           type="text"
-          :name="`team_b_${player.toLowerCase()}`"
+          :name="`team[b][players][${player.toLowerCase()}]`"
           :placeholder="player"
           list="club-members"
         />
@@ -120,8 +120,8 @@
       this.submitBtn = this.querySelector('button[type="submit"]');
       this.competitionPicker = this.querySelector("competition-picker");
 
-      const inputA = form.querySelector('[name="team_a_name"]');
-      const inputB = form.querySelector('[name="team_b_name"]');
+      const inputA = form.querySelector('[name="team[a][name]"]');
+      const inputB = form.querySelector('[name="team[b][name]');
 
       this.lineScores = form.querySelector("line-scores");
 
@@ -169,7 +169,7 @@
         event.stopImmediatePropagation();
 
         if (this.lineScores && this.lineScores.hasSemanticErrors) {
-          lineScores.focusFirstInvalid();
+          this.lineScores.focusFirstInvalid();
         }
 
         // EXIT EARLY: The old server error banner stays visible
@@ -201,7 +201,7 @@
       form.reset();
 
       // Wipe s.the hidden identifier completely
-      const hiddenId = form.querySelector('[name="match_id"]');
+      const hiddenId = form.querySelector('[name="match[id]"]');
       if (hiddenId) hiddenId.value = "";
 
       // Revert from PUT back to standard POST
@@ -217,6 +217,43 @@
       if (compSelect) compSelect.dispatchEvent(new Event("change"));
     }
 
+    hydrateForm(data, form) {
+      // 1. Hydrate Match Metadata
+      if (data.competition_name && this.competitionPicker) {
+        this.competitionPicker.competitionName = data.competition_name;
+      }
+
+      const idInput = form.querySelector('[name="match[id]"]');
+      if (idInput) idInput.value = data.id || "";
+
+      ["date", "time", "sheet"].forEach((key) => {
+        const input = form.querySelector(`[name="match[${key}]"]`);
+        if (input) input.value = data[key] || "";
+      });
+
+      // 2. Hydrate Team Data (A and B)
+      ["a", "b"].forEach((side) => {
+        // Set Team Names
+        const nameInput = form.querySelector(`[name="team[${side}][name]"]`);
+        if (nameInput) nameInput.value = data.team?.[side]?.name || "";
+
+        // Set Player Positions
+        ["skip", "third", "second", "lead"].forEach((pos) => {
+          const pInput = form.querySelector(
+            `[name="team[${side}][players][${pos}]"]`,
+          );
+          if (pInput) pInput.value = data.team?.[side]?.players?.[pos] || "";
+        });
+      });
+
+      // 3. Hydrate Linescores
+      // Locate your custom <line-scores> element and pass the array straight in!
+      const linescoreComponent = this.querySelector("line-scores");
+      if (linescoreComponent && data.ends) {
+        linescoreComponent.onUpdateLinescores(data);
+      }
+    }
+
     async onEditScorecard(form) {
       const matchId = event.detail.matchId;
 
@@ -230,34 +267,7 @@
 
         const data = await response.json();
 
-        // 1. CRITICAL: Explicitly lock the database row ID into your hidden field
-        const hiddenIdInput = form.querySelector('[name="match_id"]');
-        if (hiddenIdInput) {
-          hiddenIdInput.value = matchId;
-        }
-
-        // 3. AUTOMATED DOM DATA MAPPER
-        // Loop keys and search form for matching named elements
-        //        Object.keys(data).forEach((key) => {
-        for (const [key, value] of Object.entries(data)) {
-          // Manually trigger a dispatch event if your competition picker
-          // component needs to see changes (like toggling 'Other')
-          if (key === "competition_name") {
-            this.competitionPicker.competitionName = value;
-            continue;
-          }
-
-          const input = form.querySelector(`[name="${key}"]`);
-          if (input) {
-            if (input.type === "checkbox") {
-              input.checked = !!value;
-            } else {
-              input.value = value !== null ? value : "";
-            }
-          }
-        }
-
-        this.lineScores.onUpdateLinescores(data);
+        this.hydrateForm(data, form);
 
         // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
         form.setAttribute("hx-put", "/admin/submit-scorecard");

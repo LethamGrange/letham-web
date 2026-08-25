@@ -398,13 +398,17 @@
         this.handleExtraEndsToggle();
       }
 
-      for (let i = 0; i < data.ends.length; i++) {
-        const row = this.cachedEnds[i];
-        const end = data.ends[i];
+      // If you pass clean 0-indexed arrays instead:
+      this.cachedEnds.forEach((row) => {
+        const vals = data.ends?.[row.end - 1] ?? { a: "", b: "" };
 
-        if (row.inputA) row.inputA.value = end.a;
-        if (row.inputB) row.inputB.value = end.b;
-      }
+        const valA = vals.a ?? "";
+        const valB = vals.b ?? "";
+
+        if (row.inputA) row.inputA.value = valA;
+        if (row.inputB) row.inputB.value = valB;
+      });
+
       // 3. Re-run structural calculations after everything is safely populated
       this.updateRunningTotals();
       this.validateAllScores({ checkGaps: true });

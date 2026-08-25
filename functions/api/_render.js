@@ -11,10 +11,10 @@ export async function renderUpdatedResultsList(db) {
         m.id, m.match_date, m.match_time, m.sheet, m.competition_name, m.final_score_a, m.final_score_b,
         tA.name AS team_a_name, tB.name AS team_b_name
       FROM matches m
-      JOIN clubs_or_rinks tA ON m.team_a_id = tA.id
-      JOIN clubs_or_rinks tB ON m.team_b_id = tB.id
+      LEFT OUTER JOIN clubs_or_rinks tA ON m.team_a_id = tA.id
+      LEFT OUTER JOIN clubs_or_rinks tB ON m.team_b_id = tB.id
       ORDER BY m.match_date DESC, m.match_time DESC, m.id DESC
-      LIMIT 10
+      LIMIT 30
     `,
       )
       .all();

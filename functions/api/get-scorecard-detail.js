@@ -24,8 +24,8 @@ export async function onRequestGet(context) {
         `
       SELECT m.*, tA.name AS team_a_name, tB.name AS team_b_name
       FROM matches m
-      JOIN clubs_or_rinks tA ON m.team_a_id = tA.id
-      JOIN clubs_or_rinks tB ON m.team_b_id = tB.id
+      LEFT OUTER JOIN clubs_or_rinks tA ON m.team_a_id = tA.id
+      LEFT OUTER JOIN clubs_or_rinks tB ON m.team_b_id = tB.id
       WHERE m.id = ?
     `,
       )
