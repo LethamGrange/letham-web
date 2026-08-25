@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
 
   try {
     // 1. Prepare both SELECT statements
-    const matchQuery = db
+    const matchResult = await db
       .prepare(
         `
       SELECT m.*, tA.name AS team_a_name, tB.name AS team_b_name
@@ -19,20 +19,8 @@ export async function onRequestGet(context) {
       WHERE m.id = ?
     `,
       )
-      .bind(matchId);
-
-    const endsQuery = db
-      .prepare(
-        `
-      SELECT end_number, score_a, score_b
-      FROM match_ends
-      WHERE match_id = ?
-    `,
-      )
-      .bind(matchId);
-
-    // 2. Execute both queries simultaneously in a single D1 trip
-    const [matchResult, endsResult] = await db.batch([matchQuery, endsQuery]);
+      .bind(matchId)
+      .run();
 
     // Extract the singular match object
     const match = matchResult.results[0];
@@ -40,34 +28,37 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ error: 'Match not found' }), { status: 404 });
     }
 
-    // Extract the ends array
-    const ends = endsResult.results;
-
-    // 3. Flatten everything into a single dictionary object matching your form
     const payload = {
-      match_id: match.id,
-      match_date: match.match_date,
-      match_time: match.match_time,
+      id: match.id,
+      date: match.match_date,
+      time: match.match_time,
+      has_extra_ends: match.match_has_extra_ends,
       sheet: match.sheet,
       competition_name: match.competition_name,
-      team_a_name: match.team_a_name,
-      team_b_name: match.team_b_name,
-      team_a_skip: match.team_a_skip,
-      team_a_third: match.team_a_third,
-      team_a_second: match.team_a_second,
-      team_a_lead: match.team_a_lead,
-      team_b_skip: match.team_b_skip,
-      team_b_third: match.team_b_third,
-      team_b_second: match.team_b_second,
-      team_b_lead: match.team_b_lead,
-      conceded: match.conceded_early,
+      team: {},
     };
 
-    // Dynamically inject the individual end keys: e1_a, e1_b, up to e8_b
-    ends.forEach(end => {
-      payload[`e${end.end_number}_a`] = end.score_a;
-      payload[`e${end.end_number}_b`] = end.score_b;
-    });
+    for (let key of ['a', 'b']) {
+      payload.team[key] = {
+        name: match[`team_${key}_name`] ?? '',
+        players: {
+          skip: match[`team_${key}_skip`] ?? '',
+          third: match[`team_${key}_third`] ?? '',
+          second: match[`team_${key}_third`] ?? '',
+          lead: match[`team_${key}_lead}`] ?? '',
+        },
+      };
+    }
+
+    const endsArray = [];
+    const aArray = match.team_a_ends.split(','); // ["1", "1", "0", ""]
+    const bArray = match.team_b_ends.split(','); // ["0", "0", "2", ""]
+    const length = aArray.length > 8 ? 12 : 8;
+
+    for (let i = 0; i < length; i++) {
+      endsArray.push({ a: aArray[i] ?? '', b: bArray[i] ?? '' });
+    }
+    payload.ends = endsArray;
 
     return new Response(JSON.stringify(payload), {
       headers: { 'Content-Type': 'application/json' },

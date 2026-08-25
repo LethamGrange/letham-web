@@ -1,7 +1,6 @@
 <!-- 3. End-by-End Linescore Grid -->
 <h3>Linescore <span>(Leave blank if end wasn't played)</span></h3>
 
-<!-- Checkbox to toggle the display layout for extra columns -->
 <div style="margin-bottom: 15px">
   <label
     style="
@@ -12,7 +11,16 @@
       gap: var(--size-2);
     "
   >
-    <input type="checkbox" class="toggle-extra-ends" />
+    <!-- Hidden fallback using underscore bracket notation -->
+    <input type="hidden" name="match[has_extra_ends]" value="false" />
+
+    <input
+      type="checkbox"
+      class="toggle-extra-ends"
+      name="match[has_extra_ends]"
+      value="true"
+      onclick="this.previousElementSibling.disabled = this.checked"
+    />
     Show Extra Ends (9, 10, EE, EEE)
   </label>
 </div>
@@ -41,7 +49,7 @@
         >
           <input
             type="number"
-            :name="`e${end}_a`"
+            :name="`ends[${end}][a]`"
             min="0"
             max="8"
             onwheel="this.blur()"
@@ -58,7 +66,7 @@
         >
           <input
             type="number"
-            :name="`e${end}_b`"
+            :name="`ends[${end}][b]`"
             min="0"
             max="8"
             onwheel="this.blur()"
@@ -72,6 +80,7 @@
 
   <span class="linescore-error-message"></span>
 </div>
+
 <script>
   class LineScores extends HTMLElement {
     scorecard;
@@ -126,8 +135,8 @@
         this.cachedEnds.push({
           end: end,
           isExtra: end > 8, // Mark ends 9-12 as extra ends
-          inputA: this.querySelector(`[name="e${end}_a"]`),
-          inputB: this.querySelector(`[name="e${end}_b"]`),
+          inputA: this.querySelector(`[name="ends[${end}][a]"]`),
+          inputB: this.querySelector(`[name="ends[${end}][b]"]`),
         });
       }
 
@@ -142,8 +151,9 @@
       this.addEventListener("blur", (e) => this.onScorecardBlur(e), {
         capture: true,
       });
+
       setTimeout(() => {
-        this.updateRunningTotals();
+        this.handleExtraEndsToggle();
       }, 10);
     }
 
@@ -154,6 +164,7 @@
     }
 
     handleExtraEndsToggle() {
+      if (!this.toggleCheckbox) return;
       const showExtra = this.toggleCheckbox.checked;
 
       // 1. Let your CSS handle the visual layout changes
@@ -174,17 +185,16 @@
       this.updateRunningTotals();
     }
 
-    // NEW: Handle the zero-fill safely on blur
     onScorecardBlur(event) {
       if (!event.target.matches('input[type="number"]')) return;
 
       const currentInput = event.target;
       const currentName = currentInput.name;
 
-      // Find the opponent input
-      const opponentName = currentName.endsWith("_a")
-        ? currentName.replace("_a", "_b")
-        : currentName.replace("_b", "_a");
+      // Deduces the opponent name dynamically from the brackets
+      const opponentName = currentName.endsWith("[a]")
+        ? currentName.replace("[a]", "[b]")
+        : currentName.replace("[b]", "[a]");
       const opponentInput = this.querySelector(`[name="${opponentName}"]`);
 
       if (!opponentInput) return;
@@ -205,7 +215,6 @@
       this.validateAllScores();
       this.updateRunningTotals();
     }
-
     validateSingleEnd(end, inputA, inputB, isSkipped = false) {
       if (!inputA || !inputB) return { isInvalid: false, label: "" };
 
@@ -372,17 +381,37 @@
           } else {
             input.value = data[key] !== null ? data[key] : "";
           }
-          // Manually trigger a dispatch event if your competition picker
-          // component needs to see changes (like toggling 'Other')
-          if (key === "competition_select") {
-            input.dispatchEvent(new Event("change"));
-          }
         }
       });
 
       this.updateRunningTotals();
       this.validateAllScores(true);
       // alert('test');
+    }
+
+    onUpdateLinescores(data) {
+      const hasExtraEnds = data.ends.length > 8;
+
+      // 1. First handle top-level toggles if present in the data object
+      if (this.toggleCheckbox) {
+        this.toggleCheckbox.checked = hasExtraEnds;
+        this.handleExtraEndsToggle();
+      }
+
+      // If you pass clean 0-indexed arrays instead:
+      this.cachedEnds.forEach((row) => {
+        const vals = data.ends?.[row.end - 1] ?? { a: "", b: "" };
+
+        const valA = vals.a ?? "";
+        const valB = vals.b ?? "";
+
+        if (row.inputA) row.inputA.value = valA;
+        if (row.inputB) row.inputB.value = valB;
+      });
+
+      // 3. Re-run structural calculations after everything is safely populated
+      this.updateRunningTotals();
+      this.validateAllScores({ checkGaps: true });
     }
   }
 

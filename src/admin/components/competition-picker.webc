@@ -4,7 +4,7 @@
   <input
     type="text"
     id="competition_input"
-    name="competition_name"
+    name="match[competition_name]"
     placeholder="e.g., Bank of Scotland, Spring League, Friendly..."
     list="canonical-leagues-list"
     required
@@ -35,18 +35,28 @@
     }
     // 2. This callback handles changes, even if it fires BEFORE connectedCallback has run!
     attributeChangedCallback(name, oldValue, newValue) {
-      // If the DOM isn't cached into our class properties yet, fall back to a direct select
-      if (name === "competition_name") {
-        this.input.value = newValue.trim();
+      if (name === "competition_name" && newValue !== null) {
+        // Fall back to direct selection if connectedCallback hasn't cached this.input yet
+        const inputEl = this.input || this.querySelector("input");
+        if (inputEl) {
+          inputEl.value = newValue.trim();
+        }
       }
     }
 
     get competitionName() {
-      return this.getAttribute("competition_name");
+      return this.getAttribute("competition_name") || "";
     }
     set competitionName(value) {
-      if (this.competitionName !== value) {
-        this.setAttribute("competition_name", value);
+      const cleanValue = value ? value.trim() : "";
+
+      // 1. Force-update the internal input right now, regardless of attributes
+      if (this.input) {
+        this.input.value = cleanValue;
+      }
+      // 2. Keep the DOM attribute in sync for markup tracking
+      if (this.competitionName !== cleanValue) {
+        this.setAttribute("competition_name", cleanValue);
       }
     }
 

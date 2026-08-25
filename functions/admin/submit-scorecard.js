@@ -8,67 +8,22 @@ export async function onRequestPost(context) {
 
   try {
     const formData = await context.request.formData();
+    const fields = await parseAndValidateScorecard(formData, db);
 
-    // Parse structural data fields
-    const { matchDate, matchTime, sheet, competitionName, teamAId, teamBId, endsToInsert } =
-      await parseAndValidateScorecard(formData, db);
-
-    const finalScoreA = endsToInsert.reduce((sum, e) => sum + e.score_a, 0);
-    const finalScoreB = endsToInsert.reduce((sum, e) => sum + e.score_b, 0);
-
-    // 1. Step A: Insert the Master Match Record first and return its actual generated ID
-    const masterResult = await db
+    await db
       .prepare(
         `
         INSERT INTO matches (
           match_date, match_time, sheet, competition_name, team_a_id, team_b_id,
           team_a_skip, team_a_third, team_a_second, team_a_lead,
           team_b_skip, team_b_third, team_b_second, team_b_lead,
+          team_a_ends = ?, team_b_ends = ?,
           final_score_a, final_score_b
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        RETURNING id
       `,
       )
-      .bind(
-        matchDate,
-        matchTime,
-        sheet,
-        competitionName,
-        teamAId,
-        teamBId,
-        formData.get('team_a_skip'),
-        formData.get('team_a_third'),
-        formData.get('team_a_second'),
-        formData.get('team_a_lead'),
-        formData.get('team_b_skip'),
-        formData.get('team_b_third'),
-        formData.get('team_b_second'),
-        formData.get('team_b_lead'),
-        finalScoreA,
-        finalScoreB,
-      )
-      .first();
-
-    const newMatchId = masterResult.id; // Now we have the definitive, real ID!
-
-    // 2. Step B: Batch insert all the child linescore rows using the concrete newMatchId
-    if (endsToInsert.length > 0) {
-      const statements = [];
-      for (const end of endsToInsert) {
-        statements.push(
-          db
-            .prepare(
-              `
-            INSERT INTO match_ends (match_id, end_number, score_a, score_b)
-            VALUES (?, ?, ?, ?)
-          `,
-            )
-            .bind(newMatchId, end.end_number, end.score_a, end.score_b),
-        );
-      }
-      // Execute all child rows together in one batch
-      await db.batch(statements);
-    }
+      .bind(...fields)
+      .run();
 
     // Return the fresh centralized HTML results fragment smoothly
     return await renderUpdatedResultsList(db);
@@ -84,70 +39,28 @@ export async function onRequestPut(context) {
 
   try {
     const formData = await context.request.formData();
-    const matchId = parseInt(formData.get('match_id'));
+    const matchId = parseInt(formData.get('match[id]'));
 
     if (!matchId) {
       return new Response('Missing match identifier tracking for modification transaction.', { status: 400 });
     }
+    const fields = await parseAndValidateScorecard(formData, db);
+    console.log(fields);
 
-    const { matchDate, matchTime, sheet, competitionName, teamAId, teamBId, endsToInsert } =
-      await parseAndValidateScorecard(formData, db);
-
-    const finalScoreA = endsToInsert.reduce((sum, e) => sum + e.score_a, 0);
-    const finalScoreB = endsToInsert.reduce((sum, e) => sum + e.score_b, 0);
-
-    // 1. Prepare array of transaction statements
-    const statements = [
-      db
-        .prepare(
-          `
+    await db
+      .prepare(
+        `
         UPDATE matches SET
           match_date = ?, match_time = ?, sheet = ?, competition_name = ?, team_a_id = ?, team_b_id = ?,
           team_a_skip = ?, team_a_third = ?, team_a_second = ?, team_a_lead = ?,
           team_b_skip = ?, team_b_third = ?, team_b_second = ?, team_b_lead = ?,
+          team_a_ends = ?, team_b_ends = ?,
           final_score_a = ?, final_score_b = ?
         WHERE id = ?
       `,
-        )
-        .bind(
-          matchDate,
-          matchTime,
-          sheet,
-          competitionName,
-          teamAId,
-          teamBId,
-          formData.get('team_a_skip'),
-          formData.get('team_a_third'),
-          formData.get('team_a_second'),
-          formData.get('team_a_lead'),
-          formData.get('team_b_skip'),
-          formData.get('team_b_third'),
-          formData.get('team_b_second'),
-          formData.get('team_b_lead'),
-          finalScoreA,
-          finalScoreB,
-          matchId,
-        ),
-
-      // Clear Old Ends
-      db.prepare(`DELETE FROM match_ends WHERE match_id = ?`).bind(matchId),
-    ];
-
-    // Append fresh linescore inserts dynamically up to end 12
-    for (const end of endsToInsert) {
-      statements.push(
-        db
-          .prepare(
-            `
-          INSERT INTO match_ends (match_id, end_number, score_a, score_b)
-          VALUES (?, ?, ?, ?)
-        `,
-          )
-          .bind(matchId, end.end_number, end.score_a, end.score_b),
-      );
-    }
-
-    await db.batch(statements);
+      )
+      .bind(...Object.values(fields), matchId)
+      .run();
 
     return await renderUpdatedResultsList(db);
   } catch (error) {
@@ -159,51 +72,86 @@ export async function onRequestPut(context) {
 // SHARED BACKEND UTILITIES (Keeps things DRY)
 // ==========================================
 async function parseAndValidateScorecard(formData, db) {
-  const matchDate = formData.get('match_date');
-  const matchTime = formData.get('match_time');
-  const sheet = formData.get('sheet');
+  const matchDate = formData.get('match[date]');
+  const matchTime = formData.get('match[time]');
+  const sheet = formData.get('match[sheet]'); // From match[sheet] or flat sheet select
+  const competitionName = formData.get('match[competition_name]');
 
-  const competitionName = formData.get('competition_name');
-
-  const teamAName = formData.get('team_a_name')?.trim();
-  const teamBName = formData.get('team_b_name')?.trim();
-
-  if (!teamAName || !teamBName || teamAName === teamBName) {
-    throw createError('Invalid or identical team names submitted.', 400);
-  }
-
-  const getOrCreateTeamId = async name => {
-    const type = name.toLowerCase().includes('club') || name.toLowerCase().includes('cc') ? 'external' : 'internal';
-    await db
-      .prepare(`INSERT INTO clubs_or_rinks (name, type) VALUES (?, ?) ON CONFLICT(name) DO NOTHING`)
-      .bind(name, type)
-      .run();
-    const record = await db.prepare(`SELECT id FROM clubs_or_rinks WHERE name = ?`).bind(name).first();
-    return record.id;
-  };
-
-  const teamAId = await getOrCreateTeamId(teamAName);
-  const teamBId = await getOrCreateTeamId(teamBName);
-
-  // Accumulate linescores loop array - ITERATING UP TO 12 ENDS 🥌
-  const endsToInsert = [];
-  for (let i = 1; i <= 12; i++) {
-    const valA = formData.get(`e${i}_a`);
-    const valB = formData.get(`e${i}_b`);
-
-    if (valA === '' && valB === '') continue;
-
-    const scoreA = parseInt(valA) || 0;
-    const scoreB = parseInt(valB) || 0;
-
-    if (scoreA > 0 && scoreB > 0) {
-      let endLabel = i <= 10 ? `End ${i}` : i === 11 ? 'EE' : 'EEE';
-      throw createError(`Curling Error: Both teams logged scores in ${endLabel}.`, 400);
+  // 2. Extract explicit team names
+  const teamAName = formData.get('team[a][name]')?.trim();
+  const teamBName = formData.get('team[b][name]')?.trim();
+  try {
+    const teamplayers = {};
+    for (let key of ['a', 'b']) {
+      for (let player of ['skip', 'third', 'second', 'lead']) {
+        teamplayers[`team_${key}_${player}`] = formData.get(`team[${key}][players][${player}]`);
+      }
     }
-    endsToInsert.push({ end_number: i, score_a: scoreA, score_b: scoreB });
-  }
 
-  return { matchDate, matchTime, sheet, competitionName, teamAId, teamBId, endsToInsert };
+    if (!teamAName || !teamBName || teamAName === teamBName) {
+      throw createError('Invalid or identical team names submitted.', 400);
+    }
+    const teamAId = await getOrCreateTeamId(db, teamAName);
+    const teamBId = await getOrCreateTeamId(db, teamBName);
+
+    // 3. Process Linescore strings up to 12 ends 🥌
+    const scoresA = [];
+    const scoresB = [];
+
+    const hasExtraEnds = formData.get('match[has_extra_ends]') === 'true';
+
+    const numberOfEnds = hasExtraEnds ? 12 : 8;
+
+    // Accumulate linescores loop array - ITERATING UP TO 12 ENDS 🥌
+    const endsToInsert = [];
+    for (let i = 0; i < numberOfEnds; i++) {
+      const valA = formData.get(`ends[${i + 1}][a]`);
+      const valB = formData.get(`ends[${i + 1}][b]`);
+
+      const sA = valA && valA.trim() !== '' ? parseInt(valA, 10) : '';
+      const sB = valB && valB.trim() !== '' ? parseInt(valB, 10) : '';
+
+      // Validation mirror check matches frontend safety rules
+      if (typeof sA === 'number' && sA > 0 && typeof sB === 'number' && sB > 0) {
+        let endLabel = i <= 10 ? `End ${i}` : i === 11 ? 'EE' : 'EEE';
+        throw createError(`Curling Error: Both teams logged scores in ${endLabel}.`, 400);
+      }
+
+      scoresA.push(sA);
+      scoresB.push(sB);
+    }
+
+    // Join down to predictable database text strings (e.g., "1,2,0,0,4,,,,")
+    const teamAEndsString = scoresA.join(',');
+    const teamBEndsString = scoresB.join(',');
+
+    return {
+      matchDate,
+      matchTime,
+      sheet,
+      competitionName,
+      teamAId,
+      teamBId,
+      ...teamplayers,
+      teamAEndsString,
+      teamBEndsString,
+      // Provide numerical summaries for top-level match caching
+      finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+      finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+    };
+  } catch (e) {
+    console.log(e.toString());
+  }
+}
+
+async function getOrCreateTeamId(db, name) {
+  const type = name.toLowerCase().includes('club') || name.toLowerCase().includes('cc') ? 'external' : 'internal';
+  await db
+    .prepare(`INSERT INTO clubs_or_rinks (name, type) VALUES (?, ?) ON CONFLICT(name) DO NOTHING`)
+    .bind(name, type)
+    .run();
+  const record = await db.prepare(`SELECT id FROM clubs_or_rinks WHERE name = ?`).bind(name).first();
+  return record.id;
 }
 
 function createError(message, status) {
