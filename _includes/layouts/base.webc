@@ -53,16 +53,16 @@
 
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script webc:keep>
-      const savedTheme = localStorage.getItem('theme-preference');
+      const savedTheme = localStorage.getItem("theme-preference");
 
       // FIXED: If prefers-color-scheme is dark, default to dark; otherwise light.
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
-        ? 'dark'
-        : 'light';
+        ? "dark"
+        : "light";
 
       document.documentElement.setAttribute(
-        'data-theme',
+        "data-theme",
         savedTheme || systemTheme,
       );
     </script>
@@ -89,13 +89,19 @@
     <site-footer></site-footer>
     <script :src="getBundleFileUrl('js')" webc:keep></script>
   </body>
-
   <script
-    src="https://unpkg.com/htmx.org@1.9.12"
-    integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+    src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"
+    integrity="sha384-6lyVbhrs13b9z7mLOpt/N6R76rtkEBWgCjAXRs/DSWyi2AMnQSs10ijWk+PI8n7W"
     crossorigin="anonymous"
+    i
     webc:keep
   ></script>
+  <script webc:keep>
+    htmx.config.implicitInheritance = true;
+    htmx.config.noSwap = [204, 304, "4xx", "5xx"];
+    alert(JSON.stringify(htmx.config, null, 2));
+  </script>
+
   <script
     src="https://challenges.cloudflare.com/turnstile/v0/api.js"
     async
