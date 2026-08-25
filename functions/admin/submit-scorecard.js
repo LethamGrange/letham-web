@@ -17,6 +17,7 @@ export async function onRequestPost(context) {
           match_date, match_time, sheet, competition_name, team_a_id, team_b_id,
           team_a_skip, team_a_third, team_a_second, team_a_lead,
           team_b_skip, team_b_third, team_b_second, team_b_lead,
+          team_a_ends = ?, team_b_ends = ?,
           final_score_a, final_score_b
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -44,6 +45,7 @@ export async function onRequestPut(context) {
       return new Response('Missing match identifier tracking for modification transaction.', { status: 400 });
     }
     const fields = await parseAndValidateScorecard(formData, db);
+    console.log(fields);
 
     await db
       .prepare(
@@ -102,11 +104,9 @@ async function parseAndValidateScorecard(formData, db) {
 
     // Accumulate linescores loop array - ITERATING UP TO 12 ENDS 🥌
     const endsToInsert = [];
-    for (let i = 0; i <= numberOfEnds; i++) {
+    for (let i = 0; i < numberOfEnds; i++) {
       const valA = formData.get(`ends[${i + 1}][a]`);
       const valB = formData.get(`ends[${i + 1}][b]`);
-
-      if (valA === '' && valB === '') continue;
 
       const sA = valA && valA.trim() !== '' ? parseInt(valA, 10) : '';
       const sB = valB && valB.trim() !== '' ? parseInt(valB, 10) : '';
@@ -120,6 +120,7 @@ async function parseAndValidateScorecard(formData, db) {
       scoresA.push(sA);
       scoresB.push(sB);
     }
+    console.log(scoresA);
 
     // Join down to predictable database text strings (e.g., "1,2,0,0,4,,,,")
     const teamAEndsString = scoresA.join(',');

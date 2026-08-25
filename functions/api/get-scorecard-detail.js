@@ -19,7 +19,7 @@ export async function onRequestGet(context) {
   const isAdmin = userRole === 'admin';
 
   try {
-    const matchQuery = db
+    const matchResult = await db
       .prepare(
         `
       SELECT m.*, tA.name AS team_a_name, tB.name AS team_b_name
@@ -29,37 +29,30 @@ export async function onRequestGet(context) {
       WHERE m.id = ?
     `,
       )
-      .bind(matchId);
-
-    const endsQuery = db
-      .prepare(
-        `
-      SELECT end_number, score_a, score_b
-      FROM match_ends
-      WHERE match_id = ?
-      ORDER BY end_number ASC
-    `,
-      )
-      .bind(matchId);
-
-    // Send both queries to D1 in parallel
-    const [matchResult, endsResult] = await db.batch([matchQuery, endsQuery]);
+      .bind(matchId)
+      .run();
 
     const match = matchResult.results[0];
     if (!match) {
       return new Response('<p>Scorecard details not found.</p>', { status: 404 });
     }
 
-    const ends = endsResult.results;
+    let teamAEnds = match.team_a_ends.split(',');
 
-    // Determine how many columns to print (default to 8, but scale if extra ends exist)
-    const maxEndRecorded = ends.reduce((max, e) => Math.max(max, e.end_number), 8);
+    const expectedEnds = teamAEnds.length > 8 ? 12 : 8;
+
+    if (teamAEnds.length < expectedEnds)
+      teamAEnds = [...teamAEnds, ...Array.from({ length: expectedEnds - teamAEnds.length }, () => '')];
+
+    let teamBEnds = match.team_b_ends.split(',');
+    if (teamBEnds.length < expectedEnds)
+      teamBEnds = [...teamBEnds, ...Array.from({ length: expectedEnds - teamBEnds.length }, () => '')];
 
     let tableHeaders = html`<th style="text-align: left; padding: var(--size-2);">Team Rink</th>`;
     let teamARows = '';
     let teamBRows = '';
 
-    for (let i = 1; i <= maxEndRecorded; i++) {
+    for (let i = 2; i <= expectedEnds; i++) {
       let endLabel = i.toString();
       if (i === 11) endLabel = 'EE';
       if (i === 12) endLabel = 'EEE';
@@ -67,16 +60,8 @@ export async function onRequestGet(context) {
 
       tableHeaders += `<th>${endLabel}</th>`;
 
-      const activeEnd = ends.find(e => e.end_number === i);
-      if (activeEnd) {
-        teamARows += html`<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_a}</td>`;
-        teamBRows += html`<td style="padding: var(--size-2); font-weight: bold;">${activeEnd.score_b}</td>`;
-      } else {
-        const filler = i <= 8 ? 'X' : '-';
-        const color = i <= 8 ? 'var(--text-3)' : 'var(--text-4)';
-        teamARows += html`<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
-        teamBRows += html`<td style="color: ${color}; padding: var(--size-2);">${filler}</td>`;
-      }
+      teamARows += html`<td style="padding: var(--size-2); font-weight: bold;">${teamAEnds[i - 1] || 'X'}</td>`;
+      teamBRows += html`<td style="padding: var(--size-2); font-weight: bold;">${teamBEnds[i - 1] || 'X'}</td>`;
     }
     tableHeaders += html`<th style="padding: var(--size-2);">Total</th>`;
 

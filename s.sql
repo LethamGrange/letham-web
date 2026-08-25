@@ -28,14 +28,6 @@ CREATE TABLE IF NOT EXISTS matches (
     final_score_b INTEGER DEFAULT 0
 );
 
--- 3. Linescore (End-by-end details remain identical)
-CREATE TABLE IF NOT EXISTS match_ends (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    match_id INTEGER REFERENCES matches(id) ON DELETE CASCADE,
-    end_number INTEGER NOT NULL,
-    score_a INTEGER NOT NULL,
-    score_b INTEGER NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

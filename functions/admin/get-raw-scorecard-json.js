@@ -53,9 +53,10 @@ export async function onRequestGet(context) {
     const endsArray = [];
     const aArray = match.team_a_ends.split(','); // ["1", "1", "0", ""]
     const bArray = match.team_b_ends.split(','); // ["0", "0", "2", ""]
+    const length = aArray.length > 8 ? 12 : 8;
 
-    for (let i = 0; i < aArray.length; i++) {
-      endsArray.push({ a: aArray[i], b: bArray[i] });
+    for (let i = 0; i < length; i++) {
+      endsArray.push({ a: aArray[i] ?? '', b: bArray[i] ?? '' });
     }
     payload.ends = endsArray;
 
