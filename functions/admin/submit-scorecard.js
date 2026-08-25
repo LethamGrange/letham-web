@@ -120,7 +120,6 @@ async function parseAndValidateScorecard(formData, db) {
       scoresA.push(sA);
       scoresB.push(sB);
     }
-    console.log(scoresA);
 
     // Join down to predictable database text strings (e.g., "1,2,0,0,4,,,,")
     const teamAEndsString = scoresA.join(',');
