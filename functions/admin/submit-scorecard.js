@@ -17,12 +17,13 @@ export async function onRequestPost(context) {
           match_date, match_time, sheet, competition_name, team_a_id, team_b_id,
           team_a_skip, team_a_third, team_a_second, team_a_lead,
           team_b_skip, team_b_third, team_b_second, team_b_lead,
-          team_a_ends = ?, team_b_ends = ?,
+          team_a_ends , team_b_ends,
           final_score_a, final_score_b
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
       `,
       )
-      .bind(...fields)
+      .bind(...Object.values(fields))
       .run();
 
     // Return the fresh centralized HTML results fragment smoothly
@@ -124,21 +125,23 @@ async function parseAndValidateScorecard(formData, db) {
     // Join down to predictable database text strings (e.g., "1,2,0,0,4,,,,")
     const teamAEndsString = scoresA.join(',');
     const teamBEndsString = scoresB.join(',');
-
-    return {
-      matchDate,
-      matchTime,
-      sheet,
-      competitionName,
-      teamAId,
-      teamBId,
-      ...teamplayers,
-      teamAEndsString,
-      teamBEndsString,
-      // Provide numerical summaries for top-level match caching
-      finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
-      finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
-    };
+    return Object.assign(
+      {
+        matchDate,
+        matchTime,
+        sheet,
+        competitionName,
+        teamAId,
+        teamBId,
+      },
+      teamplayers, // 👈 Merges teamplayers keys directly into the object
+      {
+        teamAEndsString,
+        teamBEndsString,
+        finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+        finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+      },
+    );
   } catch (e) {
     console.log(e.toString());
   }
