@@ -25,8 +25,7 @@ CREATE TABLE IF NOT EXISTS matches (
     team_b_skip TEXT, team_b_third TEXT, team_b_second TEXT, team_b_lead TEXT,
 
     final_score_a INTEGER DEFAULT 0,
-    final_score_b INTEGER DEFAULT 0,
-    conceded_early INTEGER DEFAULT 0  -- 1 if a team shook hands early, 0 if played to time
+    final_score_b INTEGER DEFAULT 0
 );
 
 -- 3. Linescore (End-by-end details remain identical)

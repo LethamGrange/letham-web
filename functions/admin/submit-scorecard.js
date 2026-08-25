@@ -82,6 +82,8 @@ export async function onRequestPost(context) {
 export async function onRequestPut(context) {
   const db = context.env.curling_league;
 
+  return await renderUpdatedResultsList(db);
+
   try {
     const formData = await context.request.formData();
     const matchId = parseInt(formData.get('match_id'));
@@ -184,6 +186,8 @@ async function parseAndValidateScorecard(formData, db) {
 
   const teamAId = await getOrCreateTeamId(teamAName);
   const teamBId = await getOrCreateTeamId(teamBName);
+
+  const hasExtraEnds = formData.get('');
 
   // Accumulate linescores loop array - ITERATING UP TO 12 ENDS 🥌
   const endsToInsert = [];

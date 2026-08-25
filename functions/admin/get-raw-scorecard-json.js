@@ -43,31 +43,59 @@ export async function onRequestGet(context) {
     // Extract the ends array
     const ends = endsResult.results;
 
-    // 3. Flatten everything into a single dictionary object matching your form
     const payload = {
-      match_id: match.id,
-      match_date: match.match_date,
-      match_time: match.match_time,
+      id: match.id,
+      date: match.match_date,
+      time: match.match_time,
+      hasExtraEnds: match.match_has_extra_ends,
       sheet: match.sheet,
-      competition_name: match.competition_name,
-      team_a_name: match.team_a_name,
-      team_b_name: match.team_b_name,
-      team_a_skip: match.team_a_skip,
-      team_a_third: match.team_a_third,
-      team_a_second: match.team_a_second,
-      team_a_lead: match.team_a_lead,
-      team_b_skip: match.team_b_skip,
-      team_b_third: match.team_b_third,
-      team_b_second: match.team_b_second,
-      team_b_lead: match.team_b_lead,
-      conceded: match.conceded_early,
+      competitionName: match.competition_name,
+      team: {},
+      ends: [],
     };
 
-    // Dynamically inject the individual end keys: e1_a, e1_b, up to e8_b
-    ends.forEach(end => {
-      payload[`e${end.end_number}_a`] = end.score_a;
-      payload[`e${end.end_number}_b`] = end.score_b;
-    });
+    for (let key of ['a', 'b']) {
+      payload.team[key] = {
+        name: match[`team_${key}_name`] ?? '',
+        skip: match[`team_${key}_skip`] ?? '',
+        third: match[`team_${key}_third`] ?? '',
+        second: match[`team_${key}_third`] ?? '',
+        lead: match[`team_${key}_lead}`] ?? '',
+      };
+    }
+
+    let team_a_ends = match.team_a_ends;
+    let team_b_ends = match.team_b_ends;
+
+    if ((team_a_ends ?? '') === '') {
+      const TOTAL_ENDS = 8;
+
+      const teamA = Array.from({ length: TOTAL_ENDS }, () => '');
+      const teamB = Array.from({ length: TOTAL_ENDS }, () => '');
+
+      for (const end of ends) {
+        const index = end.end_number - 1;
+        teamA[index] = end.score_a;
+        teamB[index] = end.score_b;
+      }
+
+      team_a_ends = teamA.join(',');
+      team_b_ends = teamB.join(',');
+    }
+
+    const aEnds = team_a_ends.split(',');
+    const bEnds = team_b_ends.split(',');
+
+    // Dynamically match whatever the string length provides (8 or 12 slots)
+    const totalSlots = Math.max(aEnds.length, bEnds.length);
+
+    for (let i = 0; i < totalSlots; i++) {
+      // Keep the raw strings exactly as they are ('0', '1', or '')
+      payload.ends.push({
+        a: aEnds[i],
+        b: bEnds[i],
+      });
+    }
 
     return new Response(JSON.stringify(payload), {
       headers: { 'Content-Type': 'application/json' },
