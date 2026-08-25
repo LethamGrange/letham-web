@@ -99,7 +99,6 @@
   <script webc:keep>
     htmx.config.implicitInheritance = true;
     htmx.config.noSwap = [204, 304, "4xx", "5xx"];
-    alert(JSON.stringify(htmx.config, null, 2));
   </script>
 
   <script
