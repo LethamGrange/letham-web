@@ -46,8 +46,6 @@ export async function onRequestPut(context) {
       return new Response('Missing match identifier tracking for modification transaction.', { status: 400 });
     }
     const fields = await parseAndValidateScorecard(formData, db);
-    console.log(fields);
-
     await db
       .prepare(
         `
@@ -125,23 +123,21 @@ async function parseAndValidateScorecard(formData, db) {
     // Join down to predictable database text strings (e.g., "1,2,0,0,4,,,,")
     const teamAEndsString = scoresA.join(',');
     const teamBEndsString = scoresB.join(',');
-    return Object.assign(
-      {
-        matchDate,
-        matchTime,
-        sheet,
-        competitionName,
-        teamAId,
-        teamBId,
-      },
-      teamplayers, // 👈 Merges teamplayers keys directly into the object
-      {
-        teamAEndsString,
-        teamBEndsString,
-        finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
-        finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
-      },
-    );
+    return {
+      matchDate,
+      matchTime,
+      sheet,
+      competitionName,
+      teamAId,
+      teamBId,
+
+      ...teamplayers, // 👈 Merges teamplayers keys directly into the object
+
+      teamAEndsString,
+      teamBEndsString,
+      finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+      finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+    };
   } catch (e) {
     console.log(e.toString());
   }
