@@ -8,7 +8,26 @@ export async function onRequestPost(context) {
 
   try {
     const formData = await context.request.formData();
-    const fields = await parseAndValidateScorecard(formData, db);
+    const {
+      matchDate,
+      matchTime,
+      sheet,
+      competitionName,
+      teamAId,
+      teamBId,
+      team_a_skip,
+      team_a_third,
+      team_a_second,
+      team_a_lead,
+      team_b_skip,
+      team_b_third,
+      team_b_second,
+      team_b_lead,
+      teamAEndsString,
+      teamBEndsString,
+      finalScoreA,
+      finalScoreB,
+    } = await parseAndValidateScorecard(formData, db);
 
     await db
       .prepare(
@@ -23,7 +42,26 @@ export async function onRequestPost(context) {
 
       `,
       )
-      .bind(...Object.values(fields))
+      .bind(
+        matchDate,
+        matchTime,
+        sheet,
+        competitionName,
+        teamAId,
+        teamBId,
+        team_a_skip,
+        team_a_third,
+        team_a_second,
+        team_a_lead,
+        team_b_skip,
+        team_b_third,
+        team_b_second,
+        team_b_lead,
+        teamAEndsString,
+        teamBEndsString,
+        finalScoreA,
+        finalScoreB,
+      )
       .run();
 
     // Return the fresh centralized HTML results fragment smoothly
@@ -45,7 +83,26 @@ export async function onRequestPut(context) {
     if (!matchId) {
       return new Response('Missing match identifier tracking for modification transaction.', { status: 400 });
     }
-    const fields = await parseAndValidateScorecard(formData, db);
+    const {
+      matchDate,
+      matchTime,
+      sheet,
+      competitionName,
+      teamAId,
+      teamBId,
+      team_a_skip,
+      team_a_third,
+      team_a_second,
+      team_a_lead,
+      team_b_skip,
+      team_b_third,
+      team_b_second,
+      team_b_lead,
+      teamAEndsString,
+      teamBEndsString,
+      finalScoreA,
+      finalScoreB,
+    } = await parseAndValidateScorecard(formData, db);
     await db
       .prepare(
         `
@@ -58,7 +115,27 @@ export async function onRequestPut(context) {
         WHERE id = ?
       `,
       )
-      .bind(...Object.values(fields), matchId)
+      .bind(
+        matchDate,
+        matchTime,
+        sheet,
+        competitionName,
+        teamAId,
+        teamBId,
+        team_a_skip,
+        team_a_third,
+        team_a_second,
+        team_a_lead,
+        team_b_skip,
+        team_b_third,
+        team_b_second,
+        team_b_lead,
+        teamAEndsString,
+        teamBEndsString,
+        finalScoreA,
+        finalScoreB,
+        matchId, // Appended perfectly at the end for the WHERE clause)
+      )
       .run();
 
     return await renderUpdatedResultsList(db);
