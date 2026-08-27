@@ -12,7 +12,6 @@ export async function onRequestPost(context) {
 
   // 1. Fetch the user row from D1
   const user = await db.prepare('SELECT id, password_hash, role FROM users WHERE username = ?').bind(username).first();
-  console.log(user, password);
   // 2. Safely verify the scrypt hash
   if (!user || !verifyScrypt(password, user.password_hash)) {
     return new Response(html`<p style="color:red;">Invalid username or password.</p>`, {
@@ -38,12 +37,15 @@ export async function onRequestPost(context) {
   const isProduction = context.env.CF_PAGES === '1';
   const secureFlag = isProduction ? ' Secure;' : '';
 
+  const headers = new Headers({ 'HX-Redirect': nextPath });
+  headers.append(
+    'Set-Cookie',
+    `session=${sessionToken}; Path=/; HttpOnly;${secureFlag} SameSite=Strict; Max-Age=86400`,
+  );
+  headers.append('Set-Cookie', `user_role=${user.role}; Path=/;${secureFlag} SameSite=Strict; Max-Age=86400`);
   return new Response('Success', {
     status: 200,
-    headers: {
-      'Set-Cookie': `session=${sessionToken}; Path=/; HttpOnly;${secureFlag} SameSite=Strict; Max-Age=86400`,
-      'HX-Redirect': nextPath,
-    },
+    headers,
   });
 }
 

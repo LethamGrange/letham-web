@@ -1,27 +1,52 @@
-<!-- _components/page-header.webc -->
-<figure class="page-header" :position="pos" webc:root="override">
-  <!-- The background image (whether 11ty leaves it naked or wraps it) -->
-  <picture webc:if="image">
-    <img
-      class="page-header-image"
-      :src="image"
-      :alt="alt || 'Section header graphic'"
-      width="1980"
-      sizes="100svw"
-    />
-  </picture>
+<div class="page-header-wrapper">
+  <!-- _components/page-header.webc -->
+  <figure class="page-header" :position="pos" webc:root="override">
+    <!-- The background image (whether 11ty leaves it naked or wraps it) -->
+    <picture webc:if="image">
+      <img
+        class="page-header-image"
+        :src="image"
+        :alt="alt || 'Section header graphic'"
+        width="1980"
+        sizes="100svw"
+      />
+    </picture>
 
-  <!-- The text overlay content block -->
-  <div class="page-header-info">
-    <div class="content">
-      <h1 @text="title"></h1>
-      <p webc:if="description" @text="description"></p>
+    <!-- The text overlay content block -->
+    <div class="page-header-info">
+      <div class="content">
+        <h1 @text="title"></h1>
+        <p webc:if="description" @text="description"></p>
+      </div>
     </div>
+  </figure>
+  <!-- COLUMN 3: Global Action Controls Tracker -->
+  <div class="page-header-actions">
+    <!-- Drop your theme switcher component directly in here! -->
+    <theme-toggle></theme-toggle>
   </div>
-</figure>
+</div>
 
 <style>
+  .page-header-wrapper {
+    display: grid;
+    grid-template-areas: "pile";
+    align-items: center;
+    background-color: var(--primary);
+    background-image: var(--themed-gradient-30);
+    overflow: hidden;
+    position: relative; /* Safe context boundary */
+  }
+  .page-header-actions {
+    grid-area: pile;
+    justify-self: end;
+    align-self: start;
+    margin: var(--size-3);
+    z-index: 2; /* Ensures it floats cleanly above the banner graphics */
+  }
   .page-header {
+    grid-area: pile;
+
     background-color: var(--color-7);
     background-image: var(--themed-gradient-30);
     grid-template-columns: auto 1fr;
@@ -39,7 +64,13 @@
       justify-self: start;
       display: flex;
     }
-
+    /* Push actions cluster to the right edge */
+    .page-header-info {
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      padding-inline-end: var(--size-4);
+    }
     .page-header-image {
       grid-column: 1 / 2;
       margin-inline-start: var(--size-3);

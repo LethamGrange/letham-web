@@ -15,12 +15,21 @@ export async function onRequestPost(context) {
     }
   }
 
-  // 3. Clear the cookie by setting an expired Max-Age, and issue an HX-Redirect
-  return new Response('Logged out', {
+  // // 3. Clear the cookie by setting an expired Max-Age, and issue an HX-Redirect
+  // return new Response('Logged out', {
+  //   status: 200,
+  //   headers: {
+  //     'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0',
+  //     'HX-Redirect': '/login',
+  //   },
+  // });onRequestPost
+  //
+  const headers = new Headers({ 'HX-Redirect': '/' });
+  headers.append('Set-Cookie', `session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`);
+  headers.append('Set-Cookie', `user_role=; Path=/; Max-Age=0`);
+
+  return new Response('Logged Out', {
     status: 200,
-    headers: {
-      'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0',
-      'HX-Redirect': '/login',
-    },
+    headers,
   });
 }
