@@ -1,0 +1,60 @@
+<div id="nav-links-box" class="nav-links">
+  <script webc:type="js">
+    export default function () {
+      if (!this.$data.navigation) return "";
+
+      let inSessionCluster = false;
+
+      return (
+        this.$data.navigation.reduce((html, item) => {
+          // 1. Calculate the active state flag
+          const isActive =
+            item.exact && this.$data.page.url === item.url
+              ? "active"
+              : item.includes && this.$data.page.url.includes(item.url)
+                ? "active"
+                : !item.exact &&
+                    !item.includes &&
+                    this.$data.page.url === item.url
+                  ? "active"
+                  : "";
+
+          // 2. Identify if this is a right-hand side session item
+          const isSessionItem =
+            item.showFor === "guest" ||
+            (item.showFor &&
+              (item.showFor.includes("admin") ||
+                item.showFor.includes("member")));
+
+          let extraClass = "";
+          if (item.showFor === "guest") extraClass = "login-link";
+          else if (isSessionItem) extraClass = "logout-link";
+
+          const renderingClass = [isActive, extraClass]
+            .filter(Boolean)
+            .join(" ");
+          const classAttr = renderingClass ? `class="${renderingClass}"` : "";
+          const showFor = item.showFor ? `data-show-for="${item.showFor}"` : "";
+
+          const anchorHtml = `<a href="${item.url}" ${classAttr} ${showFor}>${item.label}</a>`;
+
+          // 3. STRUCTURAL WRAPPING TRANSITION
+          // If we hit our first session item, open the session wrapper div
+          if (isSessionItem && !inSessionCluster) {
+            inSessionCluster = true;
+            return html + `<div class="session-cluster">${anchorHtml}`;
+          }
+
+          // If we hit a normal link *after* a session item (unlikely, but safe), close it
+          if (!isSessionItem && inSessionCluster) {
+            inSessionCluster = false;
+            return html + `</div>${anchorHtml}`;
+          }
+
+          return html + anchorHtml;
+        }, "") + (inSessionCluster ? "</div>" : "")
+      ); // Ensure the div closes cleanly at the very end
+    }
+  </script>
+</div>
+<theme-toggle></theme-toggle>

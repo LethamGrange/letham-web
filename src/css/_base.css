@@ -70,3 +70,15 @@ h3,
   border-radius: var(--radius-3);
   box-shadow: var(--shadow-3);
 }
+
+[data-show-for] {
+  display: none;
+}
+
+/* 2. If the user's role is found anywhere inside the allowed list, reveal it! */
+body[data-user-role='guest'] [data-show-for~='guest'],
+body[data-user-role='admin'] [data-show-for~='admin'],
+body[data-user-role='editor'] [data-show-for~='editor'],
+body[data-user-role='member'] [data-show-for~='member'] {
+  display: inline-block; /* Or whatever matches your layout */
+}

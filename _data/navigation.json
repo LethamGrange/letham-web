@@ -26,5 +26,24 @@
   {
     "url": "/resources/",
     "label": "Resources"
+  },
+  {
+    "url": "/scores/",
+    "label": "Scores"
+  },
+  {
+    "url": "/admin/scorecards/",
+    "label": "Admin",
+    "showFor": "admin"
+  },
+  {
+    "url": "/login/",
+    "label": "Login",
+    "showFor": "guest"
+  },
+  {
+    "url": "/logout/",
+    "label": "Logout",
+    "showFor": "admin editor member"
   }
 ]

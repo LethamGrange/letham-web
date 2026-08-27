@@ -107,5 +107,12 @@
     defer
     webc:keep
   ></script>
-  >
+
+  <script>
+    (function () {
+      const match = document.cookie.match(/(^| )user_role=([^;]+)/);
+      const role = match ? match[2].trim() : "guest";
+      document.body.setAttribute("data-user-role", role);
+    })();
+  </script>
 </html>

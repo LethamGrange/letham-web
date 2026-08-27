@@ -17,7 +17,11 @@
                       this.$data.page.url === item.url
                     ? "active"
                     : "";
-            return `<a href="${item.url}" class="${isActive}">${item.label}</a>`;
+
+            const showFor = item.showFor
+              ? `data-show-for="${item.showFor}"`
+              : "";
+            return `<a href="${item.url}" class="${isActive}" ${showFor}>${item.label}</a>`;
           })
           .join("");
       }

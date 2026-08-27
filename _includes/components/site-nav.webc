@@ -26,8 +26,7 @@
   </button>
 
   <!-- Pass tier="global" down to isolate data parsing -->
-  <nav-links :@tier="'global'"></nav-links>
-  <theme-toggle></theme-toggle>
+  <nav-links-global :@tier="'global'"></nav-links-global>
 </nav>
 <!-- CONTEXT NAV LANE -->
 <nav
@@ -307,6 +306,30 @@
   @media (min-width: 768px) {
     .menu-toggle-btn {
       display: none !important;
+    } /* 2. Map out the master layout grid on the navigation lane container */
+    .navigation-lane {
+      display: grid;
+      /* Col 1: Auto (hamburger, hidden), Col 2: 1fr (takes all space), Col 3 & 4: Auto */
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+    }
+
+    /* 3. Arrange text navigation links horizontally on the left */
+    .navigation-lane .nav-links {
+      display: grid;
+      grid-auto-flow: column;
+      justify-content: start;
+      gap: 15px;
+    }
+
+    /* 4. Pins your new login/logout cluster smoothly against the theme switcher */
+    .navigation-lane .session-cluster {
+      display: grid;
+      grid-auto-flow: column;
+      justify-content: end;
+      gap: 15px;
     }
   }
 
