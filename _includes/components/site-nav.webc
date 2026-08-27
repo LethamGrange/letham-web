@@ -42,7 +42,7 @@
 <!-- MOBILE DRAWER (For top-level global links only) -->
 
 <dialog
-  class="ui-drawer ui-scroll-lock ui-inline-start"
+  class="ui-drawer ui-scroll-lock ui-inline-start mobile-navigation-drawer"
   id="drawer-inline-start-html"
   closedby="any"
 >
@@ -69,8 +69,8 @@
     </button>
   </div>
   <div class="ui-content">
-    <nav class="mobile-only-menu">
-      <nav-links :@tier="'global'"></nav-links>
+    <nav class="mobile-only-menu mobile-nav-links-wrapper">
+      <nav-links-global @tier="mobile"></nav-links-global>
     </nav>
   </div>
   <div class="ui-footer">
@@ -335,8 +335,31 @@
 
   @media (max-width: 767px) {
     /* Hide the global header layout row items on small mobile screens */
-    .global-lane .nav-links {
+    .global-lane .nav-links,
+    .global-lane .session-cluster {
       display: none !important;
+    }
+
+    /* Style the links inside your mobile slide-out menu */
+    .mobile-nav-links-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: var(--size-4);
+      padding: var(--size-4);
+    }
+
+    /* Format mobile tap-targets nicely inside the navigation drawer */
+    .mobile-session-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--size-3);
+      margin-top: var(--size-2);
+    }
+
+    .drawer-divider {
+      border: none;
+      border-top: 1px solid var(--surface-3);
+      margin-block: var(--size-2);
     }
 
     /* Transform Context Lane into a clean horizontal swiping tray on mobile */
