@@ -2,7 +2,7 @@
 <script webc:type="js" webc:root="override">
   export default function () {
     if (!this.$data.navigation) return "";
-
+    const isMobileDrawer = this.tier === "mobile";
     const leftLinks = [];
     const rightLinks = [];
 
@@ -24,35 +24,61 @@
 
       // 1. CHOOSE YOUR OUTPUT DESTINATION TRACK
       const targetTrack = isSession ? rightLinks : leftLinks;
-
-      // 2. CHECK FOR NESTED CHILDREN (THE DROPDOWN PIVOT)
       if (item.children && item.children.length > 0) {
-        // Generate unique ID slung off the label name
         const safeId = `menu-${item.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
 
-        // Process sub-links loop
-        const childLinksHtml = item.children
-          .map((child) => {
-            const isChildActive =
-              this.$data.page.url === child.url ? "active" : "";
-            const childClass = `popover-item ${isChildActive}`.trim();
-            return `<a href="${child.url}" class="${childClass}">${child.label}</a>`;
-          })
-          .join("");
+        // ==========================================
+        // STRATEGY A: THE MOBILE ACCORDION TRAY
+        // ==========================================
+        if (isMobileDrawer) {
+          const childLinksHtml = item.children
+            .map((child) => {
+              const isChildActive =
+                this.$data.page.url === child.url ? "active" : "";
+              return `<a href="${child.url}" class="drawer-sub-link ${isChildActive}">${child.label}</a>`;
+            })
+            .join("");
 
-        // Build the native anchor popover markup block
-        const dropdownHtml = `
-      <div class="nav-dropdown-wrapper" ${showForAttr} style="--anchor-id: --${safeId};">
-        <button type="button" class="popover-trigger nav-dropdown-btn ${isActive}" popovertarget="${safeId}">
-          ${item.label} ▾
-        </button>
-        <div id="${safeId}" class="popover-menu nav-dropdown-popover" popover>
-          ${childLinksHtml}
+          // Clean, zero-dependency semantic accordion folder via <details>
+          const accordionHtml = `
+              <details class="drawer-dropdown-folder" ${showForAttr}>
+                <summary class="drawer-dropdown-trigger ${isActive}">
+                  ${item.label} <span class="arrow">▾</span>
+                </summary>
+                <div class="drawer-dropdown-content">
+                  ${childLinksHtml}
+                </div>
+              </details>
+            `;
+          targetTrack.push(accordionHtml);
+        } else {
+          // ==========================================
+          // STRATEGY B: THE DESKTOP ANCHORED POPOVER
+          // ==========================================
+          // Process sub-links loop
+          const childLinksHtml = item.children
+            .map((child) => {
+              const isChildActive =
+                this.$data.page.url === child.url ? "active" : "";
+              const childClass = `popover-item ${isChildActive}`.trim();
+              return `<a href="${child.url}" class="${childClass}">${child.label}</a>`;
+            })
+            .join("");
+
+          // Build the native anchor popover markup block
+          const dropdownHtml = `
+        <div class="nav-dropdown-wrapper" ${showForAttr} style="--anchor-id: --${safeId};">
+          <button type="button" class="popover-trigger nav-dropdown-btn ${isActive}" popovertarget="${safeId}">
+            ${item.label} ▾
+          </button>
+          <div id="${safeId}" class="popover-menu nav-dropdown-popover" popover>
+            ${childLinksHtml}
+          </div>
         </div>
-      </div>
-    `;
+      `;
 
-        targetTrack.push(dropdownHtml);
+          targetTrack.push(dropdownHtml);
+        }
       } else {
         // 3. FALLBACK TO STANDARD FLAT LINK
         const extraClass = isSession
@@ -71,13 +97,13 @@
 
     // 2. Output the exact sibling structure expected by your CSS layouts
     return `
-      <div id="nav-links-box" class="nav-links">
-        ${leftLinks.join("")}
-      </div>
-      <div class="session-cluster nav-links">
-        ${rightLinks.join("")}
-      </div>
-    `;
+        <div id="nav-links-box" class="nav-links">
+          ${leftLinks.join("")}
+        </div>
+        <div class="session-cluster nav-links">
+          ${rightLinks.join("")}
+        </div>
+      `;
   }
 </script>
 <script webc:keep>
@@ -104,6 +130,45 @@
   /* Ensure the wrapper centers cleanly on the desktop layout cross-axis */
   .nav-dropdown-wrapper {
     align-content: center;
-    display: inline-grid;
+    display: none;
+  }
+
+  /* 1. Remove the default system marker arrow on summary text tags */
+  .drawer-dropdown-trigger {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-6);
+    padding-block: var(--size-1);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  /* 2. Indent sub-links inside the expanded mobile tray content zone */
+  .drawer-dropdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2);
+    padding-inline-start: var(--size-4); /* Indentation cascade */
+    margin-block-start: var(--size-2);
+    border-inline-start: 2px solid var(--border-dim); /* Optional clear path track line */
+  }
+
+  .drawer-sub-link {
+    color: var(--text-secondary) !important;
+    font-size: var(--font-size-1) !important; /* Muted typography scaling */
+    padding-block: var(--size-1);
+  }
+
+  /* Rotate the visual cue arrow dynamically when the folder expands */
+  .drawer-dropdown-folder[open] .arrow {
+    transform: rotate(180deg);
+    display: inline-block;
   }
 </style>
