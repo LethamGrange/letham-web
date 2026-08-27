@@ -8,11 +8,6 @@ headerAlt: Letham Grange logo
 <div class="breakout">
   <h1 class="ui-h2">Admin: Record Match Score</h1>
   <div id="form-error-banner"></div>
-  <div class="sign-out-wrapper">
-    <button hx-post="/api/logout" class="ui-button ui-tonal logout-btn">
-      Sign Out
-    </button>
-  </div>
 
   <scorecard-manager> </scorecard-manager>
 
@@ -31,9 +26,3 @@ headerAlt: Letham Grange logo
     </div>
   </div>
 </div>
-<style>
-  .sign-out-wrapper {
-    display: flex;
-    justify-content: end;
-  }
-</style>

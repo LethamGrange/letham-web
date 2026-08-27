@@ -1,60 +1,109 @@
-<div id="nav-links-box" class="nav-links">
-  <script webc:type="js">
-    export default function () {
-      if (!this.$data.navigation) return "";
+<!--- nav-links-global.webc --->
+<script webc:type="js" webc:root="override">
+  export default function () {
+    if (!this.$data.navigation) return "";
 
-      let inSessionCluster = false;
+    const leftLinks = [];
+    const rightLinks = [];
 
-      return (
-        this.$data.navigation.reduce((html, item) => {
-          // 1. Calculate the active state flag
-          const isActive =
-            item.exact && this.$data.page.url === item.url
+    this.$data.navigation.forEach((item) => {
+      const isActive =
+        item.exact && this.$data.page.url === item.url
+          ? "active"
+          : item.includes && this.$data.page.url.includes(item.url)
+            ? "active"
+            : !item.exact && !item.includes && this.$data.page.url === item.url
               ? "active"
-              : item.includes && this.$data.page.url.includes(item.url)
-                ? "active"
-                : !item.exact &&
-                    !item.includes &&
-                    this.$data.page.url === item.url
-                  ? "active"
-                  : "";
+              : "";
 
-          // 2. Identify if this is a right-hand side session item
-          const isSessionItem =
-            item.showFor === "guest" ||
-            (item.showFor &&
-              (item.showFor.includes("admin") ||
-                item.showFor.includes("member")));
+      const showForAttr = item.showFor ? `data-show-for="${item.showFor}"` : "";
+      const isSession =
+        item.showFor === "guest" ||
+        (item.showFor &&
+          (item.showFor.includes("admin") || item.showFor.includes("member")));
 
-          let extraClass = "";
-          if (item.showFor === "guest") extraClass = "login-link";
-          else if (isSessionItem) extraClass = "logout-link";
+      // 1. CHOOSE YOUR OUTPUT DESTINATION TRACK
+      const targetTrack = isSession ? rightLinks : leftLinks;
 
-          const renderingClass = [isActive, extraClass]
-            .filter(Boolean)
-            .join(" ");
-          const classAttr = renderingClass ? `class="${renderingClass}"` : "";
-          const showFor = item.showFor ? `data-show-for="${item.showFor}"` : "";
+      // 2. CHECK FOR NESTED CHILDREN (THE DROPDOWN PIVOT)
+      if (item.children && item.children.length > 0) {
+        // Generate unique ID slung off the label name
+        const safeId = `menu-${item.label.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
 
-          const anchorHtml = `<a href="${item.url}" ${classAttr} ${showFor}>${item.label}</a>`;
+        // Process sub-links loop
+        const childLinksHtml = item.children
+          .map((child) => {
+            const isChildActive =
+              this.$data.page.url === child.url ? "active" : "";
+            const childClass = `popover-item ${isChildActive}`.trim();
+            return `<a href="${child.url}" class="${childClass}">${child.label}</a>`;
+          })
+          .join("");
 
-          // 3. STRUCTURAL WRAPPING TRANSITION
-          // If we hit our first session item, open the session wrapper div
-          if (isSessionItem && !inSessionCluster) {
-            inSessionCluster = true;
-            return html + `<div class="session-cluster">${anchorHtml}`;
-          }
+        // Build the native anchor popover markup block
+        const dropdownHtml = `
+      <div class="nav-dropdown-wrapper" ${showForAttr} style="--anchor-id: --${safeId};">
+        <button type="button" class="popover-trigger nav-dropdown-btn ${isActive}" popovertarget="${safeId}">
+          ${item.label} ▾
+        </button>
+        <div id="${safeId}" class="popover-menu nav-dropdown-popover" popover>
+          ${childLinksHtml}
+        </div>
+      </div>
+    `;
 
-          // If we hit a normal link *after* a session item (unlikely, but safe), close it
-          if (!isSessionItem && inSessionCluster) {
-            inSessionCluster = false;
-            return html + `</div>${anchorHtml}`;
-          }
+        targetTrack.push(dropdownHtml);
+      } else {
+        // 3. FALLBACK TO STANDARD FLAT LINK
+        const extraClass = isSession
+          ? item.showFor === "guest"
+            ? "login-link"
+            : "logout-link"
+          : "";
+        const renderingClass = [isActive, extraClass].filter(Boolean).join(" ");
+        const classAttr = renderingClass ? `class="${renderingClass}"` : "";
 
-          return html + anchorHtml;
-        }, "") + (inSessionCluster ? "</div>" : "")
-      ); // Ensure the div closes cleanly at the very end
-    }
-  </script>
-</div>
-<theme-toggle></theme-toggle>
+        targetTrack.push(
+          `<a href="${item.url}" ${classAttr} ${showForAttr}>${item.label}</a>`,
+        );
+      }
+    });
+
+    // 2. Output the exact sibling structure expected by your CSS layouts
+    return `
+      <div id="nav-links-box" class="nav-links">
+        ${leftLinks.join("")}
+      </div>
+      <div class="session-cluster nav-links">
+        ${rightLinks.join("")}
+      </div>
+    `;
+  }
+</script>
+<script webc:keep>
+  (function () {
+    document.querySelectorAll('a[href="/logout/"]').forEach((anchor) => {
+      anchor.setAttribute("hx-post", "/api/logout");
+      anchor.setAttribute("hx-trigger", "click");
+      if (window.htmx) {
+        htmx.process(anchor);
+      }
+    });
+  })();
+</script>
+<style>
+  :where(.nav-dropdown-wrapper) .popover-trigger {
+    font-size: var(--font-size-2);
+    font-weight: var(--font-weight-6);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* Ensure the wrapper centers cleanly on the desktop layout cross-axis */
+  .nav-dropdown-wrapper {
+    align-content: center;
+    display: inline-grid;
+  }
+</style>

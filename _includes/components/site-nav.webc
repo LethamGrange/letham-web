@@ -310,7 +310,7 @@
     .navigation-lane {
       display: grid;
       /* Col 1: Auto (hamburger, hidden), Col 2: 1fr (takes all space), Col 3 & 4: Auto */
-      grid-template-columns: auto 1fr auto auto;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: 20px;
       width: 100%;

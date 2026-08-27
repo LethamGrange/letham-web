@@ -32,9 +32,18 @@
     "label": "Scores"
   },
   {
-    "url": "/admin/scorecards/",
-    "label": "Admin",
-    "showFor": "admin"
+    "label": "Admin Options",
+    "showFor": "admin editor",
+    "children": [
+      {
+        "url": "/admin/scorecards/",
+        "label": "Manage Scorecards"
+      },
+      {
+        "url": "/admin/syllabus/",
+        "label": "Review Syllabus"
+      }
+    ]
   },
   {
     "url": "/login/",
