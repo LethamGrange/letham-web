@@ -1,5 +1,5 @@
 <form
-  hx-post="/admin/submit-complete-syllabus"
+  hx-post="/admin/submit-syllabus"
   hx-target="#diary-preview"
   hx-swap="innerHTML"
 >
@@ -68,11 +68,24 @@
     </button>
   </fieldset>
 
+  <div
+    id="global-team-picker"
+    popover
+    style="
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      box-shadow: var(--shadow-2);
+      border-radius: 6px;
+    "
+  >
+    <!-- JavaScript will inject the current team buttons here -->
+  </div>
+
   <br />
   <button class="ui-button ui-filled ui-primary" type="submit">
     Save Complete Competition & Schedule 💾
   </button>
-  <input type="hidden" name="competition_id" value="" />
   <button
     class="ui-button ui-tonal"
     type="button"
@@ -131,13 +144,13 @@
       teamCards.forEach((card, index) => {
         const newIdx = index + 1;
         card.querySelector("label").innerHTML = `Team ${newIdx} Rink Name:`;
-        card.querySelector('input[type="text"]').name = `team_name_${newIdx}`;
+        card.querySelector('input[type="text"]').name = `team[${newIdx}].name`;
 
-        const rosterInput = card.querySelector(`[name$="_roster"]`);
-        if (rosterInput) rosterInput.name = `team_${newIdx}_roster`;
+        const rosterInput = card.querySelector(`[name$=".players"]`);
+        if (rosterInput) rosterInput.name = `team[${newIdx}].players`;
 
-        const poolInput = card.querySelector(`[name$="_pool"]`);
-        if (poolInput) poolInput.name = `team_${newIdx}_pool`;
+        const poolInput = card.querySelector(`[name$=".pool"]`);
+        if (poolInput) poolInput.name = `team[${newIdx}].pool`;
       });
 
       // Update teamCount tracking state
@@ -150,19 +163,14 @@
       drawBlocks.forEach((block, dIdx) => {
         const newDIdx = dIdx + 1;
 
-        block.querySelector('[name^="draw_date_"]').name =
-          `draw_date_${newDIdx}`;
-        block.querySelector('[name^="draw_time_"]').name =
-          `draw_time_${newDIdx}`;
-
         const gameRows = block.querySelectorAll(".game-row");
         gameRows.forEach((row, gIdx) => {
-          row.querySelector('select[name*="_sheet"]').name =
-            `draw_${newDIdx}_game_${gIdx}_sheet`;
-          row.querySelector('select[name*="_team_a"]').name =
-            `draw_${newDIdx}_game_${gIdx}_team_a`;
-          row.querySelector('select[name*="_team_b"]').name =
-            `draw_${newDIdx}_game_${gIdx}_team_b`;
+          row.querySelector('select[name*=".sheet"]').name =
+            `draw[${newDIdx}].game[${gIdx}].sheet`;
+          row.querySelector('select[name*=".team_a"]').name =
+            `draw[${newDIdx}].game[${gIdx}].team_a`;
+          row.querySelector('select[name*=".team_b"]').name =
+            `draw[${newDIdx}].game[${gIdx}].<D-s>team_b`;
         });
       });
 
@@ -384,9 +392,9 @@
 
     getActiveTeamOptions(count) {
       let options = html`<option value="">-- Select Team --</option>`;
-      for (let i = 1; i <= count; i++) {
+      for (let i = 1; i <= this.currentTeamCount; i++) {
         const input = this.teamsContainer.querySelector(
-          `[name="team_name_${i}"]`,
+          `[name="team[${i}].name"]`,
         );
         const nameValue =
           input && input.value.trim() ? input.value.trim() : `Team ${i}`;
@@ -395,14 +403,60 @@
       return options;
     }
 
-    // Utility: Live synchronization updater strings text fields names down to fixtures options nodes
     updateAllFixtureDropdowns() {
-      const selectNodes =
-        this.drawsContainer.querySelectorAll(".team-select-node");
-      selectNodes.forEach((select) => {
-        const savedValue = select.value;
-        select.innerHTML = this.getActiveTeamOptions();
-        select.value = savedValue; // Preserves choice securely
+      const hiddenInputs =
+        this.drawsContainer.querySelectorAll(".team-id-input");
+
+      // Create an ordered list of all active backend IDs currently on the screen
+      const activeTeamInputs = this.teamsContainer.querySelectorAll(
+        'input[name^="team["][name$="].name"]',
+      );
+      const activeIds = Array.from(activeTeamInputs)
+        .map((input) => {
+          const match = input.name.match(/team\[(\d+)\]/);
+          return match ? match[1] : null;
+        })
+        .filter(Boolean);
+
+      hiddenInputs.forEach((input) => {
+        const selectedTeamId = input.value;
+        if (!selectedTeamId) return;
+
+        const teamInput = this.teamsContainer.querySelector(
+          `[name="team[${selectedTeamId}].name"]`,
+        );
+        const btn = input
+          .closest(".team-picker-container")
+          .querySelector(".team-picker-btn");
+
+        if (!teamInput) {
+          input.value = "";
+          btn.textContent = "✕ Team Deleted";
+          btn.style.color = "var(--red-6)";
+        } else {
+          btn.style.color = "";
+
+          // Calculate what position this team ID currently holds in the active UI list (1-indexed)
+          const userFacingIndex = activeIds.indexOf(selectedTeamId) + 1;
+          const teamName = teamInput.value.trim();
+
+          // If they haven't typed a name, say "Team 2". If they have, show "Team 2: Smith"
+          const displayStyle = teamName
+            ? `Team ${userFacingIndex}: ${teamName}`
+            : `Team ${userFacingIndex}`;
+
+          btn.textContent = displayStyle;
+        }
+      });
+    }
+
+    updateVisualTeamLabels() {
+      // Grab all active labels currently inside the teams container
+      const labels = this.teamsContainer.querySelectorAll(".team-number-label");
+
+      labels.forEach((label, index) => {
+        // index is 0-based, so add 1 for user presentation (Team 1, Team 2, etc.)
+        label.textContent = `Team ${index + 1} Name:`;
       });
     }
 
@@ -411,18 +465,32 @@
 
       const div = document.createElement("div");
       div.className = "team-entry-card";
-      div.style.cssText =
-        "border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);";
+      div.style.cssText = html`border: 1px solid var(--border); padding:
+      var(--size-2); border-radius: var(--radius-1); background:
+      var(--surface-2);`;
 
       // Base Rink Name Input
-      let teamHtml = html`
-        <div style="margin-bottom: 8px;">
-          <label style="font-weight: bold;"
-            >Team ${this.currentTeamCount} Rink Name:</label
+      let teamHtml = html`<div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"
+        >
+          <label style="font-weight: bold;" class="team-number-label"
+            >Team ${this.currentTeamCount} Name:</label
           >
+          <button
+            type="button"
+            class="remove-row-btn"
+            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
+          >
+            ✕ Remove
+          </button>
+        </div>
+
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"
+        >
           <input
             type="text"
-            name="team_name_${this.currentTeamCount}"
+            name="team[${this.currentTeamCount}].name"
             placeholder="e.g., Team Smith"
             style="width:100%;"
             required
@@ -430,15 +498,14 @@
         </div>
         <div
           style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;"
-        ></div>
-      `;
+        ></div> `;
 
       teamHtml += html`
         <div>
           <label style="font-size: var(--font-size-0); color: var(--text-2);"
-            >Team Roster (Add (s) after the skip's name)</label
+            >Team players (Add (s) after the skip's name)</label
           >
-          <input type="text" name="team_${this.currentTeamCount}_roster" />
+          <input type="text" name="team[${this.currentTeamCount}].players" />
         </div>
       `;
 
@@ -450,7 +517,7 @@
           >
           <input
             type="text"
-            name="team_${this.currentTeamCount}_pool"
+            name="team[${this.currentTeamCount}].pool"
             placeholder="e.g. Brian McArtney, Jim Menzies"
             style="width:100%;"
           />
@@ -458,16 +525,26 @@
       `;
 
       div.innerHTML = teamHtml;
+      div.querySelector(".remove-row-btn").addEventListener("click", () => {
+        div.remove();
+        // 1. Fix the team numbers on the card headers
+        this.updateVisualTeamLabels();
+
+        // 2. Fix the names appearing on the fixture game buttons
+        this.updateAllFixtureDropdowns();
+      });
 
       // Keep your live dropdown text sync listening to the Rink Name box
       div
         .querySelector('input[type="text"]')
-        .addEventListener("input", this.updateAllFixtureDropdowns);
+        .addEventListener("input", () => this.updateAllFixtureDropdowns());
       this.teamsContainer.appendChild(div);
 
-      if (this.currentTeamCount >= 2) {
-        this.fixturesZone.style.display = "block";
-      }
+      this.updateVisualTeamLabels(); // Update visual counts instantly
+
+      // if (this.currentTeamCount >= 2) {
+      this.fixturesZone.style.display = "block";
+      //}
     }
 
     async onEditSyllabus(event, form) {
@@ -643,68 +720,203 @@
       }
     }
 
+    openTeamPicker(clickedBtn) {
+      const container = clickedBtn.closest(".team-picker-container");
+      const hiddenInput = container.querySelector(".team-id-input");
+      const popover = document.getElementById("global-team-picker");
+
+      // Query all team inputs alive in the DOM
+      const activeTeamInputs = this.teamsContainer.querySelectorAll(
+        'input[name^="team["][name$="].name"]',
+      );
+
+      let popoverHtml = html`<div
+        style="display: flex; flex-direction: column; gap: 4px;"
+      ></div>`;
+
+      // A clean, gapless counter for visual display purposes
+      let displayIndex = 1;
+
+      activeTeamInputs.forEach((teamInput) => {
+        const match = teamInput.name.match(/team\[(\d+)\]/);
+        if (!match) return;
+
+        const backendId = match[1]; // e.g. "5"
+        const teamName = teamInput.value.trim()
+          ? teamInput.value.trim()
+          : `Unnamed Team`;
+
+        popoverHtml += html`
+          <button
+            type="button"
+            class="ui-button ui-ghost team-choice-btn"
+            data-id="${backendId}"
+            style="text-align: left; width: 100%;"
+          >
+            <!-- User sees continuous numbers (1, 2, 3), backend uses the persistent ID -->
+            <strong>Team ${displayIndex}</strong>: ${teamName}
+          </button>
+        `;
+
+        displayIndex++; // Increment sequentially
+      });
+
+      popoverHtml += html`</div>`;
+      popover.innerHTML = popoverHtml;
+
+      // Position and show popover logic remains the same...
+      const rect = clickedBtn.getBoundingClientRect();
+      popover.style.position = "absolute";
+      popover.style.top = `${rect.bottom + window.scrollY + 4}px`;
+      popover.style.left = `${rect.left + window.scrollX}px`;
+
+      popover.querySelectorAll(".team-choice-btn").forEach((choiceBtn) => {
+        choiceBtn.addEventListener("click", () => {
+          hiddenInput.value = choiceBtn.dataset.id;
+          clickedBtn.textContent = choiceBtn.textContent.trim();
+
+          clickedBtn.style.color = "inherit";
+          popover.hidePopover();
+        });
+      });
+
+      popover.showPopover();
+    }
+
+    addGame(event) {
+      // Prevent the button from trying to submit the form
+      event.preventDefault();
+
+      // 1. Find the parent fixture block that owns this clicked button
+      const drawBlock = event.target.closest(".draw-round-block");
+      if (!drawBlock) return; // Safety check
+
+      // 1. Read the continuous game counter from the dataset, default to 0
+      let gameCount = parseInt(drawBlock.dataset.gameCount || "0", 10);
+      gameCount++;
+
+      // 2. Save the incremented counter back to the block so it never decreases
+      drawBlock.dataset.gameCount = gameCount;
+
+      const g = gameCount; // This index is now unique and safe from gaps!
+      const drawIndex = drawBlock.dataset.drawIndex;
+
+      // 4. Create the new game row element
+      const gameBlock = document.createElement("div");
+      gameBlock.className = "draw-game";
+      gameBlock.style.cssText = `border: 1px dashed var(--border); padding: 15px; margin-bottom: 15px; background: var(--surface-1);`;
+
+      const teamOptions = this.getActiveTeamOptions();
+
+      gameBlock.innerHTML = html`
+        <div
+          style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"
+        >
+          <!-- Team A Picker Container -->
+          <div class="team-picker-container" style="display: inline-block;">
+            <input
+              type="hidden"
+              name="draw[${drawIndex}].game[${g}].team_a"
+              value=""
+              class="team-id-input"
+              required
+            />
+            <button type="button" class="ui-button ui-outline team-picker-btn">
+              -- Select Team --
+            </button>
+          </div>
+
+          <span>vs</span>
+
+          <!-- Team B Picker Container -->
+          <div class="team-picker-container" style="display: inline-block;">
+            <input
+              type="hidden"
+              name="draw[${drawIndex}].game[${g}].team_b"
+              value=""
+              class="team-id-input"
+              required
+            />
+            <button type="button" class="ui-button ui-outline team-picker-btn">
+              -- Select Team --
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="remove-game-btn"
+            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
+          >
+            ✕ Remove
+          </button>
+        </div>
+      `; // Hook up a single click listener for the row to handle picker triggers
+      gameBlock.querySelectorAll(".team-picker-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => this.openTeamPicker(e.target));
+      });
+
+      // 5. Append the game block into this draw block
+      // (You might want to append it just before the "Add Game" button container)
+      drawBlock.appendChild(gameBlock);
+
+      gameBlock
+        .querySelector(".remove-game-btn")
+        .addEventListener("click", () => {
+          gameBlock.remove();
+        });
+    }
+
     addDrawBtn() {
       this.currentDrawCount++;
-      const totalGamesNeeded = Math.floor(this.currentTeamCount / 2); // 6 teams = 3 games
 
       const drawBlock = document.createElement("div");
-      drawBlock.className = "draw-round-block";
-      drawBlock.style.cssText =
-        "border: 1px dashed var(--border); padding: 15px; margin-bottom: 15px; background: var(--surface-1);";
+      drawBlock.className = "draw-round-block"; // Store the draw count natively on the DOM element
+      drawBlock.dataset.drawIndex = this.currentDrawCount;
+      drawBlock.style.cssText = html`border: 1px dashed var(--border); padding:
+      15px; margin-bottom: 15px; background: var(--surface-1);`;
 
       let drawHtml = html`
         <div style="display: flex; gap: 15px; margin-bottom: 10px;">
           <div>
             <label>Draw Date:</label><br /><input
               type="date"
-              name="draw_date_${this.currentDrawCount}"
+              name="draw[${this.currentDrawCount}].date"
               required
             />
           </div>
           <div>
             <label>Draw Time:</label><br /><input
               type="time"
-              name="draw_time_${this.currentDrawCount}"
+              step="300"
+              name="draw[${this.currentDrawCount}].time"
               required
             />
           </div>
-        </div>
-        <h4>Sheet Matchups</h4>
-      `;
-
-      const teamOptions = this.getActiveTeamOptions();
-      const sheets = ["A", "B", "C", "D", "E", "F"];
-
-      // Draw standard game row fields up to rink size limits
-      for (let g = 0; g < Math.min(totalGamesNeeded, 6); g++) {
-        drawHtml += html`
-          <div
-            style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"
+          <button
+            type="button"
+            class="remove-draw-btn"
+            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
           >
-            <select name="draw_${this.currentDrawCount}_game_${g}_sheet">
-              ${sheets.map((s) => `<option value="${s}" ${s === sheets[g] ? "selected" : ""}>Sheet ${s}</option>`).join("")}
-            </select>
-            <select
-              name="draw_${this.currentDrawCount}_game_${g}_team_a"
-              class="team-select-node"
-              required
-            >
-              ${teamOptions}
-            </select>
-            <span>vs</span>
-            <select
-              name="draw_${this.currentDrawCount}_game_${g}_team_b"
-              class="team-select-node"
-              required
-            >
-              ${teamOptions}
-            </select>
-          </div>
-        `;
-      }
+            ✕ Remove
+          </button>
+        </div>
+        <div>
+          <button class="ui-button ui-filled add-game-btn">Add game</button>
+        </div>
+      `;
 
       drawBlock.innerHTML = drawHtml;
       this.drawsContainer.appendChild(drawBlock);
+
+      drawBlock
+        .querySelector(".remove-draw-btn")
+        .addEventListener("click", () => {
+          drawBlock.remove();
+        });
+
+      // Listen directly on the button instead of the entire block to avoid accidental click triggers
+      const addGameBtn = drawBlock.querySelector(".add-game-btn");
+      addGameBtn.addEventListener("click", (event) => this.addGame(event));
     }
   } // end class SyllabusBuilder
 
