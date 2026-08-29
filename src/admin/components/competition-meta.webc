@@ -1,0 +1,81 @@
+<!-- ZONE 1: FIXED PARAMETERS -->
+<fieldset class="competition-meta">
+  <legend>1. Competition Details</legend>
+  <label>Competition Name:</label>
+
+  <input type="hidden" name="competition[id]" value="" />
+  <input type="text" name="competition[name]" required style="width: 250px" />
+
+  <label style="margin-left: 15px">Format:</label>
+  <select
+    class="ui-select"
+    id="competition-kind"
+    name="competition[kind]"
+    required
+  >
+    <option value="league">League</option>
+    <option value="bonspiel">Bonspiel</option>
+    <option value="friendly">Friendly</option>
+  </select>
+
+  <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
+  <div style="margin-top: var(--size-2)">
+    <label>Competition Reserves (Comma separated list):</label><br />
+    <input
+      type="text"
+      name="competition[reserves]"
+      placeholder="e.g. John Hall, Jackie Hall"
+      style="width: 100%"
+    />
+  </div>
+</fieldset>
+<script>
+  class CompetitionMeta extends HTMLElement {
+    connectedCallback() {
+      const metaBlock = this.querySelector(".competition-meta");
+    }
+  }
+
+  customElements.define("competition-meta", CompetitionMeta);
+</script>
+<style>
+  :where(fieldset.competition-meta) {
+    --_border-color: light-dark(var(--color-7), var(--color-10));
+
+    input,
+    button,
+    textarea {
+      background-color: var(--surface-default);
+    }
+
+    input,
+    textarea {
+      border: 1px solid var(--_border-color);
+      border-radius: 0.5rem;
+      padding: 0.5em 0.75em;
+
+      &:focus-visible {
+        outline-color: var(--primary);
+      }
+    }
+
+    select {
+      border: 1px solid var(--_border-color);
+      background-color: var(--surface-default);
+
+      &:focus-visible {
+        outline-color: var(--primary);
+      }
+    }
+
+    border: 1px solid var(--border, var(--gray-8));
+    padding: var(--size-3);
+    margin-bottom: var(--size-3);
+    border-radius: var(--radius-2);
+
+    legend {
+      padding: 0 var(--size-1);
+      font-weight: bold;
+    }
+  }
+</style>

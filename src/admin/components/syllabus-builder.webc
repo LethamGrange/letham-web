@@ -3,38 +3,7 @@
   hx-target="#diary-preview"
   hx-swap="innerHTML"
 >
-  <!-- ZONE 1: FIXED PARAMETERS -->
-  <fieldset>
-    <legend>1. Competition Details</legend>
-    <label>Competition Name:</label>
-
-    <input type="hidden" name="competition[id]" value="" />
-    <input type="text" name="competition[name]" required style="width: 250px" />
-
-    <label style="margin-left: 15px">Format:</label>
-    <select
-      class="ui-select"
-      id="competition-kind"
-      name="competition[kind]"
-      required
-    >
-      <option value="league">League</option>
-      <option value="bonspiel">Bonspiel</option>
-      <option value="friendly">Friendly</option>
-    </select>
-
-    <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
-    <div style="margin-top: var(--size-2)">
-      <label>Competition Reserves (Comma separated list):</label><br />
-      <input
-        type="text"
-        name="competition[reserves]"
-        placeholder="e.g. John Hall, Jackie Hall"
-        style="width: 100%"
-      />
-    </div>
-  </fieldset>
-
+  <competition-meta></competition-meta>
   <!-- ZONE 2: DYNAMIC TEAMS DECLARATION (Now using the Add Button) -->
   <fieldset>
     <legend>2. Define Team / Rink Names</legend>
