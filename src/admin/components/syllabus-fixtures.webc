@@ -1,0 +1,312 @@
+<fieldset class="fixtures-zone" style="display: block">
+  <legend>3. Draw Schedule & Fixtures</legend>
+  <div class="draw-dates-container"></div>
+
+  <button
+    class="ui-button ui-primary add-draw-btn"
+    type="button"
+    style="border: 1px solid var(--color-8)"
+  >
+    ＋ Add Another Draw Date / Round
+  </button>
+</fieldset>
+
+<div
+  id="global-team-picker"
+  popover
+  style="
+    padding: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-2);
+    border-radius: 6px;
+  "
+>
+  <!-- JavaScript will inject the current team buttons here -->
+</div>
+
+<script>
+  class SyllabusFixtures extends HTMLElement {
+    // State counts tracked across mutations
+    currentDrawCount = 0;
+
+    currentTeams = [];
+
+    connectedCallback() {
+      const teamsBlock = this.querySelector(".fixtures-zone");
+      this.drawsContainer = this.querySelector(".draw-dates-container");
+      this.fixturesZone = this.querySelector(".fixtures-zone");
+
+      const addDrawBtn = this.querySelector(".add-draw-btn");
+
+      addDrawBtn.addEventListener("click", () => this.addDrawBtn());
+    } // connectedCallback
+
+    updateAllFixtureDropdowns() {
+      const teamMap = new Map(
+        this.currentTeams.map((t, i) => [t.key, { name: t.name, index: i }]),
+      );
+
+      // Loop through the wrappers so we handle pairs together
+      const selectWrappers = this.querySelectorAll(".team-picker-container");
+
+      selectWrappers.forEach((wrapper) => {
+        const hiddenInput = wrapper.querySelector('input[type="hidden"]');
+        const button = wrapper.querySelector(".team-picker-btn");
+
+        // Read the key straight from the hidden input's current value
+        const selectedTeamKey = hiddenInput.value;
+
+        // Skip wrappers that haven't had a team selected yet
+        if (!selectedTeamKey) return;
+        if (teamMap.has(selectedTeamKey)) {
+          const { name, index } = teamMap.get(selectedTeamKey);
+
+          const teamName = name || "Unnamed Team";
+
+          const expectedText = `${index + 1}: ${teamName}`;
+
+          // Only touch the DOM if the index or name actually changed
+          if (button.textContent !== expectedText) {
+            button.textContent = expectedText;
+          }
+          button.classList.remove("team-missing");
+        } else {
+          // The team was deleted!
+          button.textContent = "⚠️ Team Deleted";
+          button.classList.add("team-missing");
+
+          // Note: We leave hiddenInput.value alone so the server still knows
+          // WHICH old key was deleted if it needs to process validation.
+        }
+      });
+    }
+
+    updateTeams(updatedTeams) {
+      this.currentTeams = updatedTeams;
+      this.updateAllFixtureDropdowns();
+    }
+
+    openTeamPicker(clickedBtn) {
+      if (this.currentTeams.length < 1) return;
+
+      const container = clickedBtn.closest(".team-picker-container");
+      const hiddenInput = container.querySelector(".team-id-input");
+      const popover = document.getElementById("global-team-picker");
+
+      let popoverHtml = `<div class="team-popover">`;
+
+      for (const [index, { key, name }] of this.currentTeams.entries()) {
+        const teamName = name.trim() || "Unnamed Team";
+        popoverHtml += html`
+          <button
+            type="button"
+            class="ui-button ui-ghost team-choice-btn"
+            data-id="${key}"
+            data-text="${index + 1}: ${teamName}"
+          >
+            <strong>Team ${index + 1}</strong>: ${teamName}
+          </button>
+        `;
+      }
+
+      popoverHtml += html`</div>`;
+
+      popover.innerHTML = popoverHtml;
+
+      // Position and show popover logic remains the same...
+      const rect = clickedBtn.getBoundingClientRect();
+      popover.style.position = "absolute";
+      popover.style.top = `${rect.bottom + window.scrollY + 4}px`;
+      popover.style.left = `${rect.left + window.scrollX}px`;
+
+      popover.querySelectorAll(".team-choice-btn").forEach((choiceBtn) => {
+        choiceBtn.addEventListener("click", () => {
+          hiddenInput.value = choiceBtn.dataset.id;
+          clickedBtn.textContent = choiceBtn.dataset.text;
+          clickedBtn.classList.remove("team-missing");
+
+          popover.hidePopover();
+        });
+      });
+
+      popover.showPopover();
+    }
+
+    addGame(event) {
+      // Prevent the button from trying to submit the form
+      event.preventDefault();
+
+      // 1. Find the parent fixture block that owns this clicked button
+      const drawBlock = event.target.closest(".draw-round-block");
+      if (!drawBlock) return; // Safety check
+
+      // 1. Read the continuous game counter from the dataset, default to 0
+      let gameCount = parseInt(drawBlock.dataset.gameCount || "0", 10);
+      gameCount++;
+
+      // 2. Save the incremented counter back to the block so it never decreases
+      drawBlock.dataset.gameCount = gameCount;
+
+      const g = gameCount; // This index is now unique and safe from gaps!
+      const drawIndex = drawBlock.dataset.drawIndex;
+
+      // 4. Create the new game row element
+      const gameBlock = document.createElement("div");
+      gameBlock.className = "draw-game";
+
+      const teamOptions = this.getActiveTeamOptions();
+
+      gameBlock.innerHTML = html`
+        <div>
+          <!-- Team A Picker Container -->
+          <div class="team-picker-container" style="display: inline-block;">
+            <input
+              type="hidden"
+              name="draw[${drawIndex}].game[${g}].team_a"
+              value=""
+              class="team-id-input"
+              required
+            />
+            <button type="button" class="ui-button ui-outline team-picker-btn">
+              -- Select Team --
+            </button>
+          </div>
+
+          <span>vs</span>
+
+          <!-- Team B Picker Container -->
+          <div class="team-picker-container" style="display: inline-block;">
+            <input
+              type="hidden"
+              name="draw[${drawIndex}].game[${g}].team_b"
+              value=""
+              class="team-id-input"
+              required
+            />
+            <button type="button" class="ui-button ui-outline team-picker-btn">
+              -- Select Team --
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="remove-game-btn"
+            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
+          >
+            ✕ Remove
+          </button>
+        </div>
+      `; // Hook up a single click listener for the row to handle picker triggers
+      gameBlock.querySelectorAll(".team-picker-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => this.openTeamPicker(e.target));
+      });
+
+      // 5. Append the game block into this draw block
+      // (You might want to append it just before the "Add Game" button container)
+      drawBlock.appendChild(gameBlock);
+
+      gameBlock
+        .querySelector(".remove-game-btn")
+        .addEventListener("click", () => {
+          gameBlock.remove();
+        });
+    }
+
+    addDrawBtn() {
+      this.currentDrawCount++;
+
+      const drawBlock = document.createElement("div");
+      drawBlock.className = "draw-round-block"; // Store the draw count natively on the DOM element
+      drawBlock.dataset.drawIndex = this.currentDrawCount;
+      drawBlock.style.cssText = html`border: 1px dashed var(--border); padding:
+      15px; margin-bottom: 15px; background: var(--surface-1);`;
+
+      let drawHtml = html`
+        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+          <div>
+            <label>Draw Date:</label><br /><input
+              type="date"
+              name="draw[${this.currentDrawCount}].date"
+              required
+            />
+          </div>
+          <div>
+            <label>Draw Time:</label><br /><input
+              type="time"
+              step="300"
+              name="draw[${this.currentDrawCount}].time"
+              required
+            />
+          </div>
+          <button
+            type="button"
+            class="remove-draw-btn"
+            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
+          >
+            ✕ Remove
+          </button>
+        </div>
+        <div>
+          <button class="ui-button ui-filled add-game-btn">Add game</button>
+        </div>
+      `;
+
+      drawBlock.innerHTML = drawHtml;
+      this.drawsContainer.appendChild(drawBlock);
+
+      drawBlock
+        .querySelector(".remove-draw-btn")
+        .addEventListener("click", () => {
+          drawBlock.remove();
+        });
+
+      // Listen directly on the button instead of the entire block to avoid accidental click triggers
+      const addGameBtn = drawBlock.querySelector(".add-game-btn");
+      addGameBtn.addEventListener("click", (event) => this.addGame(event));
+    }
+
+    getActiveTeamOptions(count) {
+      let options = html`<option value="">-- Select Team --</option>`;
+      for (let i = 1; i <= this.currentTeamCount; i++) {
+        const input = this.teamsContainer.querySelector(
+          `[name="team[${i}].name"]`,
+        );
+        const nameValue =
+          input && input.value.trim() ? input.value.trim() : `Team ${i}`;
+        options += html`<option value="${i}">${nameValue}</option>`;
+      }
+      return options;
+    }
+  }
+
+  customElements.define("syllabus-fixtures", SyllabusFixtures);
+</script>
+<style>
+  .draw-game {
+    border: 1px dashed var(--border);
+    padding: 15px;
+    margin-bottom: 15px;
+    background: var(--surface-1);
+    > div {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+  }
+  .team-missing {
+    color: var(--red);
+  }
+
+  .team-popover {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .team-choice-btn {
+      text-align: left;
+      width: 100%;
+    }
+  }
+</style>

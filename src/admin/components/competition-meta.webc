@@ -1,5 +1,5 @@
 <!-- ZONE 1: FIXED PARAMETERS -->
-<fieldset class="competition-meta">
+<fieldset class="competition-zone">
   <legend>1. Competition Details</legend>
   <label>Competition Name:</label>
 
@@ -32,7 +32,7 @@
 <script>
   class CompetitionMeta extends HTMLElement {
     connectedCallback() {
-      const metaBlock = this.querySelector(".competition-meta");
+      const metaBlock = this.querySelector(".competition-zone");
     }
   }
 
