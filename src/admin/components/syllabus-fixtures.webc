@@ -2,11 +2,7 @@
   <legend>3. Draw Schedule & Fixtures</legend>
   <div class="draw-dates-container"></div>
 
-  <button
-    class="ui-button ui-primary add-draw-btn"
-    type="button"
-    style="border: 1px solid var(--color-8)"
-  >
+  <button class="ui-button ui-primary add-draw-btn" type="button">
     ＋ Add Another Draw Date / Round
   </button>
 </fieldset>
@@ -39,7 +35,12 @@
 
       const addDrawBtn = this.querySelector(".add-draw-btn");
 
-      addDrawBtn.addEventListener("click", () => this.addDrawBtn());
+      this.nextId = (() => {
+        let i = 0;
+        return () => `sf!${++i}`;
+      })();
+
+      addDrawBtn.addEventListener("click", () => this.onAddDraw());
     } // connectedCallback
 
     updateAllFixtureDropdowns() {
@@ -213,8 +214,10 @@
         });
     }
 
-    addDrawBtn() {
+    onAddDraw() {
       this.currentDrawCount++;
+
+      const newId = this.nextId();
 
       const drawBlock = document.createElement("div");
       drawBlock.className = "draw-round-block"; // Store the draw count natively on the DOM element
@@ -308,5 +311,9 @@
       text-align: left;
       width: 100%;
     }
+  }
+
+  .add-draw-btn {
+    border: 1px solid var(--color-8);
   }
 </style>
