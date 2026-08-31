@@ -26,11 +26,9 @@ export async function getDiaryHtml(db) {
         <div>${row.name}</div>
         <div>${row.kind}</div>
       </div>`;
-      console.log(competition);
       return competition;
     })
     .join('');
-  console.log(syllabusCompetitionsHtml);
   // Group rows by Date in JavaScript to build a clean structural diary timeline
   const diaryGrouped = {};
   results.forEach(row => {
