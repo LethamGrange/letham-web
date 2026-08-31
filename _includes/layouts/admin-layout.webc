@@ -1,0 +1,6 @@
+---
+layout: base
+---
+
+<syllabus-base webc:nokeep></syllabus-base>
+<template webc:nokeep @raw="content"></template>

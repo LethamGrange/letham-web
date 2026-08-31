@@ -72,6 +72,14 @@ export default async function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('src/images/icons');
   eleventyConfig.addPassthroughCopy('src/images/logos');
 
+  eleventyConfig.addPassthroughCopy({
+    'src/**/components/**/*.js': 'js/',
+  });
+  eleventyConfig.watchIgnores.add('src/_headers');
+
+  // Pass the Cloudflare headers file straight to the build root
+  eleventyConfig.addPassthroughCopy({ 'src/_headers': '_headers' });
+
   // Do NOT add a passthrough copy for "src/images/events/"
 
   // Watch CSS files
@@ -214,6 +222,13 @@ export default async function (eleventyConfig) {
         },
       ],
     },
+  });
+  eleventyConfig.addBundle('js', {
+    // This shifts files to look like: _site/js/bundle-xxxx.js
+    toFileDirectory: 'js',
+
+    // Explicitly enforce the .js extension output
+    outputFileExtension: 'js',
   });
 
   eleventyConfig.setLibrary('md', configureMarkdownIt());

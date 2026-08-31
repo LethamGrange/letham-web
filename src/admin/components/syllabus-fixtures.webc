@@ -22,7 +22,11 @@
 </div>
 
 <script>
-  class SyllabusFixtures extends HTMLElement {
+  import test from "test";
+
+  //const Base = customElements.get("syllabus-base");
+
+  class SyllabusFixtures extends test {
     teamMap = new Map();
 
     connectedCallback() {
@@ -32,13 +36,12 @@
 
       const addDrawBtn = this.querySelector(".add-draw-btn");
 
-      this.nextId = (() => {
-        let i = 0;
-        return () => `sf!${++i}`;
-      })();
-
       addDrawBtn.addEventListener("click", () => this.onAddDraw());
     } // connectedCallback
+
+    nextId() {
+      return this.generateId();
+    }
 
     updateAllFixtureDropdowns() {
       // Loop through the wrappers so we handle pairs together
@@ -342,6 +345,10 @@
 
   .add-draw-btn {
     border: 1px solid var(--color-8);
+  }
+
+  .add-game-btn {
+    color: var(--primary-text);
   }
   .remove-draw-btn,
   .remove-game-btn {

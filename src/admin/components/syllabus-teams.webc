@@ -14,9 +14,6 @@
   </button>
 </fieldset>
 <script>
-  // State counts tracked across mutations
-  currentTeamCount = 0;
-
   class SyllabusTeams extends HTMLElement {
     currentTeamCount = 0;
 
