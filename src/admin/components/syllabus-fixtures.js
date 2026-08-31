@@ -1,4 +1,5 @@
-import { SyllabusBase } from 'syllabus-base';
+import { SyllabusBase } from 'js/syllabus-base.js';
+import { html } from 'js/html.js';
 
 class SyllabusFixtures extends SyllabusBase {
   teamMap = new Map();

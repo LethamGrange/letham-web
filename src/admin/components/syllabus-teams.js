@@ -1,5 +1,5 @@
-import { SyllabusBase } from 'syllabus-base';
-import { html } from 'html';
+import { SyllabusBase } from 'js/syllabus-base.js';
+import { html } from 'js/html.js';
 
 class SyllabusTeams extends SyllabusBase {
   currentTeamCount = 0;

@@ -225,7 +225,7 @@ export default async function (eleventyConfig) {
   });
   eleventyConfig.addBundle('js', {
     // This shifts files to look like: _site/js/bundle-xxxx.js
-    toFileDirectory: 'js',
+    toFileDirectory: 'js/bundles/',
 
     // Explicitly enforce the .js extension output
     outputFileExtension: 'js',

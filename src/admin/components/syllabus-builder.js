@@ -1,4 +1,5 @@
-import { SyllabusBase } from '/js/syllabus-base.js';
+import { SyllabusBase } from 'js/syllabus-base.js';
+
 class SyllabusBuilder extends SyllabusBase {
   connectedCallback() {
     const form = this.querySelector('form');

@@ -50,14 +50,15 @@
       @raw="getBundle('css', $data.pageBucket)"
       webc:keep
     ></style>
-    >
-    <!-- WebC injects the dynamically generated JSON directly into the template -->
-    <script
-      type="importmap"
-      webc:keep
-      @raw="JSON.stringify(importMap)"
-    ></script>
 
+    <!-- WebC injects the dynamically generated JSON directly into the template -->
+    <script type="importmap" webc:keep>
+      {
+        "imports": {
+          "js/": "/js/"
+        }
+      }
+    </script>
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script webc:keep>
       const savedTheme = localStorage.getItem("theme-preference");
@@ -73,7 +74,6 @@
         savedTheme || systemTheme,
       );
     </script>
-    <script src="html.js"></script>
 
     <script
       async

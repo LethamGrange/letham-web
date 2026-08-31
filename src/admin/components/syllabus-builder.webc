@@ -64,12 +64,5 @@
         font-weight: bold;
       }
     }
-
-    #teams-input-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-bottom: 15px;
-    }
   }
 </style>
