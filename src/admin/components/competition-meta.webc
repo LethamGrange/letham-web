@@ -28,54 +28,47 @@
       style="width: 100%"
     />
   </div>
+  <script type="module" src="/js/competition-meta.js" webc:keep></script>
+
+  <style>
+    :where(fieldset.competition-meta) {
+      --_border-color: light-dark(var(--color-7), var(--color-10));
+
+      input,
+      button,
+      textarea {
+        background-color: var(--surface-default);
+      }
+
+      input,
+      textarea {
+        border: 1px solid var(--_border-color);
+        border-radius: 0.5rem;
+        padding: 0.5em 0.75em;
+
+        &:focus-visible {
+          outline-color: var(--primary);
+        }
+      }
+
+      select {
+        border: 1px solid var(--_border-color);
+        background-color: var(--surface-default);
+
+        &:focus-visible {
+          outline-color: var(--primary);
+        }
+      }
+
+      border: 1px solid var(--border, var(--gray-8));
+      padding: var(--size-3);
+      margin-bottom: var(--size-3);
+      border-radius: var(--radius-2);
+
+      legend {
+        padding: 0 var(--size-1);
+        font-weight: bold;
+      }
+    }
+  </style>
 </fieldset>
-<script>
-  class CompetitionMeta extends HTMLElement {
-    connectedCallback() {
-      const metaBlock = this.querySelector(".competition-zone");
-    }
-  }
-
-  customElements.define("competition-meta", CompetitionMeta);
-</script>
-<style>
-  :where(fieldset.competition-meta) {
-    --_border-color: light-dark(var(--color-7), var(--color-10));
-
-    input,
-    button,
-    textarea {
-      background-color: var(--surface-default);
-    }
-
-    input,
-    textarea {
-      border: 1px solid var(--_border-color);
-      border-radius: 0.5rem;
-      padding: 0.5em 0.75em;
-
-      &:focus-visible {
-        outline-color: var(--primary);
-      }
-    }
-
-    select {
-      border: 1px solid var(--_border-color);
-      background-color: var(--surface-default);
-
-      &:focus-visible {
-        outline-color: var(--primary);
-      }
-    }
-
-    border: 1px solid var(--border, var(--gray-8));
-    padding: var(--size-3);
-    margin-bottom: var(--size-3);
-    border-radius: var(--radius-2);
-
-    legend {
-      padding: 0 var(--size-1);
-      font-weight: bold;
-    }
-  }
-</style>

@@ -1,5 +1,5 @@
 ---
-layout: base
+layout: base.webc
 ---
 
 <syllabus-base webc:nokeep></syllabus-base>
