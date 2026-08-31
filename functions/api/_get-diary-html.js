@@ -5,13 +5,8 @@ export async function getDiaryHtml(db) {
     .prepare(
       `
       SELECT
-        f.fixture_date,
-        f.fixture_time,
-        c.name AS competition_name,
-        c.kind
-      FROM syllabus_fixtures f
-      JOIN syllabus_competitions c ON f.competition_id = c.id
-      ORDER BY f.fixture_date ASC, f.fixture_time ASC
+        id, season_year, name, kind
+      FROM syllabus_competitions
     `,
     )
     .all();
@@ -22,6 +17,20 @@ export async function getDiaryHtml(db) {
     return responseHtml;
   }
 
+  const syllabusCompetitionsHtml = results
+    .map(row => {
+      const competition = html`<div
+        data-id="${row.id}"
+        style="display: flex;gap: 10px; border: 1px solid var(--gray-12)"
+      >
+        <div>${row.name}</div>
+        <div>${row.kind}</div>
+      </div>`;
+      console.log(competition);
+      return competition;
+    })
+    .join('');
+  console.log(syllabusCompetitionsHtml);
   // Group rows by Date in JavaScript to build a clean structural diary timeline
   const diaryGrouped = {};
   results.forEach(row => {
@@ -78,6 +87,7 @@ export async function getDiaryHtml(db) {
         .join('');
 
       return html`
+        <div class="competitions">${syllabusCompetitionsHtml}</div>
         <div
           class="diary-day-card"
           style="border: 1px solid var(--border); border-radius: var(--radius-2); padding: var(--size-3); margin-bottom: var(--size-3); background: var(--surface-1);"

@@ -1,13 +1,36 @@
 import { getDiaryHtml } from '../api/_get-diary-html';
 import { html } from '../helpers/html.js';
+import { nanoid } from 'nanoid';
 
 export async function onRequestPost(context) {
   const db = context.env.curling_league;
   const formData = await context.request.formData();
   const fields = await parseAndValidateScorecard(formData, db);
 
+  const seasonYear = '2026';
+
   console.log(fields);
+
+  const { id = nanoid(12), name, kind } = fields;
+  const statements = [];
+  statements.push(
+    db
+      .prepare(
+        `
+      INSERT INTO syllabus_competitions (id, season_year, name, kind)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = EXCLUDED.name,
+        kind = EXCLUDED.kind,
+        season_year = EXCLUDED.season_year
+    `,
+      )
+      .bind(id, seasonYear, name, kind),
+  );
+
   try {
+    // console.log(statements);
+    const results = await db.batch(statements);
     // Return the fresh public diary view html component seamlessly
     const diaryHtml = await getDiaryHtml(db);
     return new Response(html`<div id="diary-preview">${diaryHtml}</div>`, {
@@ -157,25 +180,25 @@ async function parseAndValidateScorecard(formData, db) {
     competition[`${key}`] = formData.get(`competition[${key}]`);
   });
 
-  // 1. Scan keys to find all active team indexes sent by the browser
-  const teamIndexes = Array.from(formData.keys())
-    .filter(key => key.startsWith('team[') && key.endsWith('.name'))
-    .map(key => {
-      // Extracts the number inside the brackets, e.g., "team[3].name" -> 3
-      const match = key.match(/team\[(\d+)\]/);
-      return match ? parseInt(match[1], 10) : null;
-    })
-    .filter(index => index !== null)
-    .sort((a, b) => a - b); // Keep them ordered
-
+  // // 1. Scan keys to find all active team indexes sent by the browser
+  // const teamIndexes = Array.from(formData.keys())
+  //   .filter(key => key.startsWith('team[') && key.endsWith('.name'))
+  //   .map(key => {
+  //     // Extracts the number inside the brackets, e.g., "team[3].name" -> 3
+  //     const match = key.match(/team\[(\d+)\]/);
+  //     return match ? parseInt(match[1], 10) : null;
+  //   })
+  //   .filter(index => index !== null)
+  //   .sort((a, b) => a - b); // Keep them ordered
+  //
   const teams = [];
-  for (const i of teamIndexes) {
-    teams.push({
-      name: formData.get(`team[${i}].name`),
-      players: formData.get(`team[${i}].players`) || '',
-      pool: formData.get(`team[${i}].pool`) || '',
-    });
-  }
+  // for (const i of teamIndexes) {
+  //   teams.push({
+  //     name: formData.get(`team[${i}].name`),
+  //     players: formData.get(`team[${i}].players`) || '',
+  //     pool: formData.get(`team[${i}].pool`) || '',
+  //   });
+  // }
 
   competition.teams = teams;
 
