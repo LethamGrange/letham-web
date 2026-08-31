@@ -9,7 +9,7 @@ headerPosition: center
 <h1 class="ui-h2">Syllabus & Diary Admin</h1>
 <div id="form-error-banner"></div>
 
-<syllabus-builder></syllabus-builder>
+<syllabus-builder class="breakout"></syllabus-builder>
 
 <h2>Syllabus Diary Live Feed Preview</h2>
 <div id="diary-preview" hx-get="/api/get-diary" hx-trigger="load">

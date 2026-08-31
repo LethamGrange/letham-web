@@ -23,10 +23,7 @@
 
 <script>
   class SyllabusFixtures extends HTMLElement {
-    // State counts tracked across mutations
-    currentDrawCount = 0;
-
-    currentTeams = [];
+    teamMap = new Map();
 
     connectedCallback() {
       const teamsBlock = this.querySelector(".fixtures-zone");
@@ -44,10 +41,6 @@
     } // connectedCallback
 
     updateAllFixtureDropdowns() {
-      const teamMap = new Map(
-        this.currentTeams.map((t, i) => [t.key, { name: t.name, index: i }]),
-      );
-
       // Loop through the wrappers so we handle pairs together
       const selectWrappers = this.querySelectorAll(".team-picker-container");
 
@@ -60,12 +53,12 @@
 
         // Skip wrappers that haven't had a team selected yet
         if (!selectedTeamKey) return;
-        if (teamMap.has(selectedTeamKey)) {
-          const { name, index } = teamMap.get(selectedTeamKey);
+        if (this.teamMap.has(selectedTeamKey)) {
+          const { name, index } = this.teamMap.get(selectedTeamKey);
 
-          const teamName = name || "Unnamed Team";
+          const teamName = name || "Unnamed";
 
-          const expectedText = `${index + 1}: ${teamName}`;
+          const expectedText = this.gameButtonText(index, teamName);
 
           // Only touch the DOM if the index or name actually changed
           if (button.textContent !== expectedText) {
@@ -83,13 +76,20 @@
       });
     }
 
+    gameButtonText(index, teamName) {
+      return `${index + 1}: ${teamName}`;
+    }
+
     updateTeams(updatedTeams) {
-      this.currentTeams = updatedTeams;
+      this.teamMap = new Map(
+        updatedTeams.map((t, i) => [t.key, { name: t.name, index: i }]),
+      );
+
       this.updateAllFixtureDropdowns();
     }
 
     openTeamPicker(clickedBtn) {
-      if (this.currentTeams.length < 1) return;
+      if (this.teamMap.size < 1) return;
 
       const container = clickedBtn.closest(".team-picker-container");
       const hiddenInput = container.querySelector(".team-id-input");
@@ -97,14 +97,16 @@
 
       let popoverHtml = `<div class="team-popover">`;
 
-      for (const [index, { key, name }] of this.currentTeams.entries()) {
-        const teamName = name.trim() || "Unnamed Team";
+      for (const [index, [key, { name }]] of Array.from(
+        this.teamMap,
+      ).entries()) {
+        const teamName = name.trim() || "Unnamed";
         popoverHtml += html`
           <button
             type="button"
             class="ui-button ui-ghost team-choice-btn"
             data-id="${key}"
-            data-text="${index + 1}: ${teamName}"
+            data-text="${this.gameButtonText(index, teamName)}"
           >
             <strong>Team ${index + 1}</strong>: ${teamName}
           </button>
@@ -134,129 +136,138 @@
       popover.showPopover();
     }
 
-    addGame(event) {
-      // Prevent the button from trying to submit the form
-      event.preventDefault();
+    renderGameBlock(parentDrawBlock, gameData = null) {
+      // Extract the draw ID from the parent block's dataset
+      const drawId = parentDrawBlock.dataset.id;
 
-      // 1. Find the parent fixture block that owns this clicked button
-      const drawBlock = event.target.closest(".draw-round-block");
-      if (!drawBlock) return; // Safety check
+      // Use the database ID or generate a fresh client-side session game counter ID
+      const gameId = gameData ? gameData.id : this.nextId();
 
-      // 1. Read the continuous game counter from the dataset, default to 0
-      let gameCount = parseInt(drawBlock.dataset.gameCount || "0", 10);
-      gameCount++;
-
-      // 2. Save the incremented counter back to the block so it never decreases
-      drawBlock.dataset.gameCount = gameCount;
-
-      const g = gameCount; // This index is now unique and safe from gaps!
-      const drawIndex = drawBlock.dataset.drawIndex;
-
-      // 4. Create the new game row element
       const gameBlock = document.createElement("div");
       gameBlock.className = "draw-game";
+      gameBlock.dataset.id = gameId; // Keep it uniform with drawBlock!
 
-      const teamOptions = this.getActiveTeamOptions();
+      // Pull existing hydration data or set up empty fields for a new game
+      const teamA_Key = gameData ? gameData.team_a : "";
+      const teamB_Key = gameData ? gameData.team_b : "";
+
+      // Look up current visual names from your internal memory cache if hydrating
+      const teamA_Name = teamA_Key
+        ? this.teamMap.get(teamA_Key)?.name || "Unknown"
+        : "-- Team --";
+      const teamB_Name = teamB_Key
+        ? this.teamMap.get(teamB_Key)?.name || "Unknown"
+        : "-- Team --";
 
       gameBlock.innerHTML = html`
-        <div>
-          <!-- Team A Picker Container -->
-          <div class="team-picker-container" style="display: inline-block;">
-            <input
-              type="hidden"
-              name="draw[${drawIndex}].game[${g}].team_a"
-              value=""
-              class="team-id-input"
-              required
-            />
-            <button type="button" class="ui-button ui-outline team-picker-btn">
-              -- Select Team --
-            </button>
-          </div>
-
-          <span>vs</span>
-
-          <!-- Team B Picker Container -->
-          <div class="team-picker-container" style="display: inline-block;">
-            <input
-              type="hidden"
-              name="draw[${drawIndex}].game[${g}].team_b"
-              value=""
-              class="team-id-input"
-              required
-            />
-            <button type="button" class="ui-button ui-outline team-picker-btn">
-              -- Select Team --
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="remove-game-btn"
-            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
-          >
-            ✕ Remove
+        <div class="team-picker-container">
+          <input
+            type="hidden"
+            name="draw[${drawId}].game[${gameId}].team_a"
+            value="${teamA_Key}"
+            class="team-id-input"
+            required
+          />
+          <button type="button" class="ui-button ui-outline team-picker-btn">
+            ${teamA_Name}
           </button>
         </div>
-      `; // Hook up a single click listener for the row to handle picker triggers
+        <span> vs </span>
+        <div class="team-picker-container">
+          <input
+            type="hidden"
+            name="draw[${drawId}].game[${gameId}].team_b"
+            value="${teamB_Key}"
+            class="team-id-input"
+            required
+          />
+          <button type="button" class="ui-button ui-outline team-picker-btn">
+            ${teamB_Name}
+          </button>
+        </div>
+        <button type="button" class="remove-game-btn">✕</button>
+      `;
+
       gameBlock.querySelectorAll(".team-picker-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => this.openTeamPicker(e.target));
       });
 
-      // 5. Append the game block into this draw block
-      // (You might want to append it just before the "Add Game" button container)
-      drawBlock.appendChild(gameBlock);
-
+      // Attach any game-specific listeners here if not using delegation
       gameBlock
         .querySelector(".remove-game-btn")
-        .addEventListener("click", () => {
-          gameBlock.remove();
-        });
+        .addEventListener("click", () => gameBlock.remove());
+
+      return gameBlock;
     }
 
-    onAddDraw() {
-      this.currentDrawCount++;
+    addGame(event) {
+      event.preventDefault();
+      const drawBlock = event.target.closest(".draw-round-block");
+      if (!drawBlock) return;
 
-      const newId = this.nextId();
+      const gamesList = drawBlock.querySelector(".games-list-container");
+
+      // Call the shared function with no game data—it instantly drops a fresh row!
+      const freshGame = this.renderGameBlock(drawBlock);
+      gamesList.appendChild(freshGame);
+    }
+
+    // A shared, pure helper method inside or outside your class
+    renderDrawBlock(drawData = null) {
+      // If we have data, use its real ID. If not, generate a new temporary client ID.
+      const id = drawData ? drawData.id : this.nextId();
 
       const drawBlock = document.createElement("div");
-      drawBlock.className = "draw-round-block"; // Store the draw count natively on the DOM element
-      drawBlock.dataset.drawIndex = this.currentDrawCount;
-      drawBlock.style.cssText = html`border: 1px dashed var(--border); padding:
-      15px; margin-bottom: 15px; background: var(--surface-1);`;
+      drawBlock.className = "draw-round-block";
+      drawBlock.dataset.id = id; // Always bound to the container
 
-      let drawHtml = html`
-        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+      // Extract values or use empty fallbacks for fresh creation
+      const dateValue = drawData ? drawData.date : "";
+      const timeValue = drawData ? drawData.time : "";
+
+      drawBlock.innerHTML = html`
+        <div class="draw-round">
           <div>
-            <label>Draw Date:</label><br /><input
+            <label>Draw Date:</label><br />
+            <input
               type="date"
-              name="draw[${this.currentDrawCount}].date"
+              name="draw[${id}].date"
+              value="${dateValue}"
               required
             />
           </div>
           <div>
-            <label>Draw Time:</label><br /><input
+            <label>Draw Time:</label><br />
+            <input
               type="time"
               step="300"
-              name="draw[${this.currentDrawCount}].time"
+              name="draw[${id}].time"
+              value="${timeValue}"
               required
             />
           </div>
-          <button
-            type="button"
-            class="remove-draw-btn"
-            style="background:none; border:none; color:var(--red-6); cursor:pointer;"
-          >
-            ✕ Remove
-          </button>
+          <div>
+            <button type="button" class="ui-button ui-filled add-game-btn">
+              Add game
+            </button>
+          </div>
+
+          <button type="button" class="remove-draw-btn">✕ Remove</button>
         </div>
-        <div>
-          <button class="ui-button ui-filled add-game-btn">Add game</button>
+        <div class="games-list-container">
+          <!-- Games will be injected or appended here -->
         </div>
       `;
 
-      drawBlock.innerHTML = drawHtml;
-      this.drawsContainer.appendChild(drawBlock);
+      // If we are hydrating existing games, append them now
+      if (drawData && drawData.games) {
+        const gamesContainer = drawBlock.querySelector(".games-list-container");
+        drawData.games.forEach((gameData) => {
+          // You can call a similar shared renderGameBlock(gameData) here!
+          const gameBlock = this.renderGameBlock(gameData, id);
+          gamesContainer.appendChild(gameBlock);
+        });
+      }
 
       drawBlock
         .querySelector(".remove-draw-btn")
@@ -267,36 +278,52 @@
       // Listen directly on the button instead of the entire block to avoid accidental click triggers
       const addGameBtn = drawBlock.querySelector(".add-game-btn");
       addGameBtn.addEventListener("click", (event) => this.addGame(event));
+
+      return drawBlock;
     }
 
-    getActiveTeamOptions(count) {
-      let options = html`<option value="">-- Select Team --</option>`;
-      for (let i = 1; i <= this.currentTeamCount; i++) {
-        const input = this.teamsContainer.querySelector(
-          `[name="team[${i}].name"]`,
-        );
-        const nameValue =
-          input && input.value.trim() ? input.value.trim() : `Team ${i}`;
-        options += html`<option value="${i}">${nameValue}</option>`;
-      }
-      return options;
+    hydrate(jsonData) {
+      this.drawsContainer.innerHTML = ""; // Clear existing session layout
+
+      jsonData.draws.forEach((draw) => {
+        // 1. Build the main draw round block container
+        const drawBlock = this.renderDrawBlock(draw);
+
+        // 2. Loop over this specific draw's child games array
+        if (draw.games && draw.games.length > 0) {
+          // Find the specific wrapper inside your template where games belong
+          const gamesList = drawBlock.querySelector(".games-list-container");
+
+          for (const game of draw.games) {
+            // Build the game row, passing the draw block along so it can read its data-id
+            const gameBlock = this.renderGameBlock(drawBlock, game);
+            gamesList.appendChild(gameBlock);
+          }
+        }
+
+        // 3. Mount the fully populated block to the page
+        this.drawsContainer.appendChild(drawBlock);
+      });
+    }
+    onAddDraw() {
+      const freshDrawBlock = this.renderDrawBlock(); // No arguments = defaults to creation
+      this.drawsContainer.appendChild(freshDrawBlock);
     }
   }
 
   customElements.define("syllabus-fixtures", SyllabusFixtures);
 </script>
+
 <style>
   .draw-game {
     border: 1px dashed var(--border);
     padding: 15px;
     margin-bottom: 15px;
     background: var(--surface-1);
-    > div {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 5px;
-    }
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 5px;
   }
   .team-missing {
     color: var(--red);
@@ -315,5 +342,39 @@
 
   .add-draw-btn {
     border: 1px solid var(--color-8);
+  }
+  .remove-draw-btn,
+  .remove-game-btn {
+    background: none;
+    border: none;
+    color: var(--red-6);
+    cursor: pointer;
+  }
+
+  .draw-round-block {
+    border: 1px dashed var(--border);
+    padding-block: var(--size-3);
+    background: var(--surface-1);
+
+    .draw-round {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+  }
+  .team-picker-container {
+    display: inline-block;
+  }
+
+  .team-picker-btn {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Cuts off text with "..." if it gets too cramped */
+  }
+
+  .games-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
+    gap: var(--size-2);
+    margin-block-start: var(--size-4);
   }
 </style>
