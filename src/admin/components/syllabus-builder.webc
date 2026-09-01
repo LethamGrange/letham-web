@@ -1,720 +1,74 @@
 <form
-  hx-post="/admin/submit-complete-syllabus"
+  hx-post="/admin/submit-syllabus"
   hx-target="#diary-preview"
   hx-swap="innerHTML"
 >
-  <!-- ZONE 1: FIXED PARAMETERS -->
-  <fieldset>
-    <legend>1. Competition Details</legend>
-    <label>Competition Name:</label>
-    <input type="text" name="competition_name" required style="width: 250px" />
+  <h2 class="form-mode-title">New competition</h2>
 
-    <label style="margin-left: 15px">Format:</label>
-    <select
-      class="ui-select"
-      id="competition-kind"
-      name="competition_kind"
-      required
-    >
-      <option value="league">League</option>
-      <option value="bonspiel">Bonspiel</option>
-      <option value="friendly">Friendly</option>
-    </select>
+  <div class="form-error-banner"></div>
 
-    <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
-    <div style="margin-top: var(--size-2)">
-      <label>Competition Reserves (Comma separated list):</label><br />
-      <input
-        type="text"
-        name="competition_reserves"
-        placeholder="e.g. John Hall, Jackie Hall"
-        style="width: 100%"
-      />
-    </div>
-  </fieldset>
+  <competition-meta></competition-meta>
+  <syllabus-teams></syllabus-teams>
+  <syllabus-fixtures></syllabus-fixtures>
 
-  <!-- ZONE 2: DYNAMIC TEAMS DECLARATION (Now using the Add Button) -->
-  <fieldset>
-    <legend>2. Define Team / Rink Names</legend>
-
-    <div id="teams-input-container">
-      <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
+  <div class="form-actions-container">
+    <!-- Left Side: Task-Specific Operations -->
+    <div class="task-actions">
+      <button type="submit" class="ui-button ui-filled ui-primary">
+        Save competition 💾
+      </button>
+      <button
+        type="button"
+        class="cancel-edit-btn ui-button action-cancel ui-tonal"
+      >
+        Cancel Edits
+      </button>
     </div>
 
-    <button
-      class="ui-button ui-primary"
-      type="button"
-      id="add-team-btn"
-      style="border: 1px solid var(--color-8)"
-    >
-      ＋ Add Team / Rink Row
-    </button>
-  </fieldset>
-
-  <!-- ZONE 3: DYNAMIC FIXTURES GRID -->
-  <fieldset id="fixtures-zone" style="display: none">
-    <legend>3. Draw Schedule & Fixtures</legend>
-    <div id="draw-dates-container"></div>
-
-    <button
-      class="ui-button ui-primary"
-      type="button"
-      id="add-draw-btn"
-      style="border: 1px solid var(--color-8)"
-    >
-      ＋ Add Another Draw Date / Round
-    </button>
-  </fieldset>
-
-  <br />
-  <button class="ui-button ui-filled ui-primary" type="submit">
-    Save Complete Competition & Schedule 💾
-  </button>
-  <input type="hidden" name="competition_id" value="" />
-  <button
-    class="ui-button ui-tonal"
-    type="button"
-    id="cancel-syllabus-edit"
-    style="display: none"
-  >
-    Cancel Edit ✕
-  </button>
+    <!-- Right Side: Context Switcher -->
+    <div class="context-actions">
+      <button
+        type="button"
+        class="switch-to-create-btn action-create ui-button ui-filled"
+        style="display: none"
+      >
+        Create New Competition
+      </button>
+    </div>
+  </div>
 </form>
 
-<script>
-  class SyllabusBuilder extends HTMLElement {
-    teamsContainer;
-    fixturesZone;
-    drawsContainer;
-
-    submitBtn;
-    cancelBtn;
-
-    // State counts tracked across mutations
-    currentTeamCount = 0;
-    currentDrawCount = 0;
-
-    connectedCallback() {
-      const form = this.querySelector('form');
-      this.teamsContainer = this.querySelector('#teams-input-container');
-      this.drawsContainer = this.querySelector('#draw-dates-container');
-      this.fixturesZone = this.querySelector('#fixtures-zone');
-      this.submitBtn = this.querySelector('button[type="submit"]');
-      this.cancelBtn = this.querySelector('#cancel-syllabus-edit');
-
-      const addTeamBtn = this.querySelector('#add-team-btn');
-      const addDrawBtn = this.querySelector('#add-draw-btn');
-
-      addTeamBtn.addEventListener('click', () => this.addTeam());
-      addDrawBtn.addEventListener('click', () => this.addDrawBtn());
-
-      document.body.addEventListener('edit-syllabus-request', async event =>
-        this.onEditSyllabus(event, form),
-      );
-
-      // Kick off the URL inspection quietly on page mount
-      this.loadSyllabusDataForEditing(form);
-
-      this.cancelBtn.addEventListener('click', () => {
-        // Simply redirect the browser back to the base admin page URL without parameters
-        window.location.href = window.location.pathname;
-      });
-    } // connectedCallback
-
-    reindexFormElements() {
-      // 1. Re-index Team Cards
-      const teamCards =
-        this.teamsContainer.querySelectorAll('.team-entry-card');
-
-      teamCards.forEach((card, index) => {
-        const newIdx = index + 1;
-        card.querySelector('label').innerHTML = `Team ${newIdx} Rink Name:`;
-        card.querySelector('input[type="text"]').name = `team_name_${newIdx}`;
-
-        const rosterInput = card.querySelector(`[name$="_roster"]`);
-        if (rosterInput) rosterInput.name = `team_${newIdx}_roster`;
-
-        const poolInput = card.querySelector(`[name$="_pool"]`);
-        if (poolInput) poolInput.name = `team_${newIdx}_pool`;
-      });
-
-      // Update teamCount tracking state
-      this.currentTeamCount = teamCards.length;
-
-      // 2. Re-index Draw Blocks
-      const drawBlocks =
-        this.drawsContainer.querySelectorAll('.draw-round-block');
-
-      drawBlocks.forEach((block, dIdx) => {
-        const newDIdx = dIdx + 1;
-
-        block.querySelector('[name^="draw_date_"]').name =
-          `draw_date_${newDIdx}`;
-        block.querySelector('[name^="draw_time_"]').name =
-          `draw_time_${newDIdx}`;
-
-        const gameRows = block.querySelectorAll('.game-row');
-        gameRows.forEach((row, gIdx) => {
-          row.querySelector('select[name*="_sheet"]').name =
-            `draw_${newDIdx}_game_${gIdx}_sheet`;
-          row.querySelector('select[name*="_team_a"]').name =
-            `draw_${newDIdx}_game_${gIdx}_team_a`;
-          row.querySelector('select[name*="_team_b"]').name =
-            `draw_${newDIdx}_game_${gIdx}_team_b`;
-        });
-      });
-
-      // Update drawCount tracking state and sync dropdown text
-      this.currentDrawCount = drawBlocks.length;
-      this.updateAllFixtureDropdowns();
-    }
-
-    async loadSyllabusDataForEditing(form) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const compId = urlParams.get('id');
-
-      if (!compId) return; // Exit quietly if we are just creating a new syllabus
-
-      try {
-        const response = await fetch(
-          `/admin/get-raw-syllabus-json?id=${compId}`,
-        );
-        if (!response.ok)
-          throw new Error('Could not download competition schema profile.');
-        const data = await response.json();
-
-        // 1. Map Overarching Structural Form Fields
-        form.querySelector('[name="competition_id"]').value =
-          data.competition_id;
-        form.querySelector('[name="competition_name"]').value =
-          data.competition_name;
-        form.querySelector('[name="competition_kind"]').value =
-          data.competition_kind;
-        form.querySelector('[name="competition_reserves"]').value =
-          data.competition_reserves;
-
-        // 2. Programmatically generate and populate Team Cards
-        this.teamsContainer.innerHTML = '';
-        this.currentTeamCount = 0;
-
-        data.teams.forEach(t => {
-          this.currentTeamCount++;
-          const div = document.createElement('div');
-          div.className = 'team-entry-card';
-          div.style.cssText =
-            'border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);';
-          div.innerHTML = html`
-            <div
-              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"
-            >
-              <label style="font-weight: bold;"
-                >Team ${this.currentTeamCount} Rink Name:</label
-              >
-              <button
-                type="button"
-                class="remove-row-btn"
-                style="background:none; border:none; color:var(--red-6); cursor:pointer;"
-              >
-                ✕ Remove
-              </button>
-            </div>
-            <div style="margin-bottom: 8px;">
-              <label style="font-weight: bold;"
-                >Team ${this.currentTeamCount} Rink Name:</label
-              >
-              <input
-                type="text"
-                name="team_name_${this.currentTeamCount}"
-                value="${t.team_name}"
-                style="width:100%;"
-                required
-              />
-            </div>
-            <div>
-              <label
-                style="font-size: var(--font-size-0); color: var(--text-2);"
-                >Team Roster:</label
-              >
-              <input
-                type="text"
-                name="team_${this.currentTeamCount}_roster"
-                value="${t.roster_string}"
-                list="club-members"
-                style="width:100%;"
-              />
-            </div>
-            <div style="margin-top: 4px;">
-              <label
-                style="font-size: var(--font-size-0); color: var(--text-2);"
-                >Sub / Pool Players:</label
-              >
-              <input
-                type="text"
-                name="team_${this.currentTeamCount}_pool"
-                value="${t.pool_string}"
-                list="club-members"
-                style="width:100%;"
-              />
-            </div>
-          `;
-          div.querySelector('.remove-row-btn').addEventListener('click', () => {
-            div.remove();
-            this.reindexFormElements(); // Automatically updates names dynamically!
-          });
-          div
-            .querySelector('input[type="text"]')
-            .addEventListener('input', this.updateAllFixtureDropdowns);
-          this.teamsContainer.appendChild(div);
-        });
-
-        // 3. Programmatically generate and populate Draw Fixture Rows
-        this.drawsContainer.innerHTML = '';
-        this.currentDrawCount = 0;
-        this.fixturesZone.style.display = 'block';
-
-        data.draws.forEach(draw => {
-          this.currentDrawCount++;
-          const drawBlock = document.createElement('div');
-          drawBlock.className = 'draw-round-block';
-          drawBlock.style.cssText =
-            'border: 1px dashed var(--border); padding: 15px; margin-bottom: 15px; background: var(--surface-1);';
-
-          let drawsHtml = html`
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;"
-            >
-              <div style="display: flex; gap: 15px;">
-                <div>
-                  <label>Draw Date:</label><br /><input
-                    type="date"
-                    name="draw_date_${this.currentDrawCount}"
-                    value="${draw?.date || ''}"
-                    required
-                  />
-                </div>
-                <div>
-                  <label>Draw Time:</label><br /><input
-                    type="time"
-                    name="draw_time_${this.currentDrawCount}"
-                    value="${draw?.time || ''}"
-                    required
-                  />
-                </div>
-              </div>
-
-              <!-- THE FORM WORKSPACE DELETE BUTTON -->
-              <button
-                type="button"
-                class="remove-draw-btn"
-                style="background: none; border: 1px solid var(--red-3); color: var(--red-6); padding: var(--size-1) var(--size-2); border-radius: var(--radius-1); cursor: pointer; font-size: var(--font-size-0); font-weight: bold;"
-              >
-                ✕ Delete Draw Round
-              </button>
-            </div>
-            <h4>Sheet Matchups</h4>
-          `;
-          const teamOptions = this.getActiveTeamOptions(this.currentTeamCount);
-          const sheets = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-          draw.games.forEach((game, gIndex) => {
-            drawsHtml += html`
-              <div
-                style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"
-              >
-                <select
-                  name="draw_${this.currentDrawCount}_game_${gIndex}_sheet"
-                >
-                  ${sheets.map(s => `<option value="${s}" ${s === game.sheet ? 'selected' : ''}>Sheet ${s}</option>`).join('')}
-                </select>
-                <select
-                  name="draw_${this.currentDrawCount}_game_${gIndex}_team_a"
-                  class="team-select-node"
-                  required
-                >
-                  ${teamOptions}
-                </select>
-                <span>vs</span>
-                <select
-                  name="draw_${this.currentDrawCount}_game_${gIndex}_team_b"
-                  class="team-select-node"
-                  required
-                >
-                  ${teamOptions}
-                </select>
-              </div>
-            `;
-          });
-
-          drawBlock.innerHTML = drawsHtml;
-
-          drawBlock
-            .querySelector('.remove-draw-btn')
-            .addEventListener('click', () => {
-              drawBlock.remove();
-              this.reindexFormElements(); // Automatically re-sequences draw_date_1, draw_date_2 etc.!
-            });
-          this.drawsContainer.appendChild(drawBlock);
-          // Force the correct dropdown indices to bind once the elements are rendered
-          draw.games.forEach((game, gIndex) => {
-            drawBlock.querySelector(
-              `[name="draw_${this.currentDrawCount}_game_${gIndex}_team_a"]`,
-            ).value = game.team_a;
-            drawBlock.querySelector(
-              `[name="draw_${this.currentDrawCount}_game_${gIndex}_team_b"]`,
-            ).value = game.team_b;
-          });
-        });
-
-        // 4. Safely swap form attributes over to true PUT methods
-        form.setAttribute(
-          'hx-put',
-          '/functions/admin/submit-complete-syllabus',
-        );
-        form.removeAttribute('hx-post');
-        // htmx.process(form); // Explicitly tell htmx to re-index the method update
-
-        this.submitBtn.textContent = 'Save Schedule Revisions 💾';
-        this.cancelBtn.style.display = 'inline-block';
-      } catch (err) {
-        console.error('Auto-load edit mapping failed:', err);
-      }
-    }
-
-    getActiveTeamOptions(count) {
-      let options = html`<option value="">-- Select Team --</option>`;
-      for (let i = 1; i <= count; i++) {
-        const input = this.teamsContainer.querySelector(
-          `[name="team_name_${i}"]`,
-        );
-        const nameValue =
-          input && input.value.trim() ? input.value.trim() : `Team ${i}`;
-        options += html`<option value="${i}">${nameValue}</option>`;
-      }
-      return options;
-    }
-
-    // Utility: Live synchronization updater strings text fields names down to fixtures options nodes
-    updateAllFixtureDropdowns() {
-      const selectNodes =
-        this.drawsContainer.querySelectorAll('.team-select-node');
-      selectNodes.forEach(select => {
-        const savedValue = select.value;
-        select.innerHTML = this.getActiveTeamOptions();
-        select.value = savedValue; // Preserves choice securely
-      });
-    }
-
-    addTeam() {
-      this.currentTeamCount++;
-
-      const div = document.createElement('div');
-      div.className = 'team-entry-card';
-      div.style.cssText =
-        'border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);';
-
-      // Base Rink Name Input
-      let teamHtml = html`
-        <div style="margin-bottom: 8px;">
-          <label style="font-weight: bold;"
-            >Team ${this.currentTeamCount} Rink Name:</label
-          >
-          <input
-            type="text"
-            name="team_name_${this.currentTeamCount}"
-            placeholder="e.g., Team Smith"
-            style="width:100%;"
-            required
-          />
-        </div>
-        <div
-          style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;"
-        ></div>
-      `;
-
-      teamHtml += html`
-        <div>
-          <label style="font-size: var(--font-size-0); color: var(--text-2);"
-            >Team Roster (Add (s) after the skip's name)</label
-          >
-          <input type="text" name="team_${this.currentTeamCount}_roster" />
-        </div>
-      `;
-
-      // Pool Players text field
-      teamHtml += html`
-        <div>
-          <label style="font-size: var(--font-size-0); color: var(--text-2);"
-            >Pool / Sub Players (Comma separated):</label
-          >
-          <input
-            type="text"
-            name="team_${this.currentTeamCount}_pool"
-            placeholder="e.g. Brian McArtney, Jim Menzies"
-            style="width:100%;"
-          />
-        </div>
-      `;
-
-      div.innerHTML = teamHtml;
-
-      // Keep your live dropdown text sync listening to the Rink Name box
-      div
-        .querySelector('input[type="text"]')
-        .addEventListener('input', this.updateAllFixtureDropdowns);
-      this.teamsContainer.appendChild(div);
-
-      if (this.currentTeamCount >= 2) {
-        this.fixturesZone.style.display = 'block';
-      }
-    }
-
-    async onEditSyllabus(event, form) {
-      const compId = event.detail.compId;
-
-      try {
-        const response = await fetch(
-          `/admin/get-raw-syllabus-json?id=${compId}`,
-        );
-        if (!response.ok)
-          throw new Error('Could not download competition schema profile.');
-        const data = await response.json();
-
-        // 1. Assign Basic Metadata Inputs
-        form.querySelector('[name="competition_id"]').value =
-          data.competition_id;
-        form.querySelector('[name="competition_name"]').value =
-          data.competition_name;
-        form.querySelector('[name="competition_kind"]').value =
-          data.competition_kind;
-        form.querySelector('[name="competition_reserves"]').value =
-          data.competition_reserves;
-
-        // 2. Programmatically generate the exact number of Team Cards
-        this.teamsContainer.innerHTML = '';
-        this.currentTeamCount = 0;
-
-        data.teams.forEach(t => {
-          this.currentTeamCount++;
-          const div = document.createElement('div');
-          div.className = 'team-entry-card';
-          div.style.cssText =
-            'border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);';
-          div.innerHTML = html`
-            <div style="margin-bottom: 8px;">
-              <label style="font-weight: bold;"
-                >Team ${this.currentTeamCount} Rink Name:</label
-              >
-              <input
-                type="text"
-                name="team_name_${this.currentTeamCount}"
-                value="${t.team_name}"
-                style="width:100%;"
-                required
-              />
-            </div>
-            <div>
-              <label
-                style="font-size: var(--font-size-0); color: var(--text-2);"
-                >Team Roster (Comma separated, append (s) for skip):</label
-              >
-              <input
-                type="text"
-                name="team_${this.currentTeamCount}_roster"
-                value="${t.roster_string}"
-                list="club-members"
-                style="width:100%;"
-              />
-            </div>
-            <div style="margin-top: 4px;">
-              <label
-                style="font-size: var(--font-size-0); color: var(--text-2);"
-                >Sub / Pool Players (Comma separated):</label
-              >
-              <input
-                type="text"
-                name="team_${this.rrentTeamCount}_pool"
-                value="${t.pool_string}"
-                list="club-members"
-                style="width:100%;"
-              />
-            </div>
-          `;
-          div
-            .querySelector('input[type="text"]')
-            .addEventListener('input', this.updateAllFixtureDropdowns);
-          this.teamsContainer.appendChild(div);
-        });
-
-        // 3. Programmatically generate the dynamic Fixtures blocks grid
-        this.drawsContainer.innerHTML = '';
-        this.currentDrawCount = 0;
-        this.fixturesZone.style.display = 'block';
-
-        data.draws.forEach(draw => {
-          this.currentDrawCount++;
-          const drawBlock = document.createElement('div');
-          drawBlock.className = 'draw-round-block';
-          drawBlock.style.cssText =
-            'border: 1px dashed var(--border); padding: 15px; margin-bottom: 15px; background: var(--surface-1);';
-
-          let drawsHtml = html`
-            <div style="display: flex; gap: 15px; margin-bottom: 10px;">
-              <div>
-                <label>Draw Date:</label><br /><input
-                  type="date"
-                  name="draw_date_${this.currentDrawCount}"
-                  value="${draw.date}"
-                  required
-                />
-              </div>
-              <div>
-                <label>Draw Time:</label><br /><input
-                  type="time"
-                  name="draw_time_${this.currentDrawCount}"
-                  value="${draw.time}"
-                  required
-                />
-              </div>
-            </div>
-            <h4>Sheet Matchups</h4>
-          `;
-
-          const teamOptions = this.getActiveTeamOptions(this.currentTeamCount);
-          const sheets = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-          draw.games.forEach((game, gIndex) => {
-            drawsHtml += html`
-              <div
-                style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"
-              >
-                <select
-                  name="draw_${this.currentDrawCount}_game_${gIndex}_sheet"
-                >
-                  ${sheets.map(s => `<option value="${s}" ${s === game.sheet ? 'selected' : ''}>Sheet ${s}</option>`).join('')}
-                </select>
-                <select
-                  name="draw_${this.currentDrawCount}_game_${gIndex}_team_a"
-                  class="team-select-node"
-                  required
-                >
-                  ${teamOptions}
-                </select>
-                <span>vs</span>
-                <select
-                  name="draw_$this.urrentDrawCount}_game_${gIndex}_team_b"
-                  class="team-select-node"
-                  required
-                >
-                  ${teamOptions}
-                </select>
-              </div>
-            `;
-          });
-
-          drawBlock.innerHTML = drawsHtml;
-          this.drawsContainer.appendChild(drawBlock);
-
-          // Reapply the specific dropdown index values once the HTML payload node exists!
-          draw.games.forEach((game, gIndex) => {
-            drawBlock.querySelector(
-              `[name="draw_${this.currentDrawCount}_game_${gIndex}_team_a"]`,
-            ).value = game.team_a;
-            drawBlock.querySelector(
-              `[name="draw_${this.currentDrawCount}_game_${gIndex}_team_b"]`,
-            ).value = game.team_b;
-          });
-        });
-
-        // 4. TRANSITION THE FORM HOOK FOR ACTION METHODS VIA HTMX
-        form.setAttribute(
-          'hx-put',
-          '/functions/admin/submit-complete-syllabus',
-        );
-        form.removeAttribute('hx-post');
-        htmx.process(form);
-
-        submitBtn.textContent = 'Save Schedule Revisions 💾';
-        this.cancelBtn.style.display = 'inline-block';
-        this.scrollIntoView({ behavior: 'smooth' });
-      } catch (err) {
-        console.error('Syllabus mapper extraction exception:', err);
-      }
-    }
-
-    addDrawBtn() {
-      this.currentDrawCount++;
-      const totalGamesNeeded = Math.floor(this.currentTeamCount / 2); // 6 teams = 3 games
-
-      const drawBlock = document.createElement('div');
-      drawBlock.className = 'draw-round-block';
-      drawBlock.style.cssText =
-        'border: 1px dashed var(--border); padding: 15px; margin-bottom: 15px; background: var(--surface-1);';
-
-      let drawHtml = html`
-        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
-          <div>
-            <label>Draw Date:</label><br /><input
-              type="date"
-              name="draw_date_${this.currentDrawCount}"
-              required
-            />
-          </div>
-          <div>
-            <label>Draw Time:</label><br /><input
-              type="time"
-              name="draw_time_${this.currentDrawCount}"
-              required
-            />
-          </div>
-        </div>
-        <h4>Sheet Matchups</h4>
-      `;
-
-      const teamOptions = this.getActiveTeamOptions();
-      const sheets = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-      // Draw standard game row fields up to rink size limits
-      for (let g = 0; g < Math.min(totalGamesNeeded, 6); g++) {
-        drawHtml += html`
-          <div
-            style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"
-          >
-            <select name="draw_${this.currentDrawCount}_game_${g}_sheet">
-              ${sheets.map(s => `<option value="${s}" ${s === sheets[g] ? 'selected' : ''}>Sheet ${s}</option>`).join('')}
-            </select>
-            <select
-              name="draw_${this.currentDrawCount}_game_${g}_team_a"
-              class="team-select-node"
-              required
-            >
-              ${teamOptions}
-            </select>
-            <span>vs</span>
-            <select
-              name="draw_${this.currentDrawCount}_game_${g}_team_b"
-              class="team-select-node"
-              required
-            >
-              ${teamOptions}
-            </select>
-          </div>
-        `;
-      }
-
-      drawBlock.innerHTML = drawHtml;
-      this.drawsContainer.appendChild(drawBlock);
-    }
-  } // end class SyllabusBuilder
-
-  customElements.define('syllabus-builder', SyllabusBuilder);
-</script>
+<script type="module" src="/js/syllabus-builder.js" webc:keep></script>
 
 <style>
+  @layer components.extended {
+    .ui-tonal.action-cancel {
+      /* Light Mode: Super soft color tint
+       Dark Mode: Deep, quiet charcoal/tint step (keeps luminance way down) */
+      background-color: light-dark(var(--color-2), var(--color-2));
+
+      /* Ensure the text contrast drops safely without being completely unreadable */
+      color: light-dark(var(--color-12), var(--color-11));
+
+      /* Smooth focus & hover states so it still feels responsive */
+      &:hover {
+        background-color: light-dark(var(--color-3), var(--color-3));
+      }
+    }
+    .ui-filled.action-create {
+      background-color: light-dark(var(--gray-11), var(--gray-4));
+      color: light-dark(var(--gray-1), var(--gray-13));
+
+      &:hover {
+        background-color: light-dark(var(--gray-12), var(--gray-5));
+      }
+    }
+  }
+
   :where(form) {
     --_border-color: light-dark(var(--color-7), var(--color-10));
 
     input,
-    button,
     textarea {
       background-color: var(--surface-default);
     }
@@ -738,6 +92,24 @@
         outline-color: var(--primary);
       }
     }
+    .form-actions-container {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .task-actions {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 10px;
+      justify-content: start;
+    }
+
+    .context-actions {
+      justify-self: end;
+    }
 
     > fieldset {
       border: 1px solid var(--border, var(--gray-8));
@@ -751,11 +123,8 @@
       }
     }
 
-    #teams-input-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-bottom: 15px;
+    .cancel-edit-btn {
+      display: none;
     }
   }
 </style>

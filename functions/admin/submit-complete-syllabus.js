@@ -1,7 +1,7 @@
 import { getDiaryHtml } from '../api/_get-diary-html';
 import { html } from '../helpers/html.js';
 
-export async function onRequestPost(context) {
+export async function onRequestPostX(context) {
   const db = context.env.curling_league;
   const formData = await context.request.formData();
 
@@ -130,7 +130,7 @@ export async function onRequestPost(context) {
   }
 }
 
-export async function onRequestPut(context) {
+export async function onRequestPutX(context) {
   const db = context.env.curling_league;
   const formData = await context.request.formData();
   const compId = parseInt(formData.get('competition_id'));

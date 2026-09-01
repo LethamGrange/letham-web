@@ -1,0 +1,59 @@
+<fieldset class="teams-zone">
+  <legend>2. Define Team / Rink Names</legend>
+
+  <div class="teams-input-container">
+    <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
+  </div>
+
+  <button
+    class="ui-button ui-primary add-team-btn"
+    type="button"
+    style="border: 1px solid var(--color-8)"
+  >
+    ＋ Add Team / Rink Row
+  </button>
+</fieldset>
+
+<script type="module" src="/js/syllabus-teams.js" webc:keep></script>
+
+<style>
+  .teams-input-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .player-chip-field {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    background: white;
+  }
+
+  .player-chip,
+  .pool-player-chip {
+    background: #e2e8f0;
+    color: #1e293b;
+    padding: 2px 8px;
+    border-radius: 9999px; /* Make it a pill shape */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+  }
+
+  .chip-text-input {
+    border: none;
+    outline: none;
+    flex-grow: 1; /* Stretch to occupy remaining space */
+    min-width: 120px;
+  }
+
+  .remove-chip-btn {
+    background-color: inherit;
+    color: var(--red,);
+  }
+</style>

@@ -5,6 +5,7 @@ export async function onRequestDelete(context) {
   const db = context.env.curling_league;
   const url = new URL(context.request.url);
   const compId = url.searchParams.get('id');
+  console.log(compId);
 
   if (!compId) {
     return new Response('Missing competition tracking identifier.', { status: 400 });

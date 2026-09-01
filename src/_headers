@@ -1,0 +1,9 @@
+# src/_headers
+
+# 1. Cache Eleventy's compiled page bundles forever (they have hashes in filenames)
+/js/bundles/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 2. Let all your standalone component files fall back to Cloudflare's default cache
+/js/*
+  Cache-Control: public, max-age=0, must-revalidate

@@ -51,6 +51,14 @@
       webc:keep
     ></style>
 
+    <!-- WebC injects the dynamically generated JSON directly into the template -->
+    <script type="importmap" webc:keep>
+      {
+        "imports": {
+          "js/": "/js/"
+        }
+      }
+    </script>
     <!-- Critical inline initialization to prevent dark-mode page flash -->
     <script webc:keep>
       const savedTheme = localStorage.getItem("theme-preference");
@@ -66,7 +74,12 @@
         savedTheme || systemTheme,
       );
     </script>
-    <script src="html.js"></script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.0/dist/es-module-shims.js"
+      webc:keep
+    ></script>
   </head>
 
   <body tabindex="-1" class="site-wrapper">
@@ -87,7 +100,12 @@
       <template webc:nokeep @raw="content"></template>
     </main>
     <site-footer></site-footer>
-    <script :src="getBundleFileUrl('js')" webc:keep></script>
+    <script
+      :src="getBundleFileUrl('js', 'base-js')"
+      webc:keep
+      type="module"
+    ></script>
+    <script :src="getBundleFileUrl('js')" webc:keep type="module"></script>
   </body>
   <script
     src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"
@@ -97,7 +115,7 @@
     webc:keep
   ></script>
   <script webc:keep>
-    htmx.config.implicitInheritance = true;
+    htmx.config.implicitInheritance = false;
     htmx.config.noSwap = [204, 304, "4xx", "5xx"];
   </script>
 

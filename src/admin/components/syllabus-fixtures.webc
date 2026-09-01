@@ -1,0 +1,93 @@
+<fieldset class="fixtures-zone" style="display: block">
+  <legend>3. Draw Schedule & Fixtures</legend>
+  <div class="draw-dates-container"></div>
+
+  <button class="ui-button ui-primary add-draw-btn" type="button">
+    ＋ Add Another Draw Date / Round
+  </button>
+</fieldset>
+
+<div
+  id="global-team-picker"
+  popover
+  style="
+    padding: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-2);
+    border-radius: 6px;
+  "
+>
+  <!-- JavaScript will inject the current team buttons here -->
+</div>
+
+<script type="module" src="/js/syllabus-fixtures.js" webc:keep></script>
+
+<style>
+  .draw-game {
+    border: 1px dashed var(--border);
+    padding: 15px;
+    margin-bottom: 15px;
+    background: var(--surface-1);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  .team-missing {
+    color: var(--red);
+  }
+
+  .team-popover {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .team-choice-btn {
+      text-align: left;
+      width: 100%;
+    }
+  }
+
+  .add-draw-btn {
+    border: 1px solid var(--color-8);
+  }
+
+  .add-game-btn {
+    color: var(--primary-text);
+  }
+  .remove-draw-btn,
+  .remove-game-btn {
+    background: none;
+    border: none;
+    color: var(--red-6);
+    cursor: pointer;
+  }
+
+  .draw-round-block {
+    border: 1px dashed var(--border);
+    padding-block: var(--size-3);
+    background: var(--surface-1);
+
+    .draw-round {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+  }
+  .team-picker-container {
+    display: inline-block;
+  }
+
+  .team-picker-btn {
+    overflow: hidden;
+    text-overflow: ellipsis; /* Cuts off text with "..." if it gets too cramped */
+  }
+
+  .games-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
+    gap: var(--size-2);
+    margin-block-start: var(--size-4);
+  }
+</style>
