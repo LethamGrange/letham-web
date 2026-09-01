@@ -12,7 +12,7 @@ export async function onRequestPost(context) {
   console.log(fields);
 
   const { name, kind, reserves = '' } = fields;
-  const id = fields.id || nanoid(12);
+  const compId = fields.id || nanoid(12);
 
   const statements = [];
   const activeTeamIds = [];
@@ -30,25 +30,93 @@ export async function onRequestPost(context) {
         reserves = EXCLUDED.reserves
     `,
       )
-      .bind(id, seasonYear, name, kind, reserves),
+      .bind(compId, seasonYear, name, kind, reserves),
   );
 
-  const { teams } = fields;
+  const { teams: teamsMap } = fields;
 
-  for (const team of teams) {
+  for (const [teamId, teamData] of teamsMap.entries()) {
+    // A. Unified Team Upsert (Insert if new, Update name if it already exists)
     statements.push(
       db
         .prepare(
           `
-      INSERT INTO syllabus_teams (id, competition_id, team_index, team_name)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        team_name = EXCLUDED.team_name,
-        team_index = EXCLUDED.team_index
-    `,
+    INSERT INTO syllabus_teams (id, competition_id, team_index, team_name)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      team_name = excluded.team_name,
+      team_index = excluded.team_index
+  `,
         )
-        .bind(team.id, id, team.index, team.name),
+        .bind(teamId, compId, teamData.index, teamData.name),
     );
+    activeTeamIds.push(teamId);
+
+    // B. Unified Player Upsert for this Team
+    const savedPlayerIds = [];
+
+    for (const [playerId, playerData] of teamData.players.entries()) {
+      statements.push(
+        db
+          .prepare(
+            `
+        INSERT INTO syllabus_team_players (id, team_id, name, role)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET name = excluded.name, role = excluded.role
+      `,
+          )
+          .bind(playerId, teamId, playerData.name, playerData.role),
+      );
+      savedPlayerIds.push(playerId);
+    }
+
+    // C. Garbage Collect Deleted Players for this team
+    if (savedPlayerIds.length > 0) {
+      const placeholders = savedPlayerIds.map(() => '?').join(',');
+      statements.push(
+        db
+          .prepare(`DELETE FROM syllabus_team_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
+          .bind(teamId, ...savedPlayerIds),
+      );
+    } else {
+      statements.push(db.prepare(`DELETE FROM syllabus_team_players WHERE team_id = ?`).bind(teamId));
+    }
+
+    // B. Unified Player Upsert for this Team
+    const savedPoolPlayerIds = [];
+
+    for (const [playerId, playerData] of teamData.poolPlayers.entries()) {
+      statements.push(
+        db
+          .prepare(
+            `
+        INSERT INTO syllabus_team_pool_players (id, team_id, name)
+        VALUES (?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET name = excluded.name
+      `,
+          )
+          .bind(playerId, teamId, playerData.name),
+      );
+      savedPoolPlayerIds.push(playerId);
+    }
+
+    // C. Garbage Collect Deleted Players for this team
+    if (savedPoolPlayerIds.length > 0) {
+      const placeholders = savedPoolPlayerIds.map(() => '?').join(',');
+      statements.push(
+        db
+          .prepare(`DELETE FROM syllabus_team_pool_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
+          .bind(teamId, ...savedPoolPlayerIds),
+      );
+    } else {
+      statements.push(db.prepare(`DELETE FROM syllabus_team_pool_players WHERE team_id = ?`).bind(teamId));
+    }
+  }
+
+  // D. Garbage Collect Completely Deleted Teams
+  if (activeTeamIds.length > 0) {
+    const placeholders = activeTeamIds.map(() => '?').join(',');
+    statements.push(db.prepare(`DELETE FROM syllabus_teams WHERE id NOT IN (${placeholders})`).bind(...activeTeamIds));
   }
 
   try {
@@ -64,138 +132,6 @@ export async function onRequestPost(context) {
   }
 }
 
-export async function onRequestPutX(context) {
-  const db = context.env.curling_league;
-  const formData = await context.request.formData();
-  const compId = parseInt(formData.get('competition_id'));
-
-  if (!compId) {
-    return new Response('Missing modification identity tracking variable.', { status: 400 });
-  }
-
-  try {
-    const compName = formData.get('competition_name');
-    const compKind = formData.get('competition_kind');
-
-    // 1. Update Overarching Master parameters
-    await db
-      .prepare(`UPDATE syllabus_competitions SET name = ?, kind = ? WHERE id = ?`)
-      .bind(compName, compKind, compId)
-      .run();
-
-    // 2. Cascade WIPE dependent historic child relationships to prepare a fresh rewrite path
-    await db.prepare(`DELETE FROM syllabus_competition_reserves WHERE competition_id = ?`).bind(compId).run();
-    await db.prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ?`).bind(compId).run();
-    // This wipe naturally triggers cascading deletions on player child tables via your SQL schema rules!
-    await db.prepare(`DELETE FROM syllabus_teams WHERE competition_id = ?`).bind(compId).run();
-
-    // ========================================================
-    // REWRITE PATHWAY: Re-run your standard extraction loops
-    // ========================================================
-
-    // Save Reserves
-    const compReservesStr = formData.get('competition_reserves');
-    if (compReservesStr) {
-      const reserves = compReservesStr
-        .split(',')
-        .map(name => name.trim())
-        .filter(Boolean);
-      for (const name of reserves) {
-        await db
-          .prepare(`INSERT INTO syllabus_competition_reserves (competition_id, player_name) VALUES (?, ?)`)
-          .bind(compId, name)
-          .run();
-      }
-    }
-
-    // Save Teams and split-string player structures
-    let t = 1;
-    while (formData.has(`team_name_${t}`)) {
-      let teamName = formData.get(`team_name_${t}`)?.trim();
-      if (!teamName) teamName = `Team ${t}`;
-
-      const teamInsert = await db
-        .prepare(`INSERT INTO syllabus_teams (competition_id, team_index, team_name) VALUES (?, ?, ?) RETURNING id`)
-        .bind(compId, t, teamName)
-        .first();
-      const teamId = teamInsert.id;
-
-      // Process string-parsed Roster
-      const rosterStr = formData.get(`team_${t}_roster`);
-      if (rosterStr) {
-        const playersArray = rosterStr
-          .split(',')
-          .map(p => p.trim())
-          .filter(Boolean);
-        for (const playerEntry of playersArray) {
-          let name = playerEntry;
-          let role = 'regular';
-          if (name.toLowerCase().includes('(s)')) {
-            role = 'skip';
-            name = name.replace(/\([sS]\)/g, '').trim();
-          }
-          await db
-            .prepare(`INSERT INTO syllabus_team_players (team_id, player_name, role) VALUES (?, ?, ?)`)
-            .bind(teamId, name, role)
-            .run();
-        }
-      }
-
-      // Process string-parsed Pool
-      const poolStr = formData.get(`team_${t}_pool`);
-      if (poolStr) {
-        const poolPlayers = poolStr
-          .split(',')
-          .map(name => name.trim())
-          .filter(Boolean);
-        for (const name of poolPlayers) {
-          await db
-            .prepare(`INSERT INTO syllabus_team_pool_players (team_id, player_name) VALUES (?, ?)`)
-            .bind(teamId, name)
-            .run();
-        }
-      }
-      t++;
-    }
-
-    // Process Draw fixtures matrix loop
-    let d = 1;
-    while (formData.has(`draw_date_${d}`)) {
-      const drawDate = formData.get(`draw_date_${d}`);
-      const drawTime = formData.get(`draw_time_${d}`);
-
-      let g = 0;
-      while (formData.has(`draw_${d}_game_${g}_team_a`)) {
-        const sheet = formData.get(`draw_${d}_game_${g}_sheet`);
-        const teamA = formData.get(`draw_${d}_game_${g}_team_a`);
-        const teamB = formData.get(`draw_${d}_game_${g}_team_b`);
-
-        if (teamA && teamB) {
-          await db
-            .prepare(
-              `
-            INSERT INTO syllabus_fixtures (competition_id, fixture_date, fixture_time, sheet, team_a_index, team_b_index)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `,
-            )
-            .bind(compId, drawDate, drawTime, sheet, parseInt(teamA), parseInt(teamB))
-            .run();
-        }
-        g++;
-      }
-      d++;
-    }
-
-    // Return the fresh public diary overview HTML fragment
-    const diaryHtml = await getDiaryHtml(db);
-    return new Response(html`<div id="diary-preview">${diaryHtml}</div>`, {
-      headers: { 'Content-Type': 'text/html' },
-    });
-  } catch (error) {
-    return new Response(`Modification Overwrite Failure: ${error.message}`, { status: 500 });
-  }
-}
-
 async function parseAndValidateScorecard(formData, db) {
   const competition = {};
 
@@ -204,7 +140,7 @@ async function parseAndValidateScorecard(formData, db) {
   });
   // Create a structured map of our teams and their players
   const teamsMap = new Map();
-
+  let index = 0;
   // 1. Loop through all fields sequentially
   for (const [fieldName, value] of formData.entries()) {
     const stringVal = value.toString().trim();
@@ -213,8 +149,9 @@ async function parseAndValidateScorecard(formData, db) {
     const teamMatch = fieldName.match(/^team\[([^\]]+)\]\.name$/);
     if (teamMatch) {
       const teamId = teamMatch[1];
-      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: stringVal, players: new Map() });
+      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: stringVal, players: new Map(), poolPlayers: new Map() });
       teamsMap.get(teamId).name = stringVal;
+      teamsMap.get(teamId).index = index++;
       continue;
     }
 
@@ -223,13 +160,27 @@ async function parseAndValidateScorecard(formData, db) {
     if (playerMatch) {
       const [_, teamId, playerId, property] = playerMatch;
 
-      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: '', players: new Map() });
+      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: '', players: new Map(), poolPlayers: new Map() });
       const team = teamsMap.get(teamId);
 
       if (!team.players.has(playerId)) {
         team.players.set(playerId, { id: playerId, name: '', role: 'regular' });
       }
       team.players.get(playerId)[property] = stringVal;
+    }
+
+    // Check for Player Attributes: team[TEAM_ID].player[PLAYER_ID].PROPERTY
+    const poolPlayerMatch = fieldName.match(/^team\[([^\]]+)\]\.poolplayer\[([^\]]+)\]\.(name|role)$/);
+    if (poolPlayerMatch) {
+      const [_, teamId, playerId, property] = poolPlayerMatch;
+
+      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: '', players: new Map(), poolPlayers: new Map() });
+      const team = teamsMap.get(teamId);
+
+      if (!team.poolPlayers.has(playerId)) {
+        team.poolPlayers.set(playerId, { id: playerId, name: '' });
+      }
+      team.poolPlayers.get(playerId)[property] = stringVal;
     }
   }
 
@@ -256,7 +207,7 @@ async function parseAndValidateScorecard(formData, db) {
     });
   }
 
-  competition.teams = teams;
+  competition.teams = teamsMap;
 
   try {
     return competition;

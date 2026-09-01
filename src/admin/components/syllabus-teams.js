@@ -44,7 +44,7 @@ class SyllabusTeams extends SyllabusBase {
     );
   }
 
-  renderTeambBock(teamData) {
+  renderTeamBlock(teamData) {
     // 1. Only fallback to {} if data or data.competition is genuinely null/undefined
     const team = teamData ?? {};
 
@@ -52,7 +52,7 @@ class SyllabusTeams extends SyllabusBase {
     const key = team.id ?? this.generateId();
     const name = team.name ?? '';
     const players = team.players ?? '';
-    const poolPlayers = team.Poolplayers ?? '';
+    const poolPlayers = team.pool_players ?? '';
 
     const div = document.createElement('div');
     div.dataset.key = key;
@@ -78,48 +78,48 @@ class SyllabusTeams extends SyllabusBase {
         <input class="team-name" type="text" name="team[${key}].name" value="${name}" style="width:100%;" required />
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;"></div> `;
+    let chipHtml = '';
 
+    for (const player of players) {
+      chipHtml += html`<span class="player-chip" data-id="${player.id}">
+        ${player.name}(${player.role})<button type="button" class="remove-chip-btn">✕</button>
+        <!-- Submits state natively -->
+        <input type="hidden" name="team[${key}].player[${player.id}].name" value="${player.name}" />
+        <input type="hidden" name="team[${key}].player[${player.id}].role" value="${player.role}" />
+      </span>`;
+    }
     teamHtml += html`
       <div>
         <label style="font-size: var(--font-size-0); color: var(--text-2);"
           >Team players (Add (s) after the skip's name)</label
         >
         <div class="player-chip-field">
-          <!-- Visual Chip 1: Pre-existing Player -->
-          <span class="player-chip" data-id="P89xJ2">
-            Ian (skip) <button type="button" class="remove-chip-btn">✕</button>
-            <!-- Submits state natively -->
-            <input type="hidden" name="team[T1].player[P89xJ2].name" value="Ian" />
-            <input type="hidden" name="team[T1].player[P89xJ2].role" value="skip" />
-          </span>
-
-          <!-- Visual Chip 2: Brand new player typed by user -->
-          <span class="player-chip" data-id="new_p_1">
-            Philip <button type="button" class="remove-chip-btn">✕</button>
-            <input type="hidden" name="team[T1].player[new_p_1].name" value="Philip" />
-            <input type="hidden" name="team[T1].player[new_p_1].role" value="regular" />
-          </span>
+          ${chipHtml}
 
           <!-- The actual text field folk type into -->
           <input type="text" class="chip-text-input" placeholder="Type name and press Enter..." />
         </div>
       </div>
     `;
-
-    // Pool Players text field
+    chipHtml = '';
+    for (const player of poolPlayers) {
+      chipHtml += html`<span class="pool-player-chip" data-id="${player.id}">
+        ${player.name}<button type="button" class="remove-chip-btn">✕</button>
+        <!-- Submits state natively -->
+        <input type="hidden" name="team[${key}].player[${player.id}].name" value="${player.name}" />
+      </span>`;
+    }
     teamHtml += html`
       <div>
-        <label style="font-size: var(--font-size-0); color: var(--text-2);">Pool / Sub Players:</label>
-        <input
-          type="text"
-          name="team[${key}].pool"
-          aria-describedby="pool-help"
-          value="${poolPlayers}"
-          style="width:100%;"
-        />
-        <small id="pool-help" class="form-help">
-          Enter a comma-separated list of names (e.g. Brian McArtney, Jim Menzies).
-        </small>
+        <label style="font-size: var(--font-size-0); color: var(--text-2);"
+          >Team players (Add (s) after the skip's name)</label
+        >
+        <div class="player-chip-field">
+          ${chipHtml}
+
+          <!-- The actual text field folk type into -->
+          <input type="text" class="chip-pool-input" placeholder="Type name and press Enter..." />
+        </div>
       </div>
     `;
 
@@ -147,8 +147,22 @@ class SyllabusTeams extends SyllabusBase {
     input.addEventListener('blur', () => {
       this.addPlayerChip(input);
     });
+    const poolinput = div.querySelector('.chip-pool-input');
 
-    const chips = div.querySelectorAll('.player-chip');
+    // Convert text to a permanent data chip on Enter or Comma
+    poolinput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        this.addPoolPlayerChip(poolinput);
+      }
+    });
+
+    // Also convert when they click out of the box
+    poolinput.addEventListener('blur', () => {
+      this.addPoolPlayerChip(poolinput);
+    });
+
+    const chips = div.querySelectorAll('.player-chip, .pool-player-chip');
     chips.forEach(chip => chip.addEventListener('click', () => chip.remove()));
 
     return div;
@@ -157,8 +171,8 @@ class SyllabusTeams extends SyllabusBase {
     const rawValue = inputField.value.trim().replace(/,$/, '');
     if (!rawValue) return;
 
-    const teamKey = this.dataset.key;
-    const tempPlayerId = `new_p_${this.nextPlayerCounter++}`;
+    const teamKey = inputField.closest('.team-entry-card').dataset.key;
+    const tempPlayerId = this.generateId();
 
     // Parse roles out if they typed something like "Ian(skip)"
     let name = rawValue;
@@ -189,6 +203,35 @@ class SyllabusTeams extends SyllabusBase {
     inputField.before(chip);
     inputField.value = ''; // Empty the input for the next entry
   }
+  addPoolPlayerChip(inputField) {
+    const rawValue = inputField.value.trim().replace(/,$/, '');
+    if (!rawValue) return;
+
+    const teamKey = inputField.closest('.team-entry-card').dataset.key;
+    const tempPlayerId = this.generateId();
+
+    // Parse roles out if they typed something like "Ian(skip)"
+    let name = rawValue;
+
+    // Create the visual pill container
+    const chip = document.createElement('span');
+    chip.className = 'player-chip';
+    chip.innerHTML = `
+      ${name}
+      <button type="button" class="remove-chip-btn">✕</button>
+      <input type="hidden" name="team[${teamKey}].poolplayer[${tempPlayerId}].name" value="${name}">
+    `;
+
+    const removeBtn = chip.querySelector('.remove-chip-btn');
+
+    chip.addEventListener('click', event => {
+      chip.remove();
+    });
+
+    // Insert the chip visually right before the text box
+    inputField.before(chip);
+    inputField.value = ''; // Empty the input for the next entry
+  }
 
   hydrate(data) {
     const { teams } = data;
@@ -197,7 +240,7 @@ class SyllabusTeams extends SyllabusBase {
 
     data.teams.forEach(team => {
       // 1. Build the main draw round block container
-      const teamBlock = this.renderTeambBock(team);
+      const teamBlock = this.renderTeamBlock(team);
 
       // 3. Mount the fully populated block to the page
       this.teamsContainer.appendChild(teamBlock);
@@ -209,7 +252,7 @@ class SyllabusTeams extends SyllabusBase {
   }
 
   onAddTeam() {
-    const freshTeamBlock = this.renderTeambBock(); // No arguments = defaults to creation
+    const freshTeamBlock = this.renderTeamBlock(); // No arguments = defaults to creation
     this.teamsContainer.appendChild(freshTeamBlock);
     this.updateVisualTeamLabels(); // Update visual counts instantly
 

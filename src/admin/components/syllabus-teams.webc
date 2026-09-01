@@ -33,7 +33,8 @@
     background: white;
   }
 
-  .player-chip {
+  .player-chip,
+  .pool-player-chip {
     background: #e2e8f0;
     color: #1e293b;
     padding: 2px 8px;
@@ -49,5 +50,10 @@
     outline: none;
     flex-grow: 1; /* Stretch to occupy remaining space */
     min-width: 120px;
+  }
+
+  .remove-chip-btn {
+    background-color: inherit;
+    color: var(--red,);
   }
 </style>
