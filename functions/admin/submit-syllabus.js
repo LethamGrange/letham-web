@@ -11,21 +11,25 @@ export async function onRequestPost(context) {
 
   console.log(fields);
 
-  const { id = nanoid(12), name, kind } = fields;
+  const { id, name, kind, reserves = '' } = fields;
+
+  if (!id) id == nanoid(12);
+
   const statements = [];
   statements.push(
     db
       .prepare(
         `
-      INSERT INTO syllabus_competitions (id, season_year, name, kind)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO syllabus_competitions (id, season_year, name, kind, reserves)
+      VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = EXCLUDED.name,
         kind = EXCLUDED.kind,
-        season_year = EXCLUDED.season_year
+        season_year = EXCLUDED.season_year,
+        reserves = EXCLUDED.reserves
     `,
       )
-      .bind(id, seasonYear, name, kind),
+      .bind(id, seasonYear, name, kind, reserves),
   );
 
   try {
@@ -176,7 +180,7 @@ export async function onRequestPutX(context) {
 async function parseAndValidateScorecard(formData, db) {
   const competition = {};
 
-  ['name', 'kind', 'reserves'].forEach(key => {
+  ['id', 'name', 'kind', 'reserves'].forEach(key => {
     competition[`${key}`] = formData.get(`competition[${key}]`);
   });
 

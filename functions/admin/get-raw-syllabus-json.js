@@ -70,10 +70,10 @@ export async function onRequestGet(context) {
     // });
 
     const payload = {
-      competition_id: comp.id,
-      competition_name: comp.name,
-      competition_kind: comp.kind,
-      competition_reserves: '', //reserves.map(r => r.player_name).join(', '),
+      competition: {
+        ...comp,
+        reserves: '', //reserves.map(r => r.player_name).join(', '),
+      },
       teams: [], // formattedTeams,
       draws: [], //Array.from(drawsMap.values()),
     };

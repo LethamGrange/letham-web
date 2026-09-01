@@ -3,32 +3,72 @@
   hx-target="#diary-preview"
   hx-swap="innerHTML"
 >
+  <h2 class="form-mode-title">New competition</h2>
+
+  <div class="form-error-banner"></div>
+
   <competition-meta></competition-meta>
   <syllabus-teams></syllabus-teams>
   <syllabus-fixtures></syllabus-fixtures>
 
-  <br />
-  <button class="ui-button ui-filled ui-primary" type="submit">
-    Save Complete Competition & Schedule 💾
-  </button>
-  <button
-    class="ui-button ui-tonal"
-    type="button"
-    id="cancel-syllabus-edit"
-    style="display: none"
-  >
-    Cancel Edit ✕
-  </button>
+  <div class="form-actions-container">
+    <!-- Left Side: Task-Specific Operations -->
+    <div class="task-actions">
+      <button type="submit" class="ui-button ui-filled ui-primary">
+        Save competition 💾
+      </button>
+      <button
+        type="button"
+        class="cancel-edit-btn ui-button action-cancel ui-tonal"
+      >
+        Cancel Edits
+      </button>
+    </div>
+
+    <!-- Right Side: Context Switcher -->
+    <div class="context-actions">
+      <button
+        type="button"
+        class="switch-to-create-btn action-create ui-button ui-filled"
+        style="display: none"
+      >
+        Create New Competition
+      </button>
+    </div>
+  </div>
 </form>
 
 <script type="module" src="/js/syllabus-builder.js" webc:keep></script>
 
 <style>
+  @layer components.extended {
+    .ui-tonal.action-cancel {
+      /* Light Mode: Super soft color tint
+       Dark Mode: Deep, quiet charcoal/tint step (keeps luminance way down) */
+      background-color: light-dark(var(--color-2), var(--color-2));
+
+      /* Ensure the text contrast drops safely without being completely unreadable */
+      color: light-dark(var(--color-12), var(--color-11));
+
+      /* Smooth focus & hover states so it still feels responsive */
+      &:hover {
+        background-color: light-dark(var(--color-3), var(--color-3));
+      }
+    }
+    .ui-filled.action-create {
+      background-color: light-dark(var(--gray-11), var(--gray-4));
+      color: light-dark(var(--gray-1), var(--gray-13));
+
+      &:hover {
+        background-color: light-dark(var(--gray-12), var(--gray-5));
+      }
+    }
+  }
+
   :where(form) {
     --_border-color: light-dark(var(--color-7), var(--color-10));
 
     input,
-    button,
     textarea {
       background-color: var(--surface-default);
     }
@@ -52,6 +92,24 @@
         outline-color: var(--primary);
       }
     }
+    .form-actions-container {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .task-actions {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 10px;
+      justify-content: start;
+    }
+
+    .context-actions {
+      justify-self: end;
+    }
 
     > fieldset {
       border: 1px solid var(--border, var(--gray-8));
@@ -63,6 +121,10 @@
         padding: 0 var(--size-1);
         font-weight: bold;
       }
+    }
+
+    .cancel-edit-btn {
+      display: none;
     }
   }
 </style>

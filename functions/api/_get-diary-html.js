@@ -20,11 +20,30 @@ export async function getDiaryHtml(db) {
   const syllabusCompetitionsHtml = results
     .map(row => {
       const competition = html`<div
+        id="competition-diary-${row.id}"
         data-id="${row.id}"
         style="display: flex;gap: 10px; border: 1px solid var(--gray-12)"
       >
         <div>${row.name}</div>
         <div>${row.kind}</div>
+        <button
+          type="button"
+          class=" edit-action"
+          onclick="this.dispatchEvent(new CustomEvent('edit-competition-request', { bubbles: true, detail: { id: '${row.id}' } }))"
+        >
+          <span>✏️</span> <span>Edit Competition</span>
+        </button>
+        <button
+          class="delete-action"
+          hx-delete="/admin/delete-syllabus?id=${row.id}"
+          hx-target="#competition-diary-${row.id}"
+          hx-swap="outerHTML"
+          hx-confirm="⚠️ CRITICAL WARNING:
+
+Are you completely sure you want to permanently delete this competition?"
+        >
+          <span>🗑️</span> <span>Delete Competition</span>
+        </button>
       </div>`;
       return competition;
     })

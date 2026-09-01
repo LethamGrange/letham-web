@@ -115,7 +115,7 @@
     webc:keep
   ></script>
   <script webc:keep>
-    htmx.config.implicitInheritance = true;
+    htmx.config.implicitInheritance = false;
     htmx.config.noSwap = [204, 304, "4xx", "5xx"];
   </script>
 

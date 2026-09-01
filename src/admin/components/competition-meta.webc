@@ -13,62 +13,98 @@
     name="competition[kind]"
     required
   >
-    <option value="league">League</option>
+    <option value="">-- Choose a kind --</option>
+    <option value="league" selected>League</option>
     <option value="bonspiel">Bonspiel</option>
     <option value="friendly">Friendly</option>
   </select>
 
   <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
   <div style="margin-top: var(--size-2)">
-    <label>Competition Reserves (Comma separated list):</label><br />
+    <label>Competition Reserves:</label><br />
     <input
       type="text"
       name="competition[reserves]"
-      placeholder="e.g. John Hall, Jackie Hall"
+      aria-describedby="reserves-help"
       style="width: 100%"
     />
+    <!-- Dedicated help text underneath -->
+    <small id="reserves-help" class="form-help">
+      Enter a comma-separated list of names (e.g. John Hall, Jackie Hall).
+    </small>
   </div>
-  <script type="module" src="/js/competition-meta.js" webc:keep></script>
+</fieldset>
 
-  <style>
-    :where(fieldset.competition-meta) {
-      --_border-color: light-dark(var(--color-7), var(--color-10));
+<script type="module" src="/js/competition-meta.js" webc:keep></script>
 
-      input,
-      button,
-      textarea {
-        background-color: var(--surface-default);
-      }
+<style>
+  :where(fieldset.competition-zone) {
+    --_border-color: light-dark(var(--color-7), var(--color-10));
+    /* .form-group { */
+    /*   display: flex; */
+    /*   flex-direction: column; */
+    /*   margin-bottom: var(--size-5); */
+    /* } */
+    /**/
+    /* .form-group label { */
+    /*   font-weight: var(--font-weight-6); */
+    /*   margin-bottom: var(--size-2); */
+    /*   color: var(--primary-text); */
+    /* } */
+    /**/
+    /* .form-group input { */
+    /*   padding: var(--size-2) var(--size-3); */
+    /*   font-size: var(--font-size-1); */
+    /*   border: var(--border-size-1) solid var(--gray-7); */
+    /*   border-radius: var(--radius-2); */
+    /*   background-color: var(--surface-default); */
+    /*   color: var(--primary-text); */
+    /* } */
+    /**/
+    /* /* The Helper Text configured for OPUI */
+    /* .form-help { */
+    /*   display: block; */
+    /*   margin-top: var(--size-1); */
+    /*   font-size: var(--font-size-0); */
+    /*   line-height: var(--font-lineheight-2); */
+    /**/
+    /*   /* Uses a lighter gray that adapts naturally across themes */
+    /*   color: var(--gray-11); */
+    /* } */
+    input,
+    button,
+    textarea {
+      background-color: var(--surface-default);
+    }
 
-      input,
-      textarea {
-        border: 1px solid var(--_border-color);
-        border-radius: 0.5rem;
-        padding: 0.5em 0.75em;
+    input,
+    textarea {
+      border: 1px solid var(--_border-color);
+      border-radius: 0.5rem;
+      padding: 0.5em 0.75em;
 
-        &:focus-visible {
-          outline-color: var(--primary);
-        }
-      }
-
-      select {
-        border: 1px solid var(--_border-color);
-        background-color: var(--surface-default);
-
-        &:focus-visible {
-          outline-color: var(--primary);
-        }
-      }
-
-      border: 1px solid var(--border, var(--gray-8));
-      padding: var(--size-3);
-      margin-bottom: var(--size-3);
-      border-radius: var(--radius-2);
-
-      legend {
-        padding: 0 var(--size-1);
-        font-weight: bold;
+      &:focus-visible {
+        outline-color: var(--primary);
       }
     }
-  </style>
-</fieldset>
+
+    select {
+      border: 1px solid var(--_border-color);
+      background-color: var(--surface-default);
+
+      &:focus-visible {
+        outline-color: var(--primary);
+      }
+    }
+
+    border: 1px solid var(--border, var(--gray-8));
+    padding: var(--size-3);
+    margin-bottom: var(--size-3);
+    border-radius: var(--radius-2);
+
+    legend {
+      padding: 0 var(--size-1);
+      font-weight: bold;
+    }
+  }
+</style>
