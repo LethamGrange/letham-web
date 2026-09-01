@@ -10,7 +10,7 @@ class SyllabusTeams extends SyllabusBase {
     this.teamsContainer = this.querySelector('.teams-input-container');
 
     const addTeamBtn = this.querySelector('.add-team-btn');
-    addTeamBtn.addEventListener('click', () => this.addTeam());
+    addTeamBtn.addEventListener('click', () => this.onAddTeam());
   } // connectedCallback
 
   updateVisualTeamLabels() {
@@ -42,6 +42,178 @@ class SyllabusTeams extends SyllabusBase {
         detail: { teams: currentTeams }, // Passes [{key: "new_4", name: "Forfar"}, ...]
       }),
     );
+  }
+
+  renderTeambBock(teamData) {
+    // 1. Only fallback to {} if data or data.competition is genuinely null/undefined
+    const team = teamData ?? {};
+
+    // If we have data, use its real ID. If not, generate a new temporary client ID.
+    const key = team.id ?? this.generateId();
+    const name = team.name ?? '';
+    const players = team.players ?? '';
+    const poolPlayers = team.Poolplayers ?? '';
+
+    const div = document.createElement('div');
+    div.dataset.key = key;
+    div.className = 'team-entry-card';
+    div.style.cssText = html`border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1);
+    background: var(--surface-2);`;
+
+    // Base Rink Name Input
+    let teamHtml = html`<div
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"
+      >
+        <label style="font-weight: bold;" class="team-number-label"></label>
+        <button
+          type="button"
+          class="remove-row-btn"
+          style="background:none; border:none; color:var(--red-6); cursor:pointer;"
+        >
+          ✕ Remove
+        </button>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <input class="team-name" type="text" name="team[${key}].name" value="${name}" style="width:100%;" required />
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;"></div> `;
+
+    teamHtml += html`
+      <div>
+        <label style="font-size: var(--font-size-0); color: var(--text-2);"
+          >Team players (Add (s) after the skip's name)</label
+        >
+        <div class="player-chip-field">
+          <!-- Visual Chip 1: Pre-existing Player -->
+          <span class="player-chip" data-id="P89xJ2">
+            Ian (skip) <button type="button" class="remove-chip-btn">✕</button>
+            <!-- Submits state natively -->
+            <input type="hidden" name="team[T1].player[P89xJ2].name" value="Ian" />
+            <input type="hidden" name="team[T1].player[P89xJ2].role" value="skip" />
+          </span>
+
+          <!-- Visual Chip 2: Brand new player typed by user -->
+          <span class="player-chip" data-id="new_p_1">
+            Philip <button type="button" class="remove-chip-btn">✕</button>
+            <input type="hidden" name="team[T1].player[new_p_1].name" value="Philip" />
+            <input type="hidden" name="team[T1].player[new_p_1].role" value="regular" />
+          </span>
+
+          <!-- The actual text field folk type into -->
+          <input type="text" class="chip-text-input" placeholder="Type name and press Enter..." />
+        </div>
+      </div>
+    `;
+
+    // Pool Players text field
+    teamHtml += html`
+      <div>
+        <label style="font-size: var(--font-size-0); color: var(--text-2);">Pool / Sub Players:</label>
+        <input
+          type="text"
+          name="team[${key}].pool"
+          aria-describedby="pool-help"
+          value="${poolPlayers}"
+          style="width:100%;"
+        />
+        <small id="pool-help" class="form-help">
+          Enter a comma-separated list of names (e.g. Brian McArtney, Jim Menzies).
+        </small>
+      </div>
+    `;
+
+    div.innerHTML = teamHtml;
+    div.querySelector('.remove-row-btn').addEventListener('click', () => {
+      div.remove();
+      this.updateVisualTeamLabels();
+      this.dispatchTeamsUpdate();
+    });
+
+    // Keep your live dropdown text sync listening to the Rink Name box
+    div.querySelector('input[type="text"].team-name').addEventListener('input', () => this.dispatchTeamsUpdate());
+
+    const input = div.querySelector('.chip-text-input');
+
+    // Convert text to a permanent data chip on Enter or Comma
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        this.addPlayerChip(input);
+      }
+    });
+
+    // Also convert when they click out of the box
+    input.addEventListener('blur', () => {
+      this.addPlayerChip(input);
+    });
+
+    const chips = div.querySelectorAll('.player-chip');
+    chips.forEach(chip => chip.addEventListener('click', () => chip.remove()));
+
+    return div;
+  }
+  addPlayerChip(inputField) {
+    const rawValue = inputField.value.trim().replace(/,$/, '');
+    if (!rawValue) return;
+
+    const teamKey = this.dataset.key;
+    const tempPlayerId = `new_p_${this.nextPlayerCounter++}`;
+
+    // Parse roles out if they typed something like "Ian(skip)"
+    let name = rawValue;
+    let role = 'regular';
+    const roleMatch = rawValue.match(/(.*)\((skip|third|second|lead|regular)\)/i);
+    if (roleMatch) {
+      name = roleMatch[1].trim();
+      role = roleMatch[2].toLowerCase();
+    }
+
+    // Create the visual pill container
+    const chip = document.createElement('span');
+    chip.className = 'player-chip';
+    chip.innerHTML = `
+      ${name} ${role !== 'regular' ? `(${role})` : ''}
+      <button type="button" class="remove-chip-btn">✕</button>
+      <input type="hidden" name="team[${teamKey}].player[${tempPlayerId}].name" value="${name}">
+      <input type="hidden" name="team[${teamKey}].player[${tempPlayerId}].role" value="${role}">
+    `;
+
+    const removeBtn = chip.querySelector('.remove-chip-btn');
+
+    chip.addEventListener('click', event => {
+      chip.remove();
+    });
+
+    // Insert the chip visually right before the text box
+    inputField.before(chip);
+    inputField.value = ''; // Empty the input for the next entry
+  }
+
+  hydrate(data) {
+    const { teams } = data;
+
+    this.teamsContainer.innerHTML = '';
+
+    data.teams.forEach(team => {
+      // 1. Build the main draw round block container
+      const teamBlock = this.renderTeambBock(team);
+
+      // 3. Mount the fully populated block to the page
+      this.teamsContainer.appendChild(teamBlock);
+    });
+
+    this.updateVisualTeamLabels(); // Update visual counts instantly
+
+    this.dispatchTeamsUpdate();
+  }
+
+  onAddTeam() {
+    const freshTeamBlock = this.renderTeambBock(); // No arguments = defaults to creation
+    this.teamsContainer.appendChild(freshTeamBlock);
+    this.updateVisualTeamLabels(); // Update visual counts instantly
+
+    this.dispatchTeamsUpdate();
   }
 
   addTeam() {

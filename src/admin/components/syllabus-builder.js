@@ -116,6 +116,12 @@ class SyllabusBuilder extends SyllabusBase {
     if (competitionMeta) {
       competitionMeta.hydrate(data);
     }
+
+    const syllabusTeams = this.querySelector('syllabus-teams');
+    if (syllabusTeams) {
+      syllabusTeams.hydrate(data);
+    }
+
     // 3. Sync up the view layout states
     this.updateActionButtonsVisibility();
 

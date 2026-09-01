@@ -11,11 +11,12 @@ export async function onRequestPost(context) {
 
   console.log(fields);
 
-  const { id, name, kind, reserves = '' } = fields;
-
-  if (!id) id == nanoid(12);
+  const { name, kind, reserves = '' } = fields;
+  const id = fields.id || nanoid(12);
 
   const statements = [];
+  const activeTeamIds = [];
+
   statements.push(
     db
       .prepare(
@@ -31,6 +32,24 @@ export async function onRequestPost(context) {
       )
       .bind(id, seasonYear, name, kind, reserves),
   );
+
+  const { teams } = fields;
+
+  for (const team of teams) {
+    statements.push(
+      db
+        .prepare(
+          `
+      INSERT INTO syllabus_teams (id, competition_id, team_index, team_name)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        team_name = EXCLUDED.team_name,
+        team_index = EXCLUDED.team_index
+    `,
+        )
+        .bind(team.id, id, team.index, team.name),
+    );
+  }
 
   try {
     // console.log(statements);
@@ -183,26 +202,59 @@ async function parseAndValidateScorecard(formData, db) {
   ['id', 'name', 'kind', 'reserves'].forEach(key => {
     competition[`${key}`] = formData.get(`competition[${key}]`);
   });
+  // Create a structured map of our teams and their players
+  const teamsMap = new Map();
 
-  // // 1. Scan keys to find all active team indexes sent by the browser
-  // const teamIndexes = Array.from(formData.keys())
-  //   .filter(key => key.startsWith('team[') && key.endsWith('.name'))
-  //   .map(key => {
-  //     // Extracts the number inside the brackets, e.g., "team[3].name" -> 3
-  //     const match = key.match(/team\[(\d+)\]/);
-  //     return match ? parseInt(match[1], 10) : null;
-  //   })
-  //   .filter(index => index !== null)
-  //   .sort((a, b) => a - b); // Keep them ordered
-  //
+  // 1. Loop through all fields sequentially
+  for (const [fieldName, value] of formData.entries()) {
+    const stringVal = value.toString().trim();
+
+    // Check for Team Name: team[TEAM_ID].name
+    const teamMatch = fieldName.match(/^team\[([^\]]+)\]\.name$/);
+    if (teamMatch) {
+      const teamId = teamMatch[1];
+      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: stringVal, players: new Map() });
+      teamsMap.get(teamId).name = stringVal;
+      continue;
+    }
+
+    // Check for Player Attributes: team[TEAM_ID].player[PLAYER_ID].PROPERTY
+    const playerMatch = fieldName.match(/^team\[([^\]]+)\]\.player\[([^\]]+)\]\.(name|role)$/);
+    if (playerMatch) {
+      const [_, teamId, playerId, property] = playerMatch;
+
+      if (!teamsMap.has(teamId)) teamsMap.set(teamId, { name: '', players: new Map() });
+      const team = teamsMap.get(teamId);
+
+      if (!team.players.has(playerId)) {
+        team.players.set(playerId, { id: playerId, name: '', role: 'regular' });
+      }
+      team.players.get(playerId)[property] = stringVal;
+    }
+  }
+
+  console.log(teamsMap);
+
+  // 1. Scan keys to find all active team indexes sent by the browser
+  const teamIndexes = Array.from(formData.keys())
+    .filter(key => key.startsWith('team[') && key.endsWith('.name'))
+    .map(key => {
+      // Extracts the number inside the brackets, e.g., "team[3].name" -> 3
+      const match = key.match(/team\[([\w\d-_]+)\]/);
+      return match[1];
+    })
+    .filter(index => index !== null);
+
   const teams = [];
-  // for (const i of teamIndexes) {
-  //   teams.push({
-  //     name: formData.get(`team[${i}].name`),
-  //     players: formData.get(`team[${i}].players`) || '',
-  //     pool: formData.get(`team[${i}].pool`) || '',
-  //   });
-  // }
+  for (const [index, key] of teamIndexes.entries()) {
+    teams.push({
+      id: key,
+      index: index + 1,
+      name: formData.get(`team[${key}].name`),
+      players: formData.get(`team[${key}].players`) || '',
+      pool: formData.get(`team[${key}].pool`) || '',
+    });
+  }
 
   competition.teams = teams;
 

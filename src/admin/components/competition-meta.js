@@ -7,7 +7,7 @@ class CompetitionMeta extends SyllabusBase {
 
   hydrate(data) {
     // 1. Only fallback to {} if data or data.competition is genuinely null/undefined
-    const competition = data?.competition ?? {};
+    const competition = data ?? {};
 
     // 2. Handle the hidden ID element
     const idEl = this.querySelector('input[type="hidden"]');
