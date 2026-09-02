@@ -6,14 +6,14 @@ export async function onRequestPost(context) {
   const db = context.env.curling_league;
   const formData = await context.request.formData();
   const fields = await parseAndValidateScorecard(formData);
-
   const seasonYear = '2026';
   const { name, kind, reserves = '' } = fields;
   const compId = fields.id || nanoid(12);
 
-  const { teams: teamsMap } = fields;
+  const { teams: teamsMap, fixtures: fixturesMap } = fields;
   const statements = [];
   const activeTeamIds = Array.from(teamsMap.keys());
+  const activeFixtureIds = Array.from(fixturesMap.keys());
 
   // 1. Pre-compile statements outside of loops
   const compUpsertSql = db.prepare(`
@@ -41,6 +41,20 @@ export async function onRequestPost(context) {
     INSERT INTO syllabus_team_pool_players (id, team_id, name)
     VALUES (?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET name = EXCLUDED.name
+  `);
+
+  const fixtureUpsertSql = db.prepare(`
+    INSERT INTO syllabus_fixtures (id, competition_id, fixture_date, fixture_time)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      fixture_date = EXCLUDED.fixture_date, fixture_time = EXCLUDED.fixture_time
+  `);
+
+  const gameUpsertSql = db.prepare(`
+    INSERT INTO syllabus_games (id, fixture_id, sheet, team_a_id, team_b_id)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      sheet = EXCLUDED.sheet, team_a_id = EXCLUDED.team_a_id, team_b_id = EXCLUDED.team_b_id
   `);
 
   // 2. Queue Competition Upsert
@@ -101,6 +115,43 @@ export async function onRequestPost(context) {
     }
   }
 
+  // 3. Garbage Collect Stale Teams (Scoped strictly to this competition)
+  // If a team is deleted here, its players will auto-cascade delete via the DB!
+  if (activeFixtureIds.length > 0) {
+    const placeholders = activeFixtureIds.map(() => '?').join(',');
+    statements.push(
+      db
+        .prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ? AND id NOT IN (${placeholders})`)
+        .bind(compId, ...activeFixtureIds),
+    );
+  } else {
+    statements.push(db.prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ?`).bind(compId));
+  }
+
+  // 4. Process Teams and individual Player changes
+  for (const [fixtureId, fixtureData] of fixturesMap.entries()) {
+    statements.push(fixtureUpsertSql.bind(fixtureId, compId, fixtureData.date, fixtureData.time));
+
+    const savedGameIds = Array.from(fixtureData.games.keys());
+
+    // Process games
+    for (const [gameId, gameData] of fixtureData.games.entries()) {
+      statements.push(gameUpsertSql.bind(gameId, fixtureId, 'A', gameData.team_a, gameData.team_b));
+    }
+
+    // Programmatic Player GC for surviving teams
+    if (savedGameIds.length > 0) {
+      const placeholders = savedGameIds.map(() => '?').join(',');
+      statements.push(
+        db
+          .prepare(`DELETE FROM syllabus_games WHERE fixture_id = ? AND id NOT IN (${placeholders})`)
+          .bind(fixtureId, ...savedGameIds),
+      );
+    } else {
+      statements.push(db.prepare(`DELETE FROM syllabus_games WHERE fixture_id = ?`).bind(fixtureId));
+    }
+  }
+
   // 5. Execute batch transaction
   try {
     await db.batch(statements);
@@ -121,12 +172,20 @@ async function parseAndValidateScorecard(formData) {
   });
 
   const teamsMap = new Map();
+  const fixturesMap = new Map();
 
   const getOrCreateTeam = teamId => {
     if (!teamsMap.has(teamId)) {
       teamsMap.set(teamId, { name: '', players: new Map(), poolPlayers: new Map() });
     }
     return teamsMap.get(teamId);
+  };
+
+  const getOrCreateFixture = fixtureId => {
+    if (!fixturesMap.has(fixtureId)) {
+      fixturesMap.set(fixtureId, { date: '', time: '', games: new Map() });
+    }
+    return fixturesMap.get(fixtureId);
   };
 
   // Convert the iterator to an array and use the native loop index argument
@@ -160,9 +219,36 @@ async function parseAndValidateScorecard(formData) {
       }
 
       targetMap.get(playerId)[property] = stringVal;
+      return;
+    }
+
+    const fixtureMatch = fieldName.match(/^draw\[([^\]]+)\]\.(date|time)$/);
+    if (fixtureMatch) {
+      const [_, fixtureId, property] = fixtureMatch;
+      const fixture = getOrCreateFixture(fixtureId);
+      fixture[property] = stringVal;
+      return;
+    }
+    const gameMatch = fieldName.match(/^draw\[([^\]]+)\]\.game\[([^\]]+)\]\.(team_a|team_b)$/);
+
+    if (gameMatch) {
+      const [_, fixtureId, gameId, property] = gameMatch;
+      const fixture = getOrCreateFixture(fixtureId);
+
+      const gamesMap = fixture.games;
+
+      if (!gamesMap.has(gameId)) {
+        const defaultObject = { id: gameId, team_a: '', team_b: '' };
+        gamesMap.set(gameId, defaultObject);
+      }
+      gamesMap.get(gameId)[property] = stringVal;
+      return;
     }
   });
 
   competition.teams = teamsMap;
+  competition.fixtures = fixturesMap;
+
+  console.log(fixturesMap, fixturesMap.entries());
   return competition;
 }

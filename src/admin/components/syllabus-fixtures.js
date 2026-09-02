@@ -112,7 +112,7 @@ class SyllabusFixtures extends SyllabusBase {
 
   renderGameBlock(parentDrawBlock, gameData = null) {
     // Extract the draw ID from the parent block's dataset
-    const drawId = parentDrawBlock.dataset.id;
+    const drawId = parentDrawBlock.dataset?.id ?? parentDrawBlock;
 
     // Use the database ID or generate a fresh client-side session game counter ID
     const gameId = gameData ? gameData.id : this.nextId();
@@ -215,7 +215,8 @@ class SyllabusFixtures extends SyllabusBase {
       const gamesContainer = drawBlock.querySelector('.games-list-container');
       drawData.games.forEach(gameData => {
         // You can call a similar shared renderGameBlock(gameData) here!
-        const gameBlock = this.renderGameBlock(gameData, id);
+        const gameBlock = this.renderGameBlock(drawBlock, gameData);
+
         gamesContainer.appendChild(gameBlock);
       });
     }
@@ -234,21 +235,21 @@ class SyllabusFixtures extends SyllabusBase {
   hydrate(jsonData) {
     this.drawsContainer.innerHTML = ''; // Clear existing session layout
 
-    jsonData.draws.forEach(draw => {
+    jsonData.fixtures.forEach(draw => {
       // 1. Build the main draw round block container
       const drawBlock = this.renderDrawBlock(draw);
 
-      // 2. Loop over this specific draw's child games array
-      if (draw.games && draw.games.length > 0) {
-        // Find the specific wrapper inside your template where games belong
-        const gamesList = drawBlock.querySelector('.games-list-container');
-
-        for (const game of draw.games) {
-          // Build the game row, passing the draw block along so it can read its data-id
-          const gameBlock = this.renderGameBlock(drawBlock, game);
-          gamesList.appendChild(gameBlock);
-        }
-      }
+      // // 2. Loop over this specific draw's child games array
+      // if (draw.games && draw.games.length > 0) {
+      //   // Find the specific wrapper inside your template where games belong
+      //   const gamesList = drawBlock.querySelector('.games-list-container');
+      //
+      //   for (const game of draw.games) {
+      //     // Build the game row, passing the draw block along so it can read its data-id
+      //     const gameBlock = this.renderGameBlock(drawBlock, game);
+      //     gamesList.appendChild(gameBlock);
+      //   }
+      // }
 
       // 3. Mount the fully populated block to the page
       this.drawsContainer.appendChild(drawBlock);

@@ -121,6 +121,10 @@ class SyllabusBuilder extends SyllabusBase {
     if (syllabusTeams) {
       syllabusTeams.hydrate(data);
     }
+    const syllabusFixtures = this.querySelector('syllabus-fixtures');
+    if (syllabusFixtures) {
+      syllabusFixtures.hydrate(data);
+    }
 
     // 3. Sync up the view layout states
     this.updateActionButtonsVisibility();
