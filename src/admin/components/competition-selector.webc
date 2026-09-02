@@ -1,0 +1,3 @@
+<slot></slot>
+<div class="competition-zone"></div>
+<script src="/js/competition-selector.js" type="module" webc:keep></script>

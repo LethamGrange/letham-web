@@ -11,7 +11,4 @@ headerPosition: center
 
 <syllabus-builder class="breakout"></syllabus-builder>
 
-<h2>Syllabus Diary Live Feed Preview</h2>
-<div id="diary-preview" hx-get="/api/get-diary" hx-trigger="load">
-  <p>Loading active diary timeline...</p>
-</div>
+<competition-selector><h2>Syllabus Competitions</h2> </competition-selector>
