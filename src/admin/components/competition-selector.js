@@ -18,6 +18,36 @@ class CompetitionSelector extends HTMLElement {
     if (this.allCompetitions.length === 0 && !this.isLoading) {
       this.loadCompetitions();
     }
+    this.setupFormListeners();
+  }
+
+  setupFormListeners() {
+    document.addEventListener('competition-saved', e => {
+      const savedComp = e.detail.competition;
+
+      // 1. Find if this item already exists in the selector's in-memory array
+      const index = this.allCompetitions.findIndex(c => c.id === savedComp.id);
+
+      if (index !== -1) {
+        // Update existing item
+        this.allCompetitions[index] = savedComp;
+      } else {
+        // Append it if it was a brand new creation
+        this.allCompetitions.push(savedComp);
+      }
+
+      // 2. Instantly update the visual list without a single server round-trip!
+      this.applyFiltersAndRender();
+    });
+    document.addEventListener('competition-deleted', e => {
+      const targetId = e.detail.id;
+
+      // 1. Filter out the deleted record from your local model memory instantly
+      this.allCompetitions = this.allCompetitions.filter(c => c.id !== targetId);
+
+      // 2. Refresh the display grid smoothly without a server round-trip
+      this.applyFiltersAndRender();
+    });
   }
 
   async loadCompetitions() {

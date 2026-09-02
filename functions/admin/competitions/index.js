@@ -1,5 +1,4 @@
-import { getDiaryHtml } from '../api/_get-diary-html';
-import { html } from '../helpers/html.js';
+import { html } from '../../helpers/html.js';
 import { nanoid } from 'nanoid';
 
 export async function onRequestPost(context) {
@@ -156,13 +155,50 @@ export async function onRequestPost(context) {
   // 5. Execute batch transaction
   try {
     await db.batch(statements);
-    const diaryHtml = await getDiaryHtml(db);
-    return new Response(html`<div id="diary-preview">${diaryHtml}</div>`, {
-      headers: { 'Content-Type': 'text/html' },
-    });
+    // Convert your internal working Map models into clean JSON layout arrays
+    const formattedData = serializeCompetitionMapsToArrays(fields);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        competitionSummary: { id: compId, name, kind, season_year: seasonYear }, // For the sidebar list
+        fullModel: formattedData, // 👈 Passed directly to this.savedModelBackup and hydrate()!
+      }),
+      {
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   } catch (e) {
     return new Response(`Syllabus Save Error: ${e.message}`, { status: 500 });
   }
+}
+
+function serializeCompetitionMapsToArrays(competition) {
+  // Convert teams Map to an Array
+  const teamsArray = Array.from(competition.teams.values()).map(team => {
+    return {
+      ...team,
+      players: Array.from(team.players.values()),
+      pool_players: Array.from(team.poolPlayers.values()), // Fixes poolPlayers camelCase mismatch!
+    };
+  });
+
+  // Convert fixtures Map to an Array
+  const fixturesArray = Array.from(competition.fixtures.values()).map(fixture => {
+    return {
+      ...fixture,
+      games: Array.from(fixture.games.values()),
+    };
+  });
+
+  return {
+    id: competition.id,
+    name: competition.name,
+    kind: competition.kind,
+    reserves: competition.reserves,
+    teams: teamsArray,
+    fixtures: fixturesArray,
+  };
 }
 
 async function parseAndValidateScorecard(formData) {

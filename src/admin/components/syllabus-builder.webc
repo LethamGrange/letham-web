@@ -1,10 +1,15 @@
-<form
-  hx-post="/admin/submit-syllabus"
-  hx-target="#diary-preview"
-  hx-swap="innerHTML"
->
-  <h2 class="form-mode-title">New competition</h2>
-
+<form>
+  <div class="title-wrapper">
+    <h2 class="form-mode-title">New competition</h2>
+    <button
+      type="button"
+      commandfor="delete-confirm-modal"
+      command="show-modal"
+      class="delete-competition-btn hidden ui-button ui-tonal"
+    >
+      <span>🗑️</span> Delete
+    </button>
+  </div>
   <div class="form-error-banner"></div>
 
   <competition-meta></competition-meta>
@@ -19,7 +24,7 @@
       </button>
       <button
         type="button"
-        class="cancel-edit-btn ui-button action-cancel ui-tonal"
+        class="cancel-edit-btn hidden ui-button action-cancel ui-tonal"
       >
         Cancel Edits
       </button>
@@ -30,13 +35,48 @@
       <button
         type="button"
         class="switch-to-create-btn action-create ui-button ui-filled"
-        style="display: none"
       >
         Create New Competition
       </button>
     </div>
   </div>
 </form>
+
+<dialog
+  id="delete-confirm-modal"
+  class="ui-dialog ui-card ui-elevated"
+  role="alertdialog"
+  aria-labelledby="dialog-heading"
+  aria-modal="true"
+>
+  <hgroup>
+    <h2 id="dialog-heading" class="ui-h4">⚠️ Critical Warning</h2>
+  </hgroup>
+  <div class="ui-content">
+    Are you completely sure you want to permanently delete this competition?
+    This action cannot be undone.
+  </div>
+  <div class="ui-actions">
+    <button
+      commandfor="delete-confirm-modal"
+      command="close"
+      class="ui-button"
+      type="button"
+      value="cancel"
+    >
+      Cancel
+    </button>
+    <button
+      commandfor="delete-confirm-modal"
+      command="close"
+      class="ui-button ui-filled"
+      type="button"
+      value="confirm"
+    >
+      Yes, Delete
+    </button>
+  </div>
+</dialog>
 
 <script type="module" src="/js/syllabus-builder.js" webc:keep></script>
 
@@ -123,8 +163,13 @@
       }
     }
 
-    .cancel-edit-btn {
-      display: none;
+    .title-wrapper {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hidden {
+      display: none !important;
     }
   }
 </style>
