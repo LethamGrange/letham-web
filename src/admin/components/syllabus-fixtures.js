@@ -18,6 +18,11 @@ class SyllabusFixtures extends SyllabusBase {
     return this.generateId();
   }
 
+  clear() {
+    const ddc = this.querySelector('.draw-dates-container');
+    ddc.innerHTML = '';
+  }
+
   updateAllFixtureDropdowns() {
     // Loop through the wrappers so we handle pairs together
     const selectWrappers = this.querySelectorAll('.team-picker-container');
@@ -258,6 +263,8 @@ class SyllabusFixtures extends SyllabusBase {
   onAddDraw() {
     const freshDrawBlock = this.renderDrawBlock(); // No arguments = defaults to creation
     this.drawsContainer.appendChild(freshDrawBlock);
+
+    freshDrawBlock.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }
 

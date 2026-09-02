@@ -44,6 +44,11 @@ class SyllabusTeams extends SyllabusBase {
     );
   }
 
+  clear() {
+    const tic = this.querySelector('.teams-input-container');
+    tic.innerHTML = '';
+  }
+
   renderTeamBlock(teamData) {
     const team = teamData ?? {};
     const key = team.id ?? this.generateId();
