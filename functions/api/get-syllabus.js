@@ -8,7 +8,7 @@ export async function onRequestGet(context) {
       .prepare(
         `
       SELECT id, name, kind, sub_kind, season_year
-      FROM syllabus_competitions
+      FROM competitions
       ORDER BY name ASC
     `,
       )

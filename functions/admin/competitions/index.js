@@ -16,7 +16,7 @@ export async function onRequestPost(context) {
 
   // 1. Pre-compile statements outside of loops
   const compUpsertSql = db.prepare(`
-    INSERT INTO syllabus_competitions (id, season_year, name, kind, reserves)
+    INSERT INTO competitions (id, season_year, name, kind, reserves)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = EXCLUDED.name, kind = EXCLUDED.kind,
@@ -24,33 +24,33 @@ export async function onRequestPost(context) {
   `);
 
   const teamUpsertSql = db.prepare(`
-    INSERT INTO syllabus_teams (id, competition_id, team_index, team_name)
+    INSERT INTO competition_teams (id, competition_id, team_index, team_name)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       team_name = EXCLUDED.team_name, team_index = EXCLUDED.team_index
   `);
 
   const playerUpsertSql = db.prepare(`
-    INSERT INTO syllabus_team_players (id, team_id, name, role)
+    INSERT INTO team_players (id, team_id, name, role)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role
   `);
 
   const poolUpsertSql = db.prepare(`
-    INSERT INTO syllabus_team_pool_players (id, team_id, name)
+    INSERT INTO pool_players (id, team_id, name)
     VALUES (?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET name = EXCLUDED.name
   `);
 
   const fixtureUpsertSql = db.prepare(`
-    INSERT INTO syllabus_fixtures (id, competition_id, fixture_date, fixture_time)
+    INSERT INTO fixtures (id, competition_id, fixture_date, fixture_time)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       fixture_date = EXCLUDED.fixture_date, fixture_time = EXCLUDED.fixture_time
   `);
 
   const gameUpsertSql = db.prepare(`
-    INSERT INTO syllabus_games (id, fixture_id, sequence, team_a, team_b)
+    INSERT INTO games (id, fixture_id, sequence, team_a, team_b)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       team_a = EXCLUDED.team_a,
@@ -67,11 +67,11 @@ export async function onRequestPost(context) {
     const placeholders = activeTeamIds.map(() => '?').join(',');
     statements.push(
       db
-        .prepare(`DELETE FROM syllabus_teams WHERE competition_id = ? AND id NOT IN (${placeholders})`)
+        .prepare(`DELETE FROM competition_teams WHERE competition_id = ? AND id NOT IN (${placeholders})`)
         .bind(compId, ...activeTeamIds),
     );
   } else {
-    statements.push(db.prepare(`DELETE FROM syllabus_teams WHERE competition_id = ?`).bind(compId));
+    statements.push(db.prepare(`DELETE FROM competition_teams WHERE competition_id = ?`).bind(compId));
   }
 
   // 4. Process Teams and individual Player changes
@@ -91,11 +91,11 @@ export async function onRequestPost(context) {
       const placeholders = savedPlayerIds.map(() => '?').join(',');
       statements.push(
         db
-          .prepare(`DELETE FROM syllabus_team_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
+          .prepare(`DELETE FROM team_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
           .bind(teamId, ...savedPlayerIds),
       );
     } else {
-      statements.push(db.prepare(`DELETE FROM syllabus_team_players WHERE team_id = ?`).bind(teamId));
+      statements.push(db.prepare(`DELETE FROM team_players WHERE team_id = ?`).bind(teamId));
     }
 
     // Process Pool Players
@@ -108,11 +108,11 @@ export async function onRequestPost(context) {
       const placeholders = savedPoolPlayerIds.map(() => '?').join(',');
       statements.push(
         db
-          .prepare(`DELETE FROM syllabus_team_pool_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
+          .prepare(`DELETE FROM pool_players WHERE team_id = ? AND id NOT IN (${placeholders})`)
           .bind(teamId, ...savedPoolPlayerIds),
       );
     } else {
-      statements.push(db.prepare(`DELETE FROM syllabus_team_pool_players WHERE team_id = ?`).bind(teamId));
+      statements.push(db.prepare(`DELETE FROM pool_players WHERE team_id = ?`).bind(teamId));
     }
   }
 
@@ -121,11 +121,11 @@ export async function onRequestPost(context) {
     const placeholders = activeFixtureIds.map(() => '?').join(',');
     statements.push(
       db
-        .prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ? AND id NOT IN (${placeholders})`)
+        .prepare(`DELETE FROM fixtures WHERE competition_id = ? AND id NOT IN (${placeholders})`)
         .bind(compId, ...activeFixtureIds),
     );
   } else {
-    statements.push(db.prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ?`).bind(compId));
+    statements.push(db.prepare(`DELETE FROM fixtures WHERE competition_id = ?`).bind(compId));
   }
 
   // 6. Process Fixtures and inner Game changes
@@ -144,11 +144,11 @@ export async function onRequestPost(context) {
       const placeholders = savedGameIds.map(() => '?').join(',');
       statements.push(
         db
-          .prepare(`DELETE FROM syllabus_games WHERE fixture_id = ? AND id NOT IN (${placeholders})`)
+          .prepare(`DELETE FROM games WHERE fixture_id = ? AND id NOT IN (${placeholders})`)
           .bind(fixtureId, ...savedGameIds),
       );
     } else {
-      statements.push(db.prepare(`DELETE FROM syllabus_games WHERE fixture_id = ?`).bind(fixtureId));
+      statements.push(db.prepare(`DELETE FROM games WHERE fixture_id = ?`).bind(fixtureId));
     }
   }
 

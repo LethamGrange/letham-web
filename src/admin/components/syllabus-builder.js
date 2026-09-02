@@ -23,18 +23,6 @@ class SyllabusBuilder extends SyllabusBase {
     document.body.addEventListener('edit-competition-request', event => {
       this.onEditCompetition(event.detail.id);
     });
-
-    // document.body.addEventListener("edit-syllabus-request", async (event) =>
-    //   this.onEditSyllabus(event, form),
-    // );
-    //
-    // Kick off the URL inspection quietly on page mount
-    // this.loadSyllabusDataForEditing(form);
-
-    // this.cancelBtn.addEventListener('click', () => {
-    //   // Simply redirect the browser back to the base admin page URL without parameters
-    //   window.location.href = window.location.pathname;
-    // });
   } // connectedCallback
   setupFormListeners(form) {
     // Listen for the custom event from the teams element
@@ -231,14 +219,8 @@ class SyllabusBuilder extends SyllabusBase {
       if (!response.ok) throw new Error('Could not pull competition database records.');
 
       const data = await response.json();
-      console.log(data);
 
       this.hydrateForm(data);
-
-      // // 4. SWITCH FORMS METHODS IN PLACE FOR HTMX PUT CODES
-      // form.setAttribute('hx-put', '/admin/submit-scorecard');
-      // form.removeAttribute('hx-post');
-      // htmx.process(form); // Rebinds the active lifecycle handlers to PUT
 
       // Bring workspace focus smoothly into window view
       this.scrollIntoView({ behavior: 'smooth' });
@@ -269,9 +251,6 @@ class SyllabusBuilder extends SyllabusBase {
 
     // 3. Sync up the view layout states
     this.updateActionButtonsVisibility();
-
-    // Tell HTMX to re-bind its internal event listeners to the fresh hx-put attribute
-    //if (window.htmx) htmx.process(this.form);
   }
 } // end class SyllabusBuilder
 

@@ -8,7 +8,7 @@ export async function onRequestDelete(context) {
 
   try {
     // Purges the master row. Cascading rules instantly sweep children entries cleanly!
-    await db.prepare(`DELETE FROM syllabus_competitions WHERE id = ?`).bind(compId).run();
+    await db.prepare(`DELETE FROM competitions WHERE id = ?`).bind(compId).run();
 
     return new Response(JSON.stringify({ success: true, id: compId }), {
       headers: { 'Content-Type': 'application/json' },

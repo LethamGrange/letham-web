@@ -18,7 +18,7 @@ export async function onRequestDelete(context) {
     await db
       .prepare(
         `
-      DELETE FROM syllabus_fixtures
+      DELETE FROM fixtures
       WHERE competition_id = ?
         AND fixture_date = ?
         AND (fixture_time = ? OR (fixture_time IS NULL AND ? IS NULL))

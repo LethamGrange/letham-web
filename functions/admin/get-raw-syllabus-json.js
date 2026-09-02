@@ -9,19 +9,19 @@ export async function onRequestGet(context) {
 
   // 1. Independent, targeted queries
   const compQuery = db
-    .prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM syllabus_competitions WHERE id = ?`)
+    .prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM competitions WHERE id = ?`)
     .bind(compId);
 
   const teamsQuery = db
-    .prepare(`SELECT id, team_index, team_name FROM syllabus_teams WHERE competition_id = ? ORDER BY team_index ASC`)
+    .prepare(`SELECT id, team_index, team_name FROM competition_teams WHERE competition_id = ? ORDER BY team_index ASC`)
     .bind(compId);
 
   const playersQuery = db
     .prepare(
       `
       SELECT p.id, p.team_id, p.name, p.role
-      FROM syllabus_team_players p
-      JOIN syllabus_teams t ON p.team_id = t.id
+      FROM team_players p
+      JOIN competition_teams t ON p.team_id = t.id
       WHERE t.competition_id = ?
     `,
     )
@@ -31,8 +31,8 @@ export async function onRequestGet(context) {
     .prepare(
       `
       SELECT pool.id, pool.team_id, pool.name
-      FROM syllabus_team_pool_players pool
-      JOIN syllabus_teams t ON pool.team_id = t.id
+      FROM pool_players pool
+      JOIN competition_teams t ON pool.team_id = t.id
       WHERE t.competition_id = ?
     `,
     )
@@ -41,7 +41,7 @@ export async function onRequestGet(context) {
   const fixturesQuery = db
     .prepare(
       `SELECT id, fixture_date AS date, fixture_time AS time
-       FROM syllabus_fixtures WHERE competition_id = ? ORDER BY fixture_date ASC`,
+       FROM fixtures WHERE competition_id = ? ORDER BY fixture_date ASC`,
     )
     .bind(compId);
 
@@ -49,8 +49,8 @@ export async function onRequestGet(context) {
     .prepare(
       `
       SELECT g.id, g.fixture_id, g.team_a, g.team_b
-      FROM syllabus_games g
-      JOIN syllabus_fixtures f ON g.fixture_id = f.id
+      FROM games g
+      JOIN fixtures f ON g.fixture_id = f.id
       WHERE f.competition_id = ? ORDER BY g.sequence ASC
     `,
     )

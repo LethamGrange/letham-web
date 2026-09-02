@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
 
   // 1. Independent, targeted queries
   const compQuery = db
-    .prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM syllabus_competitions WHERE id = ?`)
+    .prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM competitions WHERE id = ?`)
     .bind(compId);
 
   try {

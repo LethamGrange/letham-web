@@ -13,7 +13,7 @@ export async function onRequestDelete(context) {
 
   try {
     // Purges the master row. Cascading rules instantly sweep children entries cleanly!
-    await db.prepare(`DELETE FROM syllabus_competitions WHERE id = ?`).bind(compId).run();
+    await db.prepare(`DELETE FROM competitions WHERE id = ?`).bind(compId).run();
 
     // Re-render the fresh diary grid instantly to reflect the drop
     const diaryHtml = await getDiaryHtml(db);

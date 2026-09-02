@@ -12,7 +12,7 @@ export async function onRequestGet(context) {
   try {
     // 1. Fetch Competition Meta Details
     const comp = await db
-      .prepare(html`SELECT * FROM syllabus_competitions WHERE id = ?`)
+      .prepare(html`SELECT * FROM competitions WHERE id = ?`)
       .bind(compId)
       .first();
 
@@ -20,7 +20,7 @@ export async function onRequestGet(context) {
     const { results: reserves } = await db
       .prepare(
         `
-      SELECT player_name FROM syllabus_competition_reserves WHERE competition_id = ? ORDER BY player_name ASC
+      SELECT player_name FROM competition_reserves WHERE competition_id = ? ORDER BY player_name ASC
     `,
       )
       .bind(compId)
@@ -28,19 +28,17 @@ export async function onRequestGet(context) {
 
     // 3. Fetch Teams, Players, and Pool Players data arrays
     const { results: teams } = await db
-      .prepare(`SELECT id, team_name, team_index FROM syllabus_teams WHERE competition_id = ? ORDER BY team_index ASC`)
+      .prepare(
+        `SELECT id, team_name, team_index FROM competition_teams WHERE competition_id = ? ORDER BY team_index ASC`,
+      )
       .bind(compId)
       .all();
     const { results: players } = await db
-      .prepare(
-        `SELECT p.* FROM syllabus_team_players p JOIN syllabus_teams t ON p.team_id = t.id WHERE t.competition_id = ?`,
-      )
+      .prepare(`SELECT p.* FROM team_players p JOIN competition_teams t ON p.team_id = t.id WHERE t.competition_id = ?`)
       .bind(compId)
       .all();
     const { results: pools } = await db
-      .prepare(
-        `SELECT p.* FROM syllabus_team_pool_players p JOIN syllabus_teams t ON p.team_id = t.id WHERE t.competition_id = ?`,
-      )
+      .prepare(`SELECT p.* FROM pool_players p JOIN competition_teams t ON p.team_id = t.id WHERE t.competition_id = ?`)
       .bind(compId)
       .all();
 
@@ -51,9 +49,9 @@ export async function onRequestGet(context) {
       SELECT
         f.fixture_date, f.fixture_time, f.sheet, f.external_versus, f.team_a_index, f.team_b_index,
         tA.team_name AS team_a_name, tB.team_name AS team_b_name
-      FROM syllabus_fixtures f
-      LEFT JOIN syllabus_teams tA ON f.competition_id = tA.competition_id AND f.team_a_index = tA.team_index
-      LEFT JOIN syllabus_teams tB ON f.competition_id = tB.competition_id AND f.team_b_index = tB.team_index
+      FROM fixtures f
+      LEFT JOIN competition_teams tA ON f.competition_id = tA.competition_id AND f.team_a_index = tA.team_index
+      LEFT JOIN competition_teams tB ON f.competition_id = tB.competition_id AND f.team_b_index = tB.team_index
       WHERE f.competition_id = ?
       ORDER BY f.fixture_date ASC, f.fixture_time ASC, f.sheet ASC
     `,
