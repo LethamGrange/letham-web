@@ -6,7 +6,7 @@ export async function getDiaryHtml(db) {
       `
       SELECT
         id, season_year, name, kind
-      FROM syllabus_competitions
+      FROM competitions
     `,
     )
     .all();

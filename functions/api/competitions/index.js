@@ -2,7 +2,7 @@ export async function onRequestGet(context) {
   const db = context.env.curling_league;
 
   // 1. Independent, targeted queries
-  const compQuery = db.prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM syllabus_competitions`);
+  const compQuery = db.prepare(`SELECT id, name, season_year, kind, sub_kind, reserves FROM competitions`);
 
   try {
     // 2. Fire together in a single network round-trip
