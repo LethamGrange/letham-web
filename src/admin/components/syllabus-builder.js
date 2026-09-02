@@ -75,6 +75,16 @@ class SyllabusBuilder extends SyllabusBase {
       });
     } // Handle explicit Switch to Create Click (Wipe and Reset Mode)
 
+    const createButton = this.querySelector('.switch-to-create-btn');
+
+    if (createButton) {
+      createButton.addEventListener('click', e => {
+        if (this.isFormDirty) return;
+
+        this.clearForm();
+      });
+    }
+
     //const deleteButton = form.querySelector('.delete-competition-btn');
     const modal = document.getElementById('delete-confirm-modal');
 
