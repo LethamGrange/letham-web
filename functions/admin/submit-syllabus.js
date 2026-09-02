@@ -51,10 +51,12 @@ export async function onRequestPost(context) {
   `);
 
   const gameUpsertSql = db.prepare(`
-    INSERT INTO syllabus_games (id, fixture_id, sheet, team_a_id, team_b_id)
+    INSERT INTO syllabus_games (id, fixture_id, sequence, team_a, team_b)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
-      sheet = EXCLUDED.sheet, team_a_id = EXCLUDED.team_a_id, team_b_id = EXCLUDED.team_b_id
+      team_a = EXCLUDED.team_a,
+      team_b = EXCLUDED.team_b,
+      sequence = EXCLUDED.sequence
   `);
 
   // 2. Queue Competition Upsert
@@ -115,8 +117,7 @@ export async function onRequestPost(context) {
     }
   }
 
-  // 3. Garbage Collect Stale Teams (Scoped strictly to this competition)
-  // If a team is deleted here, its players will auto-cascade delete via the DB!
+  // 5. Garbage Collect Stale Fixtures (Scoped strictly to this competition)
   if (activeFixtureIds.length > 0) {
     const placeholders = activeFixtureIds.map(() => '?').join(',');
     statements.push(
@@ -128,18 +129,18 @@ export async function onRequestPost(context) {
     statements.push(db.prepare(`DELETE FROM syllabus_fixtures WHERE competition_id = ?`).bind(compId));
   }
 
-  // 4. Process Teams and individual Player changes
+  // 6. Process Fixtures and inner Game changes
   for (const [fixtureId, fixtureData] of fixturesMap.entries()) {
     statements.push(fixtureUpsertSql.bind(fixtureId, compId, fixtureData.date, fixtureData.time));
 
     const savedGameIds = Array.from(fixtureData.games.keys());
 
-    // Process games
-    for (const [gameId, gameData] of fixtureData.games.entries()) {
-      statements.push(gameUpsertSql.bind(gameId, fixtureId, 'A', gameData.team_a, gameData.team_b));
+    // Process games sequentially to capture track rendering index position
+    for (const [sequence, [gameId, gameData]] of Array.from(fixtureData.games.entries()).entries()) {
+      statements.push(gameUpsertSql.bind(gameId, fixtureId, sequence, gameData.team_a, gameData.team_b));
     }
 
-    // Programmatic Player GC for surviving teams
+    // Programmatic Game GC for surviving fixtures
     if (savedGameIds.length > 0) {
       const placeholders = savedGameIds.map(() => '?').join(',');
       statements.push(
@@ -188,28 +189,28 @@ async function parseAndValidateScorecard(formData) {
     return fixturesMap.get(fixtureId);
   };
 
-  // Convert the iterator to an array and use the native loop index argument
   Array.from(formData.entries()).forEach(([fieldName, value], loopIndex) => {
     const stringVal = value.toString().trim();
 
-    // 1. Check for Team Name: team[TEAM_ID].name
+    // 1. Team Name Match
     const teamMatch = fieldName.match(/^team\[([^\]]+)\]\.name$/);
     if (teamMatch) {
       const teamId = teamMatch[1];
       const team = getOrCreateTeam(teamId);
       team.name = stringVal;
-
-      // We still selectively track the rendering order position here
       team.index = loopIndex;
-      return; // Acts like 'continue' inside a .forEach loop
+      return;
     }
 
-    // 2. Combined Match for Player OR Poolplayer
+    // 2. Player / Poolplayer Match
     const playerMatch = fieldName.match(/^team\[([^\]]+)\]\.(player|poolplayer)\[([^\]]+)\]\.(name|role)$/);
     if (playerMatch) {
       const [_, teamId, playerType, playerId, property] = playerMatch;
-      const team = getOrCreateTeam(teamId);
 
+      // Defensive: skip role assignment for pool players to keep objects clean
+      if (playerType === 'poolplayer' && property === 'role') return;
+
+      const team = getOrCreateTeam(teamId);
       const isPool = playerType === 'poolplayer';
       const targetMap = isPool ? team.poolPlayers : team.players;
 
@@ -222,6 +223,7 @@ async function parseAndValidateScorecard(formData) {
       return;
     }
 
+    // 3. Fixture Metadata Match (Date/Time)
     const fixtureMatch = fieldName.match(/^draw\[([^\]]+)\]\.(date|time)$/);
     if (fixtureMatch) {
       const [_, fixtureId, property] = fixtureMatch;
@@ -229,17 +231,16 @@ async function parseAndValidateScorecard(formData) {
       fixture[property] = stringVal;
       return;
     }
-    const gameMatch = fieldName.match(/^draw\[([^\]]+)\]\.game\[([^\]]+)\]\.(team_a|team_b)$/);
 
+    // 4. Game Match (Teams inside a fixture draw)
+    const gameMatch = fieldName.match(/^draw\[([^\]]+)\]\.game\[([^\]]+)\]\.(team_a|team_b)$/);
     if (gameMatch) {
       const [_, fixtureId, gameId, property] = gameMatch;
       const fixture = getOrCreateFixture(fixtureId);
-
       const gamesMap = fixture.games;
 
       if (!gamesMap.has(gameId)) {
-        const defaultObject = { id: gameId, team_a: '', team_b: '' };
-        gamesMap.set(gameId, defaultObject);
+        gamesMap.set(gameId, { id: gameId, team_a: '', team_b: '' });
       }
       gamesMap.get(gameId)[property] = stringVal;
       return;
@@ -249,6 +250,5 @@ async function parseAndValidateScorecard(formData) {
   competition.teams = teamsMap;
   competition.fixtures = fixturesMap;
 
-  console.log(fixturesMap, fixturesMap.entries());
   return competition;
 }
