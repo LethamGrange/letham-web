@@ -1,22 +1,108 @@
-<fieldset class="teams-zone">
-  <legend>2. Define Team / Rink Names</legend>
+<details class="accordion-section ui-accordion ui-card" open>
+  <summary id="summary-id" aria-controls="content-id" class="accordion-header">
+    <div class="title-group">
+      <span class="summary-title">Teams / Rinks</span>
+      <!-- Custom, non-conflicting counter pill class -->
+      <span class="count-pill team-count-badge">0</span>
+    </div>
 
-  <div class="teams-input-container">
-    <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
-  </div>
+    <button
+      class="ui-button ui-primary add-team-btn"
+      type="button"
+      style="border: 1px solid var(--color-8)"
+    >
+      ＋ Add Team / Rink Row
+    </button>
+  </summary>
 
-  <button
-    class="ui-button ui-primary add-team-btn"
-    type="button"
-    style="border: 1px solid var(--color-8)"
+  <div
+    id="content-id"
+    class="ui-content accordion-content team-cards-container"
+    role="region"
+    aria-labelledby="summary-id"
   >
-    ＋ Add Team / Rink Row
-  </button>
-</fieldset>
+    <div class="teams-input-container">
+      <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
+    </div>
+  </div>
+</details>
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
 <style>
+  /* Custom summary row using your Open Props setup */
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes title-group and button apart */
+    cursor: pointer;
+    padding: var(--size-3, 12px);
+    user-select: none;
+    list-style: none;
+  }
+
+  .accordion-header::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Custom Marker */
+  .accordion-header::before {
+    content: "▶";
+    font-size: 0.75em;
+    display: inline-block;
+    margin-right: var(--size-2, 8px);
+    transition: transform 0.2s ease;
+    color: var(--color-8);
+  }
+
+  .accordion-section[open] .accordion-header::before {
+    transform: rotate(90deg);
+  }
+
+  /* Flex group for text and its counter */
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2, 8px);
+  }
+
+  /* Your styled background pill badge */
+  .ui-badge {
+    background-color: var(--color-3); /* Subtle backdrop */
+    color: var(--color-11); /* High contrast text */
+    padding: var(--size-1, 2px) var(--size-2, 8px);
+    border-radius: var(--radius-pill, 1e5px);
+    font-size: var(--font-size-0, 0.85rem);
+    font-weight: var(--font-weight-6, 600);
+  }
+  .count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Style your pill cleanly using raw Open Props variables */
+    background-color: var(--color-3);
+    color: var(--color-11);
+    padding: 2px 8px;
+    border-radius: 100px; /* Perfect pill shape */
+
+    font-size: var(--font-size-0, 0.85rem);
+    font-weight: var(--font-weight-6, 600);
+    line-height: 1;
+    min-width: 20px; /* Prevents the pill from distorting on single digits */
+  }
+  /* Pushes your button to the RHS */
+  .add-team-btn {
+    margin-left: auto;
+  }
+
+  /* Optional: Optional badge styling next to title */
+  .ui-badgeX {
+    background: var(--color-2);
+    padding: 2px 8px;
+    border-radius: var(--radius-2, 4px);
+    font-size: var(--font-size-0, 0.8rem);
+  }
   .teams-input-container {
     display: grid;
     grid-template-columns: 1fr 1fr;

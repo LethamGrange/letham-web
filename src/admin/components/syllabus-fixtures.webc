@@ -1,29 +1,96 @@
-<fieldset class="fixtures-zone" style="display: block">
-  <legend>3. Draw Schedule & Fixtures</legend>
-  <div class="draw-dates-container"></div>
+<details class="accordion-section ui-accordion ui-card" open>
+  <summary
+    class="accordion-header"
+    id="fixtures-summary-id"
+    aria-controls="fixtures-content-id"
+  >
+    <div class="title-group">
+      <span class="summary-title">3. Draw Schedule & Fixtures</span>
+      <!-- Tracks total number of Scheduled Rounds at a glance -->
+      <span class="count-pill fixture-count-badge">0</span>
+    </div>
 
-  <button class="ui-button ui-primary add-draw-btn" type="button">
-    ＋ Add Another Draw Date / Round
-  </button>
-</fieldset>
+    <!-- This button stays clickable even when the outer accordion is closed -->
+    <button class="ui-button ui-primary add-draw-btn" type="button">
+      ＋ Add New Draw Date / Round
+    </button>
+  </summary>
 
-<div
-  id="global-team-picker"
-  popover
-  style="
-    padding: 10px;
-    border: 1px solid var(--border);
-    background: var(--surface-1);
-    box-shadow: var(--shadow-2);
-    border-radius: 6px;
-  "
->
+  <div
+    id="fixtures-content-id"
+    class="ui-content accordion-content fixtures-zone"
+    role="region"
+    aria-labelledby="summary-id"
+  >
+    <div class="draws-container"></div>
+  </div>
+</details>
+
+<div class="global-team-picker" popover>
   <!-- JavaScript will inject the current team buttons here -->
 </div>
 
 <script type="module" src="/js/syllabus-fixtures.js" webc:keep></script>
 
 <style>
+  .global-team-picker {
+    padding: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-2);
+    border-radius: 6px;
+    position: absolute;
+  }
+  .draws-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3, 12px);
+    padding-left: var(--size-4, 16px); /* Creates the hierarchy alignment */
+  }
+
+  /* Style the child accordion headers slightly lighter or smaller */
+  .nested-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: var(--size-2, 8px);
+    user-select: none;
+    list-style: none;
+  }
+
+  .nested-accordion-header::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Subtler Custom Marker for nested items */
+  .nested-accordion-header::before {
+    content: "↳"; /* A nice right-turn arrow indicator, or stick to "▶" */
+    font-size: 0.9em;
+    margin-right: var(--size-2, 8px);
+    color: var(--color-6); /* Slightly more muted than parent var(--color-8) */
+  }
+  .accordion-sectionX {
+    border: 1px solid var(--border, var(--gray-8));
+    padding: var(--size-3);
+    margin-bottom: var(--size-3);
+    border-radius: var(--radius-2);
+  } /* This replaces the fieldset look cleanly */
+  .accordion-section.ui-card {
+    background: var(--surface-default);
+    border: 1px solid var(--border, var(--gray-8));
+    border-radius: var(--radius-2, 8px);
+    margin-bottom: var(--size-4, 16px);
+    overflow: hidden; /* Prevents background color bleeding past corners */
+  }
+
+  /* Ensure content has padding only when the details section is open */
+  .accordion-section[open] .accordion-content {
+    padding: var(--size-3, 12px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3, 12px);
+  }
   .draw-game {
     border: 1px dashed var(--border);
     padding: 15px;
@@ -51,6 +118,10 @@
 
   .add-draw-btn {
     border: 1px solid var(--color-8);
+    margin-left: auto;
+  }
+  .remove-draw-btn {
+    margin-left: auto;
   }
 
   .add-game-btn {
@@ -69,7 +140,7 @@
     padding-block: var(--size-3);
     background: var(--surface-1);
 
-    .draw-round {
+    .draw-round-details {
       display: flex;
       gap: 15px;
       margin-bottom: 10px;
@@ -84,10 +155,36 @@
     text-overflow: ellipsis; /* Cuts off text with "..." if it gets too cramped */
   }
 
-  .games-list-container {
+  .games-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
     gap: var(--size-2);
     margin-block-start: var(--size-4);
+  }
+
+  [popover] {
+    /* 1. Reset standard center layout defaults */
+    position: absolute;
+    margin: 0;
+
+    /* 2. Bind the popup to follow our transient anchor target name */
+    position-anchor: --active-picker-target;
+
+    /* 3. Natively align the top of the popover to the bottom of the button */
+    top: anchor(bottom);
+    left: anchor(left);
+
+    /* Optional: Add your 4px offset space natively using CSS fallback math */
+    margin-top: 4px;
+  }
+  /* 1. Hide the preview text entirely when the user expands the accordion to edit inputs */
+  .draw-round[open] .compact-preview {
+    display: none !important;
+  }
+
+  /* 2. Style and display the text cleanly ONLY when the accordion is closed */
+  .draw-round:not([open]) .compact-preview {
+    display: block;
+    margin-top: 4px;
   }
 </style>

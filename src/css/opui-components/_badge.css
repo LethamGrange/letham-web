@@ -1,0 +1,107 @@
+@layer components.extended {
+  :where(.ui-badge) {
+    --_anchor-tx: -50%;
+    --_anchor-ty: 50%;
+    --_badge-inset: auto auto 100% 100%;
+    --_bg-color: var(--primary);
+    --_border-color: var(--primary);
+    --_dot-size: var(--size-2);
+    --_size: var(--size-4);
+    --_text-color: var(--gray-1);
+
+    display: inline-flex;
+    position: relative;
+    vertical-align: middle;
+
+    /* Floating wrapper: traditional inset-based positioning so this works
+       in browsers without position-area support (Firefox, older Safari). */
+    & > .ui-anchor-floating:not([popover]) {
+      inset: var(--_badge-inset);
+      position-anchor: auto;
+      position-area: none;
+    }
+
+    /* Indicator */
+    & > .ui-anchor-floating > .ui-badge-indicator {
+      background-color: var(--_bg-color);
+      block-size: var(--_size);
+      border: 2px solid var(--_border-color);
+      border-radius: var(--radius-round);
+      color: var(--_text-color);
+      display: grid;
+      font-size: var(--font-size-0);
+      font-weight: 500;
+      inline-size: max-content;
+      line-height: normal;
+      min-inline-size: var(--_size);
+      padding-inline: var(--size-1);
+      place-items: center;
+      text-align: center;
+      transition: opacity 0.2s var(--ease-out-1);
+    }
+
+    /* Colors */
+    &.ui-critical {
+      --_bg-color: var(--critical);
+      --_border-color: var(--critical);
+    }
+
+    &.ui-success {
+      --_bg-color: var(--success);
+      --_border-color: var(--success);
+    }
+
+    &.ui-info {
+      --_bg-color: var(--info);
+      --_border-color: var(--info);
+    }
+
+    &.ui-warning {
+      --_bg-color: var(--warning);
+      --_border-color: var(--warning);
+    }
+
+    &.ui-neutral {
+      --_bg-color: var(--neutral);
+      --_border-color: var(--neutral);
+    }
+
+    /* Alignment */
+    &.ui-start-start {
+      --_anchor-tx: 50%;
+      --_anchor-ty: 50%;
+      --_badge-inset: auto 100% 100% auto;
+    }
+
+    &.ui-end-start {
+      --_anchor-tx: 50%;
+      --_anchor-ty: -50%;
+      --_badge-inset: 100% 100% auto auto;
+    }
+
+    &.ui-end-end {
+      --_anchor-tx: -50%;
+      --_anchor-ty: -50%;
+      --_badge-inset: 100% auto auto 100%;
+    }
+
+    /* Dot */
+    &.ui-dot {
+      --_anchor-tx: calc((var(--_dot-size) - 2px) * -1);
+      --_anchor-ty: var(--_dot-size);
+    }
+
+    &.ui-dot > .ui-anchor-floating > .ui-badge-indicator {
+      block-size: var(--_dot-size);
+      inline-size: var(--_dot-size);
+      min-inline-size: var(--_dot-size);
+      padding: 0;
+    }
+
+    /* Visibility */
+    &.ui-invisible > .ui-anchor-floating > .ui-badge-indicator {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+}

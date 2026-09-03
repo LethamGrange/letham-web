@@ -24,6 +24,8 @@
 
 /* 4. Isolated UI Components */
 @import url('opui-components/_accordion.css');
+@import url('opui-components/_anchor.css');
+@import url('opui-components/_badge.css');
 @import url('opui-components/_button.css');
 @import url('opui-components/_card.css');
 /* @import url('opui-components/_checkbox.css'); */

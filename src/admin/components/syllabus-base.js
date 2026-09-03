@@ -23,5 +23,3 @@ export class SyllabusBase extends HTMLElement {
       }, '');
   })();
 }
-
-customElements.define('syllabus-base', SyllabusBase);
