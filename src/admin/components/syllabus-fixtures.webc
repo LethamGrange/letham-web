@@ -7,7 +7,7 @@
     <div class="title-group">
       <span class="summary-title">3. Draw Schedule & Fixtures</span>
       <!-- Tracks total number of Scheduled Rounds at a glance -->
-      <span class="count-pill fixture-draw-count">0</span>
+      <span class="count-pill fixture-count-badge">0</span>
     </div>
 
     <!-- This button stays clickable even when the outer accordion is closed -->

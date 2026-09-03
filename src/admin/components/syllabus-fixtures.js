@@ -7,7 +7,8 @@ class SyllabusFixtures extends SyllabusBase {
   // Dynamic getter to keep count of how many draws exist
   get currentDrawCount() {
     if (!this.drawsContainer) return 0;
-    return this.drawsContainer.querySelectorAll('.nested-accordion-section').length;
+    //    return this.drawsContainer.querySelectorAll('.nested-accordion-section').length;
+    return this.drawsContainer.querySelectorAll('.draw-round-block').length;
   }
 
   connectedCallback() {
@@ -19,12 +20,13 @@ class SyllabusFixtures extends SyllabusBase {
     this.drawsContainer = this.querySelector('.draw-dates-container');
     this.fixturesZone = this.querySelector('.fixtures-zone');
     this.globalPopover = this.querySelector('[popover]');
+    this.counterBadge = this.querySelector('.fixture-count-badge');
 
     const addDrawBtn = this.querySelector('.add-draw-btn');
 
     addDrawBtn.addEventListener('click', () => this.onAddDraw()); // Listen for clicks on team buttons to fire open the global popover
     this.addEventListener('click', e => {
-      alert('test');
+      //alert('test');
       //      this.handleTeamPickerClick(e);
     });
   } // connectedCallback
@@ -246,7 +248,7 @@ class SyllabusFixtures extends SyllabusBase {
 
     drawBlock.querySelector('.remove-draw-btn').addEventListener('click', () => {
       drawBlock.remove();
-      this.dispatchEvent(new Event('input', { bubbles: true }));
+      this.updateVisuals();
     });
 
     // Listen directly on the button instead of the entire block to avoid accidental click triggers
@@ -263,7 +265,7 @@ class SyllabusFixtures extends SyllabusBase {
       this.onAddDraw(data);
     });
 
-    this.updateVisuals;
+    this.updateVisuals();
   }
 
   updateVisualDrawLabels() {
@@ -272,6 +274,11 @@ class SyllabusFixtures extends SyllabusBase {
       const title = draw.querySelector('.nested-summary-title');
       if (title) title.textContent = `Draw ${index + 1}`;
     });
+
+    // 2. Read straight from your live getter to update the pill badge!
+    if (this.counterBadge) {
+      this.counterBadge.textContent = this.currentDrawCount;
+    }
   }
 
   updateVisuals() {
@@ -285,7 +292,7 @@ class SyllabusFixtures extends SyllabusBase {
     const key = draw.id ?? this.generateId();
     const name = draw.name ?? '';
 
-    const freshDrawBlock = this.renderDrawBlock(); // No arguments = defaults to creation
+    const freshDrawBlock = this.renderDrawBlock(drawData); // No arguments = defaults to creation
     this.drawsContainer.appendChild(freshDrawBlock);
     if (!drawData) this.updateVisuals();
   }
