@@ -26,23 +26,50 @@
   </div>
 </details>
 
-<div
-  id="global-team-picker"
-  popover
-  style="
-    padding: 10px;
-    border: 1px solid var(--border);
-    background: var(--surface-1);
-    box-shadow: var(--shadow-2);
-    border-radius: 6px;
-  "
->
+<div class="global-team-picker" popover>
   <!-- JavaScript will inject the current team buttons here -->
 </div>
 
 <script type="module" src="/js/syllabus-fixtures.js" webc:keep></script>
 
 <style>
+  .global-team-picker {
+    padding: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-2);
+    border-radius: 6px;
+    position: absolute;
+  }
+  .draws-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3, 12px);
+    padding-left: var(--size-4, 16px); /* Creates the hierarchy alignment */
+  }
+
+  /* Style the child accordion headers slightly lighter or smaller */
+  .nested-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: var(--size-2, 8px);
+    user-select: none;
+    list-style: none;
+  }
+
+  .nested-accordion-header::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Subtler Custom Marker for nested items */
+  .nested-accordion-header::before {
+    content: "↳"; /* A nice right-turn arrow indicator, or stick to "▶" */
+    font-size: 0.9em;
+    margin-right: var(--size-2, 8px);
+    color: var(--color-6); /* Slightly more muted than parent var(--color-8) */
+  }
   .accordion-sectionX {
     border: 1px solid var(--border, var(--gray-8));
     padding: var(--size-3);
@@ -91,6 +118,9 @@
 
   .add-draw-btn {
     border: 1px solid var(--color-8);
+    margin-left: auto;
+  }
+  .remove-draw-btn {
     margin-left: auto;
   }
 
