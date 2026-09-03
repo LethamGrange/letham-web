@@ -22,7 +22,7 @@
     role="region"
     aria-labelledby="summary-id"
   >
-    <div class="draw-dates-container"></div>
+    <div class="draws-container"></div>
   </div>
 </details>
 
@@ -140,7 +140,7 @@
     padding-block: var(--size-3);
     background: var(--surface-1);
 
-    .draw-round {
+    .draw-round-details {
       display: flex;
       gap: 15px;
       margin-bottom: 10px;
@@ -155,10 +155,36 @@
     text-overflow: ellipsis; /* Cuts off text with "..." if it gets too cramped */
   }
 
-  .games-list-container {
+  .games-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
     gap: var(--size-2);
     margin-block-start: var(--size-4);
+  }
+
+  [popover] {
+    /* 1. Reset standard center layout defaults */
+    position: absolute;
+    margin: 0;
+
+    /* 2. Bind the popup to follow our transient anchor target name */
+    position-anchor: --active-picker-target;
+
+    /* 3. Natively align the top of the popover to the bottom of the button */
+    top: anchor(bottom);
+    left: anchor(left);
+
+    /* Optional: Add your 4px offset space natively using CSS fallback math */
+    margin-top: 4px;
+  }
+  /* 1. Hide the preview text entirely when the user expands the accordion to edit inputs */
+  .draw-round[open] .compact-preview {
+    display: none !important;
+  }
+
+  /* 2. Style and display the text cleanly ONLY when the accordion is closed */
+  .draw-round:not([open]) .compact-preview {
+    display: block;
+    margin-top: 4px;
   }
 </style>
