@@ -1,11 +1,30 @@
-<fieldset class="fixtures-zone" style="display: block">
-  <legend>3. Draw Schedule & Fixtures</legend>
-  <div class="draw-dates-container"></div>
+<details class="accordion-section ui-accordion ui-card" open>
+  <summary
+    class="accordion-header"
+    id="fixtures-summary-id"
+    aria-controls="fixtures-content-id"
+  >
+    <div class="title-group">
+      <span class="summary-title">3. Draw Schedule & Fixtures</span>
+      <!-- Tracks total number of Scheduled Rounds at a glance -->
+      <span class="count-pill fixture-draw-count">0</span>
+    </div>
 
-  <button class="ui-button ui-primary add-draw-btn" type="button">
-    ＋ Add Another Draw Date / Round
-  </button>
-</fieldset>
+    <!-- This button stays clickable even when the outer accordion is closed -->
+    <button class="ui-button ui-primary add-draw-btn" type="button">
+      ＋ Add New Draw Date / Round
+    </button>
+  </summary>
+
+  <div
+    id="fixtures-content-id"
+    class="ui-content accordion-content fixtures-zone"
+    role="region"
+    aria-labelledby="summary-id"
+  >
+    <div class="draw-dates-container"></div>
+  </div>
+</details>
 
 <div
   id="global-team-picker"
@@ -24,6 +43,27 @@
 <script type="module" src="/js/syllabus-fixtures.js" webc:keep></script>
 
 <style>
+  .accordion-sectionX {
+    border: 1px solid var(--border, var(--gray-8));
+    padding: var(--size-3);
+    margin-bottom: var(--size-3);
+    border-radius: var(--radius-2);
+  } /* This replaces the fieldset look cleanly */
+  .accordion-section.ui-card {
+    background: var(--surface-default);
+    border: 1px solid var(--border, var(--gray-8));
+    border-radius: var(--radius-2, 8px);
+    margin-bottom: var(--size-4, 16px);
+    overflow: hidden; /* Prevents background color bleeding past corners */
+  }
+
+  /* Ensure content has padding only when the details section is open */
+  .accordion-section[open] .accordion-content {
+    padding: var(--size-3, 12px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-3, 12px);
+  }
   .draw-game {
     border: 1px dashed var(--border);
     padding: 15px;
@@ -51,6 +91,7 @@
 
   .add-draw-btn {
     border: 1px solid var(--color-8);
+    margin-left: auto;
   }
 
   .add-game-btn {

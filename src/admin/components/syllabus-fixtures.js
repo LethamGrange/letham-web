@@ -4,14 +4,29 @@ import { html } from 'js/html.js';
 class SyllabusFixtures extends SyllabusBase {
   teamMap = new Map();
 
+  // Dynamic getter to keep count of how many draws exist
+  get currentDrawCount() {
+    if (!this.drawsContainer) return 0;
+    return this.drawsContainer.querySelectorAll('.nested-accordion-section').length;
+  }
+
   connectedCallback() {
+    if (typeof super.connectedCallback === 'function') {
+      super.connectedCallback();
+    }
+
     const teamsBlock = this.querySelector('.fixtures-zone');
     this.drawsContainer = this.querySelector('.draw-dates-container');
     this.fixturesZone = this.querySelector('.fixtures-zone');
+    this.globalPopover = this.querySelector('[popover]');
 
     const addDrawBtn = this.querySelector('.add-draw-btn');
 
-    addDrawBtn.addEventListener('click', () => this.onAddDraw());
+    addDrawBtn.addEventListener('click', () => this.onAddDraw()); // Listen for clicks on team buttons to fire open the global popover
+    this.addEventListener('click', e => {
+      alert('test');
+      //      this.handleTeamPickerClick(e);
+    });
   } // connectedCallback
 
   nextId() {
@@ -244,31 +259,35 @@ class SyllabusFixtures extends SyllabusBase {
   hydrate(jsonData) {
     this.drawsContainer.innerHTML = ''; // Clear existing session layout
 
-    jsonData.fixtures.forEach(draw => {
-      // 1. Build the main draw round block container
-      const drawBlock = this.renderDrawBlock(draw);
+    jsonData.fixtures.forEach(data => {
+      this.onAddDraw(data);
+    });
 
-      // // 2. Loop over this specific draw's child games array
-      // if (draw.games && draw.games.length > 0) {
-      //   // Find the specific wrapper inside your template where games belong
-      //   const gamesList = drawBlock.querySelector('.games-list-container');
-      //
-      //   for (const game of draw.games) {
-      //     // Build the game row, passing the draw block along so it can read its data-id
-      //     const gameBlock = this.renderGameBlock(drawBlock, game);
-      //     gamesList.appendChild(gameBlock);
-      //   }
-      // }
+    this.updateVisuals;
+  }
 
-      // 3. Mount the fully populated block to the page
-      this.drawsContainer.appendChild(drawBlock);
+  updateVisualDrawLabels() {
+    const draws = this.drawsContainer.querySelectorAll('.nested-accordion-section');
+    draws.forEach((draw, index) => {
+      const title = draw.querySelector('.nested-summary-title');
+      if (title) title.textContent = `Draw ${index + 1}`;
     });
   }
-  onAddDraw() {
+
+  updateVisuals() {
+    this.updateVisualDrawLabels();
+
+    this.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  onAddDraw(drawData) {
+    const draw = drawData ?? {};
+    const key = draw.id ?? this.generateId();
+    const name = draw.name ?? '';
+
     const freshDrawBlock = this.renderDrawBlock(); // No arguments = defaults to creation
     this.drawsContainer.appendChild(freshDrawBlock);
-
-    freshDrawBlock.dispatchEvent(new Event('input', { bubbles: true }));
+    if (!drawData) this.updateVisuals();
   }
 }
 
