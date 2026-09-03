@@ -164,7 +164,10 @@ class SyllabusFixtures extends SyllabusBase {
     });
 
     // Attach any game-specific listeners here if not using delegation
-    gameBlock.querySelector('.remove-game-btn').addEventListener('click', () => gameBlock.remove());
+    gameBlock.querySelector('.remove-game-btn').addEventListener('click', () => {
+      gameBlock.remove();
+      this.dispatchEvent(new Event('input', { bubbles: true }));
+    });
 
     return gameBlock;
   }
@@ -228,6 +231,7 @@ class SyllabusFixtures extends SyllabusBase {
 
     drawBlock.querySelector('.remove-draw-btn').addEventListener('click', () => {
       drawBlock.remove();
+      this.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     // Listen directly on the button instead of the entire block to avoid accidental click triggers

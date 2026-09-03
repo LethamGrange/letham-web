@@ -147,12 +147,31 @@ class SyllabusBuilder extends SyllabusBase {
           body: formData,
         });
 
-        if (!response.ok) throw new Error(`Save failed: ${response.status}`);
+        if (!response.ok) {
+          // 1. Check the HTTP status code (e.g., 400, 403, 500)
+          console.error(`Server returned status: ${response.status}`);
+
+          try {
+            // 2. Try to read the error message sent by the server
+            const errorData = await response.json();
+            console.error('Server error details:', errorData);
+          } catch (parseError) {
+            // Fallback if the server responded with plain text or HTML instead of JSON
+            const errorText = await response.text();
+            console.error('Server raw error text:', errorText);
+          }
+
+          return; // Stop execution since response.ok is false
+        }
 
         const result = await response.json();
 
         // 4. Update your local "Save Checkpoint" state model
         this.startingModel = result.fullModel;
+
+        const { id: competitionId } = result.competitionSummary;
+        const idEl = this.querySelector('input[type="hidden"]');
+        if (idEl) idEl.value = competitionId;
 
         this.isFormDirty = false;
         this.updateActionButtonsVisibility();

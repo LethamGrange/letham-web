@@ -68,7 +68,7 @@ class SyllabusTeams extends SyllabusBase {
           class="remove-row-btn"
           style="background:none; border:none; color:var(--red-6); cursor:pointer;"
         >
-          ✕ Remove
+          x
         </button>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -128,6 +128,7 @@ class SyllabusTeams extends SyllabusBase {
       div.remove();
       this.updateVisualTeamLabels();
       this.dispatchTeamsUpdate();
+      this.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     div.querySelector('input[type="text"].team-name').addEventListener('input', () => this.dispatchTeamsUpdate());
@@ -245,7 +246,7 @@ class SyllabusTeams extends SyllabusBase {
           class="remove-row-btn"
           style="background:none; border:none; color:var(--red-6); cursor:pointer;"
         >
-          ✕ Remove
+          <span>🗑️</span> Remove
         </button>
       </div>
 
