@@ -1,4 +1,4 @@
-<details class="accordion-section ui-accordion ui-card" open>
+<details class="accordion-teams-section ui-accordion ui-card">
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
     <div style="display: flex; flex-direction: column; gap: 4px">
       <div class="title-group">
@@ -65,15 +65,15 @@
     color: var(--color-8);
   }
 
-  .accordion-section[open] .accordion-header::before {
+  .accordion-teams-section[open] .accordion-header::before {
     transform: rotate(90deg);
   }
-  .accordion-section[open] .compact-preview {
+  .accordion-teams-section[open] .compact-preview {
     display: none !important;
   }
 
   /* 2. Display the text cleanly ONLY when the accordion is closed */
-  .accordion-section:not([open]) .compact-preview {
+  .accordion-teams-section:not([open]) .compact-preview {
     display: block;
     margin-top: 4px;
   }

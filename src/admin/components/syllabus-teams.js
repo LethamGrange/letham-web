@@ -141,6 +141,7 @@ class SyllabusTeams extends SyllabusBase {
   clear() {
     const tic = this.querySelector('.teams-input-container');
     tic.innerHTML = '';
+    this.updateVisualTeamLabels(); // Update visual counts instantly
   }
 
   renderTeamBlock(teamData) {
@@ -282,7 +283,7 @@ class SyllabusTeams extends SyllabusBase {
 
   onAddTeam() {
     // 1. Locate the container's parent <details> section safely
-    const accordionSection = this.teamsContainer.closest('.accordion-section');
+    const accordionSection = this.teamsContainer.closest('.accordion-teams-section');
 
     // 2. Ensure it has the "open" attribute so the new row is visible
     if (accordionSection && !accordionSection.hasAttribute('open')) {

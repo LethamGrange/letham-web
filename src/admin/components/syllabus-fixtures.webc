@@ -1,4 +1,4 @@
-<details class="accordion-section ui-accordion ui-card" open>
+<details class="accordion-section ui-accordion ui-card">
   <summary
     class="accordion-header"
     id="fixtures-summary-id"
@@ -83,6 +83,11 @@
     margin-right: var(--size-2, 8px);
     color: var(--color-6); /* Slightly more muted than parent var(--color-8) */
   }
+
+  .accordion-section[open] .accordion-header::before {
+    transform: rotate(90deg);
+  }
+
   .accordion-sectionX {
     border: 1px solid var(--border, var(--gray-8));
     padding: var(--size-3);
@@ -192,6 +197,10 @@
   }
   /* 1. Hide the preview text entirely when the user expands the accordion to edit inputs */
   .draw-round[open] .compact-preview {
+    display: none !important;
+  }
+
+  .accordion-section:not([open]) .toggle-all-draws-btn {
     display: none !important;
   }
 
