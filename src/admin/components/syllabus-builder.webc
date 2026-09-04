@@ -1,6 +1,6 @@
-<form>
+<form class="competition-form">
   <div class="title-wrapper">
-    <h2 class="form-mode-title">New competition</h2>
+    <h2 class="form-mode-title ui-h3">New competition</h2>
     <button
       type="button"
       commandfor="delete-confirm-modal"
@@ -106,8 +106,8 @@
     }
   }
 
-  :where(form) {
-    --_border-color: light-dark(var(--color-7), var(--color-10));
+  :where(form.competition-form) {
+    --_border-color-cf: light-dark(var(--color-7), var(--color-10));
 
     input,
     textarea {
@@ -116,7 +116,7 @@
 
     input,
     textarea {
-      border: 1px solid var(--_border-color);
+      border: 1px solid var(--_border-color-cf);
       border-radius: 0.5rem;
       padding: 0.5em 0.75em;
 
@@ -126,7 +126,7 @@
     }
 
     select {
-      border: 1px solid var(--_border-color);
+      border: 1px solid var(--_border-color-cf);
       background-color: var(--surface-default);
 
       &:focus-visible {

@@ -1,37 +1,59 @@
 <!-- ZONE 1: FIXED PARAMETERS -->
 <fieldset class="competition-zone">
   <legend>1. Competition Details</legend>
-  <label>Competition Name:</label>
-
   <input type="hidden" name="competition[id]" value="" />
-  <input type="text" name="competition[name]" required style="width: 250px" />
-
-  <label style="margin-left: 15px">Format:</label>
-  <select
-    class="ui-select"
-    id="competition-kind"
-    name="competition[kind]"
-    required
-  >
-    <option value="">-- Choose a kind --</option>
-    <option value="league" selected>League</option>
-    <option value="bonspiel">Bonspiel</option>
-    <option value="friendly">Friendly</option>
-  </select>
-
-  <!-- Add inside Fieldset 1 (Competition Details) right at the bottom -->
-  <div style="margin-top: var(--size-2)">
-    <label>Competition Reserves:</label><br />
+  <div class="form-group">
+    <label for="competition-name">Competition name</label>
     <input
       type="text"
+      id="competition-name"
+      name="competition[name]"
+      required
+      aria-describedby="competition-name-error"
+      styleX="width: 250px"
+    />
+
+    <span class="error-message" id="competition-name-error" aria-live="polite">
+      Competition name is required
+    </span>
+  </div>
+
+  <div class="form-group">
+    <label for="competition-kind">Format</label>
+    <select
+      class="ui-select"
+      id="competition-kind"
+      name="competition[kind]"
+      required
+      aria-describedby="competition-kind-error"
+    >
+      <option value="">-- Choose a kind --</option>
+      <option value="league" selected>League</option>
+      <option value="bonspiel">Bonspiel</option>
+      <option value="friendly">Friendly</option>
+    </select>
+
+    <span class="error-message" id="competition-kind-error" aria-live="polite">
+      Competition kind is required
+    </span>
+  </div>
+  <div class="form-group">
+    <label for="competition-reserves">Competition Reserves</label>
+    <input
+      type="text"
+      id="competition-reserves"
       name="competition[reserves]"
-      aria-describedby="reserves-help"
+      aria-describedby="competition-reserves-help"
       style="width: 100%"
     />
-    <!-- Dedicated help text underneath -->
-    <small id="reserves-help" class="form-help">
+
+    <span
+      class="help-message"
+      id="competition-reserves-help"
+      aria-live="polite"
+    >
       Enter a comma-separated list of names (e.g. John Hall, Jackie Hall).
-    </small>
+    </span>
   </div>
 </fieldset>
 
