@@ -95,6 +95,48 @@ class SyllabusFixtures extends SyllabusBase {
           }
         }
       });
+
+      if (event.target.closest('.toggle-all-draws-btn')) {
+        event.stopPropagation();
+
+        const toggleBtn = event.target.closest('.toggle-all-draws-btn');
+        const allDraws = Array.from(this.querySelectorAll('.draw-round'));
+        if (allDraws.length === 0) return;
+
+        // 1. Check if at least one drawer is currently expanded
+        const anyOpen = allDraws.some(accordion => accordion.hasAttribute('open'));
+
+        allDraws.forEach(accordion => {
+          if (anyOpen) {
+            // If anything is open, the goal is to collapse everything
+            accordion.removeAttribute('open');
+          } else {
+            // If everything was closed, the goal is to expand everything
+            accordion.setAttribute('open', '');
+          }
+        });
+
+        // 2. Symmetrically switch the button text to show the NEXT available action
+        toggleBtn.textContent = anyOpen ? 'Expand All' : 'Collapse All';
+        return;
+      }
+      // Listen for native accordion toggles anywhere inside this component
+      this.addEventListener(
+        'toggle',
+        event => {
+          const isDrawRound = event.target.matches('.draw-round');
+          if (!isDrawRound) return;
+
+          // Re-run your button text checking block to see if it should say "Expand All" or "Collapse All"
+          const toggleBtn = this.querySelector('.toggle-all-draws-btn');
+          if (toggleBtn) {
+            const allDraws = Array.from(this.querySelectorAll('.draw-round'));
+            const anyOpen = allDraws.some(accordion => accordion.hasAttribute('open'));
+            toggleBtn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+          }
+        },
+        { capture: true },
+      ); // Crucial: toggle events don't bubble, so capture handles delegation!
     });
   } // connectedCallback
 
@@ -320,15 +362,48 @@ class SyllabusFixtures extends SyllabusBase {
   }
 
   hydrate(jsonData) {
-    this.drawsContainer.innerHTML = ''; // Clear existing session layout
+    // 1. SNAPSHOT: Read our own internal state before nuking the DOM
+    const openStatesMap = new Map(
+      Array.from(this.querySelectorAll('.draw-round-block')).map(block => [
+        block.dataset.key,
+        block.querySelector('.draw-round')?.hasAttribute('open') ?? false,
+      ]),
+    );
+
+    // 2. PURGE & REBUILD: Run the standard data ingestion loop
+    this.drawsContainer.innerHTML = '';
 
     jsonData.fixtures.forEach(data => {
       this.onAddDraw(data);
     });
 
     this.updateVisualDrawLabels();
-  }
 
+    // 3. RESTORE: Cycle back through the new nodes and re-apply user view layouts
+    this.querySelectorAll('.draw-round-block').forEach(block => {
+      const wasOpen = openStatesMap.get(block.dataset.key);
+      const accordion = block.querySelector('.draw-round');
+
+      if (accordion) {
+        if (wasOpen) {
+          accordion.setAttribute('open', '');
+        } else {
+          accordion.removeAttribute('open'); // Fall back to closed if it wasn't open
+        }
+      }
+
+      // Refresh the compact dashboard string text for this specific round
+      this.updateVisualGameLabels(block);
+    });
+
+    // 4. SYNC HEADER ACTION: Force the macro toggle button to check the fresh screen environment
+    const toggleBtn = this.querySelector('.toggle-all-draws-btn');
+    if (toggleBtn) {
+      const allDraws = Array.from(this.querySelectorAll('.draw-round'));
+      const anyOpen = allDraws.some(acc => acc.hasAttribute('open'));
+      toggleBtn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+    }
+  }
   updateVisualGameLabels(drawRound) {
     if (!drawRound) return;
 
@@ -361,6 +436,14 @@ class SyllabusFixtures extends SyllabusBase {
   updateVisualDrawLabels() {
     if (this.counterBadge) {
       this.counterBadge.textContent = this.currentDrawCount;
+    }
+    const toggleBtn = this.querySelector('.toggle-all-draws-btn');
+    if (toggleBtn) {
+      const allDraws = Array.from(this.querySelectorAll('.draw-round'));
+      const anyOpen = allDraws.some(accordion => accordion.hasAttribute('open'));
+
+      // Keep the macro button label text matching the actual state of the screen
+      toggleBtn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
     }
   }
 

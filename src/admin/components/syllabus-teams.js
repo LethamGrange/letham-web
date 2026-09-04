@@ -14,6 +14,13 @@ class SyllabusTeams extends SyllabusBase {
 
     this.teamsContainer = this.querySelector('.teams-input-container');
     this.counterBadge = this.querySelector('.team-count-badge');
+    this.addEventListener('input', event => {
+      const isTeamNameInput = event.target.matches('.team-name');
+      if (!isTeamNameInput) return;
+
+      // Whenever they type, force the summary text preview layout string to refresh dynamically
+      this.updateVisualTeamLabels();
+    });
 
     // Inside connectedCallback or a dedicated init listener:
     this.addEventListener('click', event => {
@@ -80,20 +87,36 @@ class SyllabusTeams extends SyllabusBase {
   } // connectedCallback
 
   updateVisualTeamLabels() {
+    if (!this.teamsContainer) return;
+
     const cards = this.teamsContainer.querySelectorAll('.team-entry-card');
 
-    // 1. Line up the visual numbers (Team 1, Team 2...)
+    // 1. Line up sequential labels (Team 1, Team 2...)
     cards.forEach((card, index) => {
       const label = card.querySelector('.team-number-label');
       if (label) label.textContent = `Team ${index + 1}`;
     });
 
-    // 2. Read straight from your live getter to update the pill badge!
+    // 2. Sync raw pill count badge
     if (this.counterBadge) {
-      this.counterBadge.textContent = this.currentTeamCount;
+      this.counterBadge.textContent = cards.length;
+    }
+
+    // 3. GENERATE DYNAMIC DASHBOARD PREVIEW STRINGS
+    const previewSpan = this.querySelector('.compact-preview');
+    if (previewSpan) {
+      const teamNames = Array.from(cards).map((card, index) => {
+        const nameInput = card.querySelector('.team-name');
+        const nameValue = nameInput?.value?.trim();
+
+        // Output format matches index number sequence e.g., "1: Smith"
+        return `${index + 1}: ${nameValue || 'Unnamed Rink'}`;
+      });
+
+      // Join all team tokens separated with crisp horizontal dashboard spacing
+      previewSpan.textContent = teamNames.join('    ') || 'No teams entered yet.';
     }
   }
-
   dispatchTeamsUpdate() {
     // querySelectorAll preserves the exact DOM/visual order
     const cards = this.querySelectorAll('.team-entry-card');
