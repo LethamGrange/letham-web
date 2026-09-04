@@ -1,11 +1,21 @@
 <details class="accordion-section ui-accordion ui-card" open>
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
-    <div class="title-group">
-      <span class="summary-title">Teams / Rinks</span>
-      <!-- Custom, non-conflicting counter pill class -->
-      <span class="count-pill team-count-badge">0</span>
-    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div class="title-group">
+        <span class="summary-title">Teams / Rinks</span>
+        <span class="count-pill team-count-badge">0</span>
+      </div>
 
+      <!-- This line populates dynamically via updateVisualTeamLabels() -->
+      <span
+        class="compact-preview"
+        style="
+          font-size: var(--font-size-0);
+          color: var(--text-2);
+          font-weight: normal;
+        "
+      ></span>
+    </div>
     <button
       class="ui-button ui-primary add-team-btn"
       type="button"
@@ -57,6 +67,15 @@
 
   .accordion-section[open] .accordion-header::before {
     transform: rotate(90deg);
+  }
+  .accordion-section[open] .compact-preview {
+    display: none !important;
+  }
+
+  /* 2. Display the text cleanly ONLY when the accordion is closed */
+  .accordion-section:not([open]) .compact-preview {
+    display: block;
+    margin-top: 4px;
   }
 
   /* Flex group for text and its counter */

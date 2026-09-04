@@ -14,25 +14,109 @@ class SyllabusTeams extends SyllabusBase {
 
     this.teamsContainer = this.querySelector('.teams-input-container');
     this.counterBadge = this.querySelector('.team-count-badge');
-    const addTeamBtn = this.querySelector('.add-team-btn');
-    addTeamBtn.addEventListener('click', () => this.onAddTeam());
+    this.addEventListener('input', event => {
+      const isTeamNameInput = event.target.matches('.team-name');
+      if (!isTeamNameInput) return;
+
+      // Whenever they type, force the summary text preview layout string to refresh dynamically
+      this.updateVisualTeamLabels();
+    });
+
+    // Inside connectedCallback or a dedicated init listener:
+    this.addEventListener('click', event => {
+      // --- 1. HANDLE ADD TEAM BUTTON ---
+      if (event.target.closest('.add-team-btn')) {
+        event.stopPropagation();
+        this.onAddTeam();
+        return;
+      }
+
+      // --- 2. HANDLE REMOVE TEAM ROW BUTTON ---
+      const removeRowBtn = event.target.closest('.remove-row-btn');
+      if (removeRowBtn) {
+        event.stopPropagation();
+        const teamCard = removeRowBtn.closest('.team-entry-card');
+        if (teamCard) {
+          teamCard.remove();
+          this.updateVisualTeamLabels();
+          this.dispatchTeamsUpdate();
+          this.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+      }
+
+      // --- 3. HANDLE REMOVE CHIP BUTTON (From our previous refactor) ---
+      const removeChipBtn = event.target.closest('.remove-chip-btn');
+      if (removeChipBtn) {
+        event.stopPropagation();
+        const chip = removeChipBtn.closest('.player-chip, .pool-player-chip');
+        if (chip) {
+          chip.remove();
+          this.dispatchTeamsUpdate();
+          this.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+      }
+    });
+
+    this.addEventListener('keydown', event => {
+      const input = event.target;
+      const isChipInput = input.classList.contains('chip-text-input') || input.classList.contains('chip-pool-input');
+      if (!isChipInput) return;
+
+      if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        const isPool = input.classList.contains('chip-pool-input');
+        this.addChip(input, isPool);
+      }
+    });
+
+    // --- CENTRAL BLUR DELEGATOR (Using Capture to trap focus loss) ---
+    this.addEventListener(
+      'blur',
+      event => {
+        const input = event.target;
+        const isChipInput = input.classList.contains('chip-text-input') || input.classList.contains('chip-pool-input');
+        if (!isChipInput) return;
+
+        const isPool = input.classList.contains('chip-pool-input');
+        this.addChip(input, isPool);
+      },
+      { capture: true },
+    ); // Crucial: Capture must be true because blur doesn't bubble!
   } // connectedCallback
 
   updateVisualTeamLabels() {
+    if (!this.teamsContainer) return;
+
     const cards = this.teamsContainer.querySelectorAll('.team-entry-card');
 
-    // 1. Line up the visual numbers (Team 1, Team 2...)
+    // 1. Line up sequential labels (Team 1, Team 2...)
     cards.forEach((card, index) => {
       const label = card.querySelector('.team-number-label');
       if (label) label.textContent = `Team ${index + 1}`;
     });
 
-    // 2. Read straight from your live getter to update the pill badge!
+    // 2. Sync raw pill count badge
     if (this.counterBadge) {
-      this.counterBadge.textContent = this.currentTeamCount;
+      this.counterBadge.textContent = cards.length;
+    }
+
+    // 3. GENERATE DYNAMIC DASHBOARD PREVIEW STRINGS
+    const previewSpan = this.querySelector('.compact-preview');
+    if (previewSpan) {
+      const teamNames = Array.from(cards).map((card, index) => {
+        const nameInput = card.querySelector('.team-name');
+        const nameValue = nameInput?.value?.trim();
+
+        // Output format matches index number sequence e.g., "1: Smith"
+        return `${index + 1}: ${nameValue || 'Unnamed Rink'}`;
+      });
+
+      // Join all team tokens separated with crisp horizontal dashboard spacing
+      previewSpan.textContent = teamNames.join('    ') || 'No teams entered yet.';
     }
   }
-
   dispatchTeamsUpdate() {
     // querySelectorAll preserves the exact DOM/visual order
     const cards = this.querySelectorAll('.team-entry-card');
@@ -133,42 +217,7 @@ class SyllabusTeams extends SyllabusBase {
 
     div.innerHTML = teamHtml;
 
-    // Wire up structural layout control buttons
-    div.querySelector('.remove-row-btn').addEventListener('click', () => {
-      div.remove();
-      this.updateVisualTeamLabels();
-      this.dispatchTeamsUpdate();
-      this.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-
     div.querySelector('input[type="text"].team-name').addEventListener('input', () => this.dispatchTeamsUpdate());
-
-    // Attach dynamic chip listeners uniformly using the configuration details
-    sections.forEach(sec => {
-      const input = div.querySelector(`.${sec.inputClass}`);
-
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ',') {
-          e.preventDefault();
-          this.addChip(input, sec.isPool);
-        }
-      });
-
-      input.addEventListener('blur', () => this.addChip(input, sec.isPool));
-    });
-
-    // Target all existing chips inside the container in one sweeping operation
-    div.querySelectorAll('.remove-chip-btn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation(); // Stop any bubbling side-effects
-        const chip = btn.closest('.player-chip, .pool-player-chip');
-        if (chip) {
-          chip.remove();
-          this.dispatchTeamsUpdate();
-          this.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      });
-    });
     return div;
   }
 
@@ -209,9 +258,6 @@ class SyllabusTeams extends SyllabusBase {
     ${roleInput}
   `;
 
-    chip.addEventListener('click', () => chip.remove());
-
-    // Insert the chip visually right before the text box
     inputField.before(chip);
     inputField.value = ''; // Empty the input for the next entry
   }

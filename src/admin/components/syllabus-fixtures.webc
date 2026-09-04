@@ -9,11 +9,24 @@
       <!-- Tracks total number of Scheduled Rounds at a glance -->
       <span class="count-pill fixture-count-badge">0</span>
     </div>
+    <div style="display: flex; gap: var(--size-2, 8px); margin-left: auto">
+      <!-- New Collapse All Button -->
+      <button
+        class="ui-button toggle-all-draws-btn"
+        type="button"
+        style="border: 1px solid var(--border)"
+      >
+        ↔ Collapse All
+      </button>
 
-    <!-- This button stays clickable even when the outer accordion is closed -->
-    <button class="ui-button ui-primary add-draw-btn" type="button">
-      ＋ Add New Draw Date / Round
-    </button>
+      <button
+        class="ui-button ui-primary add-draw-btn"
+        type="button"
+        style="border: 1px solid var(--color-8)"
+      >
+        ＋ Add New Draw Date / Round
+      </button>
+    </div>
   </summary>
 
   <div
