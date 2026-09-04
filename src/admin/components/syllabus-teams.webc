@@ -1,4 +1,4 @@
-<details class="accordion-section ui-accordion ui-card" open>
+<details class="accordion-teams-section ui-accordion ui-card">
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
     <div style="display: flex; flex-direction: column; gap: 4px">
       <div class="title-group">
@@ -27,19 +27,15 @@
 
   <div
     id="content-id"
-    class="ui-content accordion-content team-cards-container"
+    class="ui-content accordion-content team-cards-container teams-input-container"
     role="region"
     aria-labelledby="summary-id"
-  >
-    <div class="teams-input-container">
-      <!-- JavaScript appends Team 1, Team 2, etc. here on click -->
-    </div>
-  </div>
+  ></div>
 </details>
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
-<style>
+<style webc:bucket="syllabus">
   /* Custom summary row using your Open Props setup */
   .accordion-header {
     display: flex;
@@ -65,15 +61,15 @@
     color: var(--color-8);
   }
 
-  .accordion-section[open] .accordion-header::before {
+  .accordion-teams-section[open] .accordion-header::before {
     transform: rotate(90deg);
   }
-  .accordion-section[open] .compact-preview {
+  .accordion-teams-section[open] .compact-preview {
     display: none !important;
   }
 
   /* 2. Display the text cleanly ONLY when the accordion is closed */
-  .accordion-section:not([open]) .compact-preview {
+  .accordion-teams-section:not([open]) .compact-preview {
     display: block;
     margin-top: 4px;
   }
@@ -128,19 +124,24 @@
     gap: 10px;
     margin-bottom: 15px;
   }
+
+  .team-entry-card {
+    border: 1px solid var(--border);
+    padding: var(--size-2);
+    border-radius: var(--radius-1);
+    background: var(--surface-2);
+  }
+
   .player-chip-field {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 6px;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    background: white;
+    gap: var(--size-2, 8px);
+    align-items: center;
   }
 
   .player-chip,
   .pool-player-chip {
-    background: #e2e8f0;
+    background: var(--gray-5);
     color: #1e293b;
     padding: 2px 8px;
     border-radius: 9999px; /* Make it a pill shape */
@@ -148,13 +149,18 @@
     align-items: center;
     gap: 6px;
     font-size: 0.875rem;
+    order: 0;
+  }
+  .chip-text-input,
+  .chip-pool-input {
+    order: -1; /* Negative order shifts this item to the absolute beginning */
+    flex-basis: 100%; /* Forces the input field to take up exactly 100% of the horizontal lane width */
+    width: 100%; /* Keeps browser fallback render safe */
   }
 
   .chip-text-input {
     border: none;
     outline: none;
-    flex-grow: 1; /* Stretch to occupy remaining space */
-    min-width: 120px;
   }
 
   .remove-chip-btn {

@@ -6,8 +6,7 @@ headerAlt: Letham Grange logo
 headerPosition: center
 ---
 
-<h1 class="ui-h2">Syllabus & Diary Admin</h1>
-<div id="form-error-banner"></div>
+<h1 class="ui-h2 breakout">Syllabus & Diary Admin</h1>
 
 <syllabus-builder class="breakout"></syllabus-builder>
 

@@ -141,6 +141,7 @@ class SyllabusTeams extends SyllabusBase {
   clear() {
     const tic = this.querySelector('.teams-input-container');
     tic.innerHTML = '';
+    this.updateVisualTeamLabels(); // Update visual counts instantly
   }
 
   renderTeamBlock(teamData) {
@@ -151,7 +152,6 @@ class SyllabusTeams extends SyllabusBase {
     const div = document.createElement('div');
     div.dataset.key = key;
     div.className = 'team-entry-card';
-    div.style.cssText = `border: 1px solid var(--border); padding: var(--size-2); border-radius: var(--radius-1); background: var(--surface-2);`;
 
     // Start with common Header and Team Name layout inputs
     let teamHtml = html`
@@ -165,8 +165,20 @@ class SyllabusTeams extends SyllabusBase {
           x
         </button>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <input class="team-name" type="text" name="team[${key}].name" value="${name}" style="width:100%;" required />
+      <div class="form-group">
+        <label for="team-name-${key}">Name</label>
+        <input
+          id="team-name-${key}"
+          class="team-name"
+          type="text"
+          aria-describedby="team-name-error-${key}"
+          name="team[${key}].name"
+          value="${name}"
+          style="width:100%;"
+          required
+        />
+
+        <span class="error-message" id="team-name-error-${key}" aria-live="polite">Team name is required </span>
       </div>
     `;
 
@@ -205,11 +217,10 @@ class SyllabusTeams extends SyllabusBase {
       }
 
       teamHtml += html`
-        <div>
-          <label style="font-size: var(--font-size-0); color: var(--text-2);">${sec.label}</label>
+        <div class="form-group">
+          <label for="competition-name">${sec.label}</label>
           <div class="player-chip-field">
-            ${chipHtml}
-            <input type="text" class="${sec.inputClass}" placeholder="Type name and press Enter..." />
+            <input type="text" class="${sec.inputClass}" placeholder="Type name and press Enter..." /> ${chipHtml}
           </div>
         </div>
       `;
@@ -228,6 +239,8 @@ class SyllabusTeams extends SyllabusBase {
     const teamKey = inputField.closest('.team-entry-card').dataset.key;
     const tempPlayerId = this.generateId();
     const typeKey = isPool ? 'poolplayer' : 'player';
+    // Find the wrapper container element holding all the chips and the input field
+    const chipFieldContainer = inputField.closest('.player-chip-field');
 
     let name = rawValue;
     let role = 'regular';
@@ -258,8 +271,9 @@ class SyllabusTeams extends SyllabusBase {
     ${roleInput}
   `;
 
-    inputField.before(chip);
-    inputField.value = ''; // Empty the input for the next entry
+    chipFieldContainer.appendChild(chip);
+
+    inputField.value = ''; // Empty the input
   }
 
   hydrate(data) {
@@ -282,7 +296,7 @@ class SyllabusTeams extends SyllabusBase {
 
   onAddTeam() {
     // 1. Locate the container's parent <details> section safely
-    const accordionSection = this.teamsContainer.closest('.accordion-section');
+    const accordionSection = this.teamsContainer.closest('.accordion-teams-section');
 
     // 2. Ensure it has the "open" attribute so the new row is visible
     if (accordionSection && !accordionSection.hasAttribute('open')) {

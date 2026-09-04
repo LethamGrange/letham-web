@@ -30,7 +30,7 @@
 
     <!-- 1. CRUCIAL: Establish layer order explicitly in raw HTML -->
     <style webc:keep>
-      @layer openprops, theme, normalize, custom.reset, custom.base, components.root, components.extended, utils;
+      @layer openprops, theme, normalize, custom.reset, custom.base, components.root, components.extended, components.features, utils;
     </style>
     <link rel="stylesheet" href="/css/main.css" webc:keep />
 

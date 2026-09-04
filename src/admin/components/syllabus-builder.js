@@ -124,6 +124,9 @@ class SyllabusBuilder extends SyllabusBase {
     if (syllabusFixtures) {
       syllabusFixtures.clear();
     }
+
+    this.isFormDirty = false;
+    this.updateActionButtonsVisibility();
   }
 
   // Inside your syllabus-builder component setup

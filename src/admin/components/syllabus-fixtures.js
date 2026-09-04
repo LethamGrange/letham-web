@@ -143,6 +143,7 @@ class SyllabusFixtures extends SyllabusBase {
   clear() {
     const ddc = this.querySelector('.draws-container');
     ddc.innerHTML = '';
+    this.updateVisualDrawLabels();
   }
 
   updateAllFixtureDropdowns() {
@@ -451,6 +452,14 @@ class SyllabusFixtures extends SyllabusBase {
     const draw = drawData ?? {};
     const key = draw.id ?? this.generateId();
     const name = draw.name ?? '';
+
+    // 1. Locate the container's parent <details> section safely
+    const accordionSection = this.drawsContainer.closest('.accordion-section');
+
+    // 2. Ensure it has the "open" attribute so the new row is visible
+    if (accordionSection && !accordionSection.hasAttribute('open')) {
+      accordionSection.setAttribute('open', '');
+    }
 
     const freshDrawBlock = this.renderDrawBlock(drawData); // No arguments = defaults to creation
     this.drawsContainer.appendChild(freshDrawBlock);
