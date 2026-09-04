@@ -1,0 +1,5 @@
+<style webc:bucket="syllabus">
+  .Xaccordion-header {
+    background-color: cyan;
+  }
+</style>

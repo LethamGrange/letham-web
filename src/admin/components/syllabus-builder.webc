@@ -12,6 +12,8 @@
   </div>
   <div class="form-error-banner"></div>
 
+  <shared-syllabus webc:nokeep></shared-syllabus>
+
   <competition-meta></competition-meta>
   <syllabus-teams></syllabus-teams>
   <syllabus-fixtures></syllabus-fixtures>
@@ -79,8 +81,7 @@
 </dialog>
 
 <script type="module" src="/js/syllabus-builder.js" webc:keep></script>
-
-<style>
+<style webc:bucket="syllabus">
   @layer components.extended {
     .ui-tonal.action-cancel {
       /* Light Mode: Super soft color tint

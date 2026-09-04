@@ -45,7 +45,7 @@
 
 <script type="module" src="/js/syllabus-fixtures.js" webc:keep></script>
 
-<style>
+<style webc:bucket="syllabus">
   .global-team-picker {
     padding: 10px;
     border: 1px solid var(--border);

@@ -39,7 +39,7 @@
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
-<style>
+<style webc:bucket="syllabus">
   /* Custom summary row using your Open Props setup */
   .accordion-header {
     display: flex;
