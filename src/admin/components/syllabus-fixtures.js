@@ -200,11 +200,11 @@ class SyllabusFixtures extends SyllabusBase {
     // Re-generate list items from your teamMap state
     let targetHtml = '';
     this.teamMap.forEach((value, key) => {
-      targetHtml += this.html`
-      <button type="button" class="popover-selection-btn" data-team-key="${key}">
-        ${value.index + 1}: ${value.name || 'Unnamed Team'}
-      </button>
-    `;
+      targetHtml += html`
+        <button type="button" class="popover-selection-btn" data-team-key="${key}">
+          ${value.index + 1}: ${value.name || 'Unnamed Team'}
+        </button>
+      `;
     });
 
     this.globalPopover.innerHTML =
