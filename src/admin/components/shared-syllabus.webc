@@ -178,5 +178,32 @@
         }
       }
     }
+
+    /* Custom summary row using your Open Props setup */
+    .accordion-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between; /* Pushes title-group and button apart */
+      cursor: pointer;
+      padding: var(--size-3, 12px);
+      user-select: none;
+      list-style: none;
+    }
+
+    .accordion-header::-webkit-details-marker {
+      display: none;
+    }
+
+    /* Custom Marker */
+    .accordion-header::before {
+      content: "▶";
+      font-size: 0.75em;
+      display: inline-block;
+      margin-top: 4px; /* Tiny adjustment to center the arrow vertically with just the text line */
+      margin-right: var(--size-2, 8px);
+      transition: transform 0.2s ease;
+      color: var(--color-8);
+      flex-shrink: 0; /* Prevents the arrow from squeezing if text wraps */
+    }
   }
 </style>

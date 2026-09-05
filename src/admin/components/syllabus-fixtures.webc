@@ -88,12 +88,7 @@
     transform: rotate(90deg);
   }
 
-  .accordion-sectionX {
-    border: 1px solid var(--border, var(--gray-8));
-    padding: var(--size-3);
-    margin-bottom: var(--size-3);
-    border-radius: var(--radius-2);
-  } /* This replaces the fieldset look cleanly */
+  /* This replaces the fieldset look cleanly */
   .accordion-section.ui-card {
     background: var(--surface-default);
     border: 1px solid var(--border, var(--gray-8));
