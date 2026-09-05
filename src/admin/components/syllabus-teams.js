@@ -6,6 +6,15 @@ class SyllabusTeams extends SyllabusBase {
     if (!this.teamsContainer) return 0;
     return this.teamsContainer.querySelectorAll('.team-entry-card').length;
   }
+
+  get roleDisplayMap() {
+    return {
+      skip: 's',
+      third: '3',
+      second: '2',
+      lead: '1',
+    };
+  }
   connectedCallback() {
     if (typeof super.connectedCallback === 'function') {
       super.connectedCallback();
@@ -14,12 +23,19 @@ class SyllabusTeams extends SyllabusBase {
 
     this.teamsContainer = this.querySelector('.teams-input-container');
     this.counterBadge = this.querySelector('.team-count-badge');
-    this.addEventListener('input', event => {
-      const isTeamNameInput = event.target.matches('.team-name');
-      if (!isTeamNameInput) return;
 
-      // Whenever they type, force the summary text preview layout string to refresh dynamically
-      this.updateVisualTeamLabels();
+    this.addEventListener('input', event => {
+      // A: Handle Team Name updates live
+      if (event.target.matches('.team-name')) {
+        this.dispatchTeamsUpdate();
+        return;
+      }
+
+      // B: Handle your summary preview title rendering updates (from your prior step!)
+      if (event.target.matches('.team-name')) {
+        this.updateVisualTeamLabels();
+        return;
+      }
     });
 
     // Inside connectedCallback or a dedicated init listener:
@@ -30,6 +46,8 @@ class SyllabusTeams extends SyllabusBase {
         this.onAddTeam();
         return;
       }
+
+      this.handlePlayerTextClick(event);
 
       // --- 2. HANDLE REMOVE TEAM ROW BUTTON ---
       const removeRowBtn = event.target.closest('.remove-row-btn');
@@ -59,33 +77,135 @@ class SyllabusTeams extends SyllabusBase {
       }
     });
 
-    this.addEventListener('keydown', event => {
-      const input = event.target;
-      const isChipInput = input.classList.contains('chip-text-input') || input.classList.contains('chip-pool-input');
-      if (!isChipInput) return;
+    this.addEventListener('keydown', event => this.handlePlayerKeyOrBlur(event));
 
-      if (event.key === 'Enter' || event.key === ',') {
-        event.preventDefault();
-        const isPool = input.classList.contains('chip-pool-input');
-        this.addChip(input, isPool);
-      }
-    });
-
-    // --- CENTRAL BLUR DELEGATOR (Using Capture to trap focus loss) ---
+    // --- CENTRAL BLUR DELEGATOR ---
     this.addEventListener(
       'blur',
-      event => {
-        const input = event.target;
-        const isChipInput = input.classList.contains('chip-text-input') || input.classList.contains('chip-pool-input');
-        if (!isChipInput) return;
-
-        const isPool = input.classList.contains('chip-pool-input');
-        this.addChip(input, isPool);
-      },
-      { capture: true },
-    ); // Crucial: Capture must be true because blur doesn't bubble!
+      event => this.handlePlayerKeyOrBlur(event),
+      { capture: true }, // Keep capture true!
+    );
   } // connectedCallback
 
+  handlePlayerKeyOrBlur(event) {
+    const input = event.target;
+    const isTextField = input.classList.contains('chip-text-input') || input.classList.contains('chip-pool-input');
+    if (!isTextField) return;
+
+    const isBlur = event.type === 'blur';
+    const isEnter = event.type === 'keydown' && event.key === 'Enter';
+
+    // Explicit condition: Process if the user clicks away OR presses Enter
+    if (isBlur || isEnter) {
+      if (isEnter) {
+        event.preventDefault(); // Stop Enter from trying to natively submit the form
+      }
+
+      const cardContext = input.closest('.team-entry-card');
+      const isPool = input.classList.contains('chip-pool-input');
+      const inputClass = isPool ? 'chip-pool-input' : 'chip-text-input';
+
+      this.addPlayerToken(cardContext, inputClass, isPool);
+
+      // Force your master summary title previews to update instantly
+      this.updateVisualTeamLabels();
+    }
+  }
+  handlePlayerTextClick(event) {
+    const playerToken = event.target.closest('.player-text-token');
+    if (playerToken) {
+      event.stopPropagation();
+
+      const popover = this.querySelector('#player-action-popover');
+      const isPool = playerToken.dataset.isPool === 'true';
+      const pName = playerToken.querySelector('.player-display-name').textContent;
+      const pId = playerToken.dataset.playerId;
+
+      // 1. SAFELY GRAB THE TEAM KEY RELATIVELY
+      const teamCard = playerToken.closest('.team-entry-card');
+      const teamKey = teamCard ? teamCard.dataset.key : '';
+
+      // 2. Cache the contextual keys onto the popover's dataset properties
+      popover.dataset.teamKey = teamKey;
+      popover.dataset.playerId = pId;
+
+      // Anchor the popover visually to the word text natively
+      playerToken.style.setProperty('anchor-name', '--active-player-token');
+      popover.style.positionAnchor = '--active-player-token';
+
+      // Generate contextual options
+      let menuHtml = html`<div
+        style="font-weight:bold; font-size:var(--font-size-0); padding: 4px 8px; color:var(--text-2);"
+      >
+        ${pName}
+      </div>`;
+
+      if (!isPool) {
+        menuHtml += html`
+          <button type="button" class="menu-action-btn" data-action="set-role" data-role="skip">
+            👑 Make Skip (s)
+          </button>
+          <button type="button" class="menu-action-btn" data-action="set-role" data-role="third">
+            🥌 Make Third (3)
+          </button>
+          <button type="button" class="menu-action-btn" data-action="set-role" data-role="second">
+            🥌 Make Second (2)
+          </button>
+          <button type="button" class="menu-action-btn" data-action="set-role" data-role="lead">
+            🥌 Make Lead (1)
+          </button>
+          <button type="button" class="menu-action-btn" data-action="set-role" data-role="regular">
+            🧼 Clear Role
+          </button>
+        `;
+      }
+
+      menuHtml += html`<button type="button" class="menu-action-btn remove-player-confirmed">🗑️ Remove Player</button>`;
+
+      popover.innerHTML = menuHtml;
+      popover.showPopover();
+
+      // 3. Capture Action Menu Choices
+      popover.onclick = menuEvent => {
+        const actionBtn = menuEvent.target.closest('.menu-action-btn, .remove-player-confirmed');
+        if (!actionBtn) return;
+
+        // Read the cached layout context keys straight off the popover node!
+        const activeTeamKey = popover.dataset.teamKey;
+        const activePlayerId = popover.dataset.playerId;
+        const typeKey = isPool ? 'poolplayer' : 'player';
+
+        if (actionBtn.classList.contains('remove-player-confirmed')) {
+          playerToken.remove();
+        } else if (actionBtn.dataset.action === 'set-role') {
+          const nextRole = actionBtn.dataset.role;
+          playerToken.dataset.role = nextRole;
+
+          // Re-map the clean short codes
+          const displayAbbreviation = this.roleDisplayMap[nextRole];
+          const roleDisplay = !isPool && displayAbbreviation ? ` (${displayAbbreviation})` : '';
+
+          // The screen sees "John (s)" but the hidden form inputs pass pristine array mappings to the server
+          const roleInput = !isPool
+            ? `<input type="hidden" name="team[${activeTeamKey}].player[${activePlayerId}].role" value="${nextRole}">`
+            : '';
+
+          playerToken.innerHTML = `
+        <span class="player-display-name">${pName}</span>${roleDisplay}
+        <input type="hidden" name="team[${activeTeamKey}].${typeKey}[${activePlayerId}].name" value="${pName}">
+        ${roleInput}
+      `;
+        }
+
+        this.updateVisualTeamLabels();
+        this.dispatchTeamsUpdate();
+        this.dispatchEvent(new Event('input', { bubbles: true }));
+        popover.hidePopover();
+      };
+
+      return;
+    }
+  }
   updateVisualTeamLabels() {
     if (!this.teamsContainer) return;
 
@@ -153,8 +273,8 @@ class SyllabusTeams extends SyllabusBase {
     div.dataset.key = key;
     div.className = 'team-entry-card';
 
-    // Start with common Header and Team Name layout inputs
-    let teamHtml = html`
+    // Define layout structures cleanly—no inner loops!
+    div.innerHTML = html`
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <label style="font-weight: bold;" class="team-number-label"></label>
         <button
@@ -165,115 +285,137 @@ class SyllabusTeams extends SyllabusBase {
           x
         </button>
       </div>
-      <div class="form-group">
-        <label for="team-name-${key}">Name</label>
-        <input
-          id="team-name-${key}"
-          class="team-name"
-          type="text"
-          aria-describedby="team-name-error-${key}"
-          name="team[${key}].name"
-          value="${name}"
-          style="width:100%;"
-          required
-        />
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <!-- Hoisted listener: no inline attachment here -->
+        <input class="team-name" type="text" name="team[${key}].name" value="${name}" style="width:100%;" required />
+      </div>
 
-        <span class="error-message" id="team-name-error-${key}" aria-live="polite">Team name is required </span>
+      <div class="form-group">
+        <label>Team players (Add (s) after the skip's name)</label>
+        <div class="player-chip-field">
+          <input type="text" class="chip-text-input" placeholder="Type name and press Enter..." />
+          <!-- Container line for text tokens -->
+          <div class="team-players-line player-text-line"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Pool players</label>
+        <div class="player-chip-field">
+          <input type="text" class="chip-pool-input" placeholder="Type name and press Enter..." />
+          <!-- Container line for pool tokens -->
+          <div class="pool-players-line player-text-line"></div>
+        </div>
       </div>
     `;
 
-    // Section loop handles layout configuration for regular players vs pool players
-    const sections = [
-      {
-        data: team.players ?? [],
-        isPool: false,
-        className: 'player-chip',
-        inputClass: 'chip-text-input',
-        label: "Team players (Add (s) after the skip's name)",
-      },
-      {
-        data: team.pool_players ?? [],
-        isPool: true,
-        className: 'pool-player-chip',
-        inputClass: 'chip-pool-input',
-        label: 'Pool players',
-      },
-    ];
+    // 2. HYDRATION PASS: Instantly loop data and feed it right through your single rendering method
+    const regularPlayers = team.players ?? [];
+    regularPlayers.forEach(p => this.addPlayerToken(div, 'chip-text-input', false, p));
 
-    sections.forEach(sec => {
-      let chipHtml = '';
-      for (const player of sec.data) {
-        const typeKey = sec.isPool ? 'poolplayer' : 'player';
-        const roleDisplay = !sec.isPool && player.role && player.role !== 'regular' ? `(${player.role})` : '';
-        const roleInput = !sec.isPool
-          ? `<input type="hidden" name="team[${key}].player[${player.id}].role" value="${player.role}" />`
-          : '';
+    const poolPlayers = team.pool_players ?? [];
+    poolPlayers.forEach(p => this.addPlayerToken(div, 'chip-pool-input', true, p));
 
-        chipHtml += html` <span class="${sec.className}" data-id="${player.id}">
-          ${player.name}${roleDisplay}<button type="button" class="remove-chip-btn">✕</button>
-          <input type="hidden" name="team[${key}].${typeKey}[${player.id}].name" value="${player.name}" />
-          ${roleInput}
-        </span>`;
-      }
-
-      teamHtml += html`
-        <div class="form-group">
-          <label for="competition-name">${sec.label}</label>
-          <div class="player-chip-field">
-            <input type="text" class="${sec.inputClass}" placeholder="Type name and press Enter..." /> ${chipHtml}
-          </div>
-        </div>
-      `;
-    });
-
-    div.innerHTML = teamHtml;
-
-    div.querySelector('input[type="text"].team-name').addEventListener('input', () => this.dispatchTeamsUpdate());
     return div;
   }
 
-  addChip(inputField, isPool = false) {
-    const rawValue = inputField.value.trim().replace(/,$/, '');
-    if (!rawValue) return;
+  normalizeRole(shorthand) {
+    if (!shorthand) return 'regular';
+    const clean = shorthand.trim().toLowerCase();
 
-    const teamKey = inputField.closest('.team-entry-card').dataset.key;
-    const tempPlayerId = this.generateId();
+    if (clean === '4') return 'skip';
+    if (clean === '3') return 'third';
+    if (clean === '2') return 'second';
+    if (clean === '1') return 'lead';
+
+    if (clean.startsWith('s')) return 'skip';
+    if (clean.startsWith('t') || clean.startsWith('v')) return 'third'; // Catches vice/vice-skip
+    if (clean.startsWith('se')) return 'second';
+    if (clean.startsWith('l') || clean.startsWith('f')) return 'lead'; // Catches lead/first
+
+    return 'regular';
+  }
+
+  addPlayerToken(cardContext, inputClass, isPool = false, playerData = null) {
+    const inputField = cardContext.querySelector(`.${inputClass}`);
+    const teamKey = cardContext.dataset.key;
     const typeKey = isPool ? 'poolplayer' : 'player';
-    // Find the wrapper container element holding all the chips and the input field
-    const chipFieldContainer = inputField.closest('.player-chip-field');
+    const targetLine = cardContext.querySelector(isPool ? '.pool-players-line' : '.team-players-line');
 
-    let name = rawValue;
-    let role = 'regular';
-
-    // Only parse roles out if it is NOT a pool player
-    if (!isPool) {
-      const roleMatch = rawValue.match(/(.*)\((skip|third|second|lead|regular)\)/i);
-      if (roleMatch) {
-        name = roleMatch[1].trim();
-        role = roleMatch[2].toLowerCase();
-      }
+    // --- FLOW A: INITIAL HYDRATION (Reading from passed database object) ---
+    if (playerData) {
+      this.createPlayerElement(targetLine, teamKey, typeKey, isPool, {
+        id: playerData.id ?? this.generateId(),
+        name: playerData.name ?? '',
+        role: playerData.role ?? 'regular',
+      });
+      return;
     }
 
-    // Create the visual pill container
-    const chip = document.createElement('span');
-    chip.className = isPool ? 'pool-player-chip' : 'player-chip';
+    // --- FLOW B: LIVE USER ENTER FLOW (Handles single items OR bulk comma-split entry) ---
+    const rawInput = inputField?.value?.trim() ?? '';
+    if (!rawInput) return;
 
-    // Conditionally include role badge layout for normal players
-    const roleDisplay = !isPool && role !== 'regular' ? ` (${role})` : '';
+    // Split by commas, filter out any accidental empty slots
+    const playerStrings = rawInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    playerStrings.forEach(playerStr => {
+      let name = playerStr;
+      let role = 'regular';
+      const tempPlayerId = this.generateId();
+
+      if (!isPool) {
+        // Regex captures the name in group [1] and whatever text is inside the brackets in group [2]
+        const genericBracketMatch = playerStr.match(/(.*)\((.*)\)/i);
+        if (genericBracketMatch) {
+          name = genericBracketMatch[1].trim();
+          role = this.normalizeRole(genericBracketMatch[2]);
+        }
+      }
+
+      this.createPlayerElement(targetLine, teamKey, typeKey, isPool, {
+        id: tempPlayerId,
+        name: name,
+        role: role,
+      });
+    });
+
+    // Clear input field cleanly after all tokens are printed
+    if (inputField) inputField.value = '';
+  }
+
+  createPlayerElement(targetLine, teamKey, typeKey, isPool, player) {
+    const token = document.createElement('button');
+    token.type = 'button';
+    token.className = 'player-text-token';
+    token.dataset.playerId = player.id;
+    token.dataset.role = player.role;
+    token.dataset.isPool = isPool; // 1. Map database terms to the requested ultra-clear short labels
+    const shortDisplayMap = {
+      skip: 's',
+      third: '3',
+      second: '2',
+      lead: '1',
+    };
+
+    const displayAbbreviation = this.roleDisplayMap[player.role];
+    const roleDisplay = !isPool && displayAbbreviation ? ` (${displayAbbreviation})` : '';
+
+    // 2. The screen sees "John (s)" but the hidden form input passes "skip" safely to the server!
     const roleInput = !isPool
-      ? `<input type="hidden" name="team[${teamKey}].player[${tempPlayerId}].role" value="${role}">`
+      ? html`<input type="hidden" name="team[${teamKey}].player[${player.id}].role" value="${player.role}" />`
       : '';
 
-    chip.innerHTML = `
-    ${name}${roleDisplay}
-    <button type="button" class="remove-chip-btn">✕</button>
-    <input type="hidden" name="team[${teamKey}].${typeKey}[${tempPlayerId}].name" value="${name}">
-    ${roleInput}
-  `;
+    token.innerHTML = html`
+      <span class="player-display-name">${player.name}</span>${roleDisplay}
+      <input type="hidden" name="team[${teamKey}].${typeKey}[${player.id}].name" value="${player.name}" />
+      ${roleInput}
+    `;
 
-    chipFieldContainer.appendChild(chip);
-
-    inputField.value = ''; // Empty the input
+    if (targetLine) targetLine.appendChild(token);
   }
 
   hydrate(data) {
