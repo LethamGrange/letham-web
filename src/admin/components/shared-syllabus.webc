@@ -178,5 +178,96 @@
         }
       }
     }
+    .accordion-section {
+      &[open] .accordion-header::before {
+        transform: rotate(90deg);
+      }
+
+      /* This replaces the fieldset look cleanly */
+      &.ui-card {
+        background: var(--surface-default);
+        border: 1px solid var(--border, var(--gray-8));
+        border-radius: var(--radius-2, 8px);
+        margin-bottom: var(--size-4, 16px);
+        overflow: hidden; /* Prevents background color bleeding past corners */
+      }
+
+      /* Ensure content has padding only when the details section is open */
+      &[open] .accordion-content {
+        padding: var(--size-3, 12px);
+        display: flex;
+        flex-direction: column;
+        gap: var(--size-3, 12px);
+      }
+
+      &[open] .compact-preview {
+        display: none;
+      }
+
+      /* 2. Display the text cleanly ONLY when the accordion is closed */
+      &:not([open]) .compact-preview {
+        display: block;
+        font-size: var(--font-size-0);
+        color: var(--text-2);
+        font-weight: normal;
+      }
+
+      /* Flex group for text and its counter */
+      .title-group {
+        display: flex;
+        align-items: center;
+        gap: var(--size-2, 8px);
+      }
+
+      .title-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-grow: 1; /* Pushes the "Add Team" button out to the far right side */
+      }
+    }
+
+    /* Custom summary row using your Open Props setup */
+    .accordion-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between; /* Pushes title-group and button apart */
+      cursor: pointer;
+      padding: var(--size-3, 12px);
+      user-select: none;
+      list-style: none;
+    }
+
+    .accordion-header::-webkit-details-marker {
+      display: none;
+    }
+
+    /* Custom Marker */
+    .accordion-header::before {
+      content: "▶";
+      font-size: 0.75em;
+      display: inline-block;
+      margin-top: 4px; /* Tiny adjustment to center the arrow vertically with just the text line */
+      margin-right: var(--size-2, 8px);
+      transition: transform 0.2s ease;
+      color: var(--color-8);
+      flex-shrink: 0; /* Prevents the arrow from squeezing if text wraps */
+    }
+
+    [popover] {
+      /* 1. Reset standard center layout defaults */
+      position: absolute;
+      margin: 0;
+
+      /* 2. Bind the popup to follow our transient anchor target name */
+      position-anchor: --active-picker-target;
+
+      /* 3. Natively align the top of the popover to the bottom of the button */
+      top: anchor(bottom);
+      left: anchor(left);
+
+      /* Optional: Add your 4px offset space natively using CSS fallback math */
+      margin-top: 4px;
+    }
   }
 </style>

@@ -1,4 +1,4 @@
-<details class="accordion-teams-section ui-accordion ui-card">
+<details class="teams-section accordion-section ui-accordion ui-card">
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
     <div class="title-wrapper">
       <div class="title-group">
@@ -21,14 +21,15 @@
     aria-labelledby="summary-id"
   ></div>
 </details>
-<div id="player-action-popover" popover>
+
+<div class="player-action-popover" popover>
   <!-- Populated dynamically via JS -->
 </div>
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
 <style webc:bucket="syllabus">
-  :where(.accordion-teams-section) {
+  :where(.teams-section) {
     .player-text-line {
       display: flex;
       flex-wrap: wrap;
@@ -62,78 +63,13 @@
       margin-left: 2px;
       text-decoration: none !important; /* Keep the comma un-underlined */
     }
-    #player-action-popover:popover-open {
-      display: flex;
-      flex-direction: column;
-      gap: var(--size-2, 4px);
 
-      padding: var(--size-2);
-      background: var(--surface-1);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-3);
-      border-radius: 6px;
-    }
     .menu-action-btn {
       color: var(--red-6);
       border-top: 1px solid var(--border);
       margin-top: 4px;
       text-align: left;
     }
-    /* Custom summary row using your Open Props setup */
-    .accordion-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between; /* Pushes title-group and button apart */
-      cursor: pointer;
-      padding: var(--size-3, 12px);
-      user-select: none;
-      list-style: none;
-    }
-
-    .accordion-header::-webkit-details-marker {
-      display: none;
-    }
-
-    /* Custom Marker */
-    .accordion-header::before {
-      content: "▶";
-      font-size: 0.75em;
-      display: inline-block;
-      margin-top: 4px; /* Tiny adjustment to center the arrow vertically with just the text line */
-      margin-right: var(--size-2, 8px);
-      transition: transform 0.2s ease;
-      color: var(--color-8);
-      flex-shrink: 0; /* Prevents the arrow from squeezing if text wraps */
-    }
-
-    &[open] .accordion-header::before {
-      transform: rotate(90deg);
-    }
-    &[open] .compact-preview {
-      display: none !important;
-    }
-
-    /* 2. Display the text cleanly ONLY when the accordion is closed */
-    &:not([open]) .compact-preview {
-      display: block;
-      font-size: var(--font-size-0);
-      color: var(--text-2);
-      font-weight: normal;
-    }
-
-    /* Flex group for text and its counter */
-    .title-group {
-      display: flex;
-      align-items: center;
-      gap: var(--size-2, 8px);
-    }
-    .title-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex-grow: 1; /* Pushes the "Add Team" button out to the far right side */
-    }
-
     /* Your styled background pill badge */
     .ui-badge {
       background-color: var(--color-3); /* Subtle backdrop */
@@ -143,6 +79,7 @@
       font-size: var(--font-size-0, 0.85rem);
       font-weight: var(--font-weight-6, 600);
     }
+
     .count-pill {
       display: inline-flex;
       align-items: center;
@@ -159,6 +96,7 @@
       line-height: 1;
       min-width: 20px; /* Prevents the pill from distorting on single digits */
     }
+
     /* Pushes your button to the RHS */
     .add-team-btn {
       margin-left: auto;
@@ -166,15 +104,9 @@
       /* --- LOCK THE VERTICAL AXIS --- */
       align-self: flex-start; /* Anchors the button vertically to the top baseline */
       margin-top: 2px; /* A subtle visual nudge to align it with the title text */
+      margin-inline-start: auto;
     }
 
-    /* Optional: Optional badge styling next to title */
-    .ui-badgeX {
-      background: var(--color-2);
-      padding: 2px 8px;
-      border-radius: var(--radius-2, 4px);
-      font-size: var(--font-size-0, 0.8rem);
-    }
     .teams-input-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -208,6 +140,7 @@
       font-size: 0.875rem;
       order: 0;
     }
+
     .chip-text-input,
     .chip-pool-input {
       order: -1; /* Negative order shifts this item to the absolute beginning */
@@ -230,5 +163,17 @@
       color: var(--text-2);
       font-weight: normal;
     }
+  } /* :where() */
+
+  .player-action-popover:popover-open {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2, 4px);
+
+    padding: var(--size-2);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-3);
+    border-radius: 6px;
   }
 </style>
