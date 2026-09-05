@@ -166,11 +166,11 @@
     .accordion-section:not([open]) .toggle-all-draws-btn {
       display: none;
     }
+  }
 
-    /* 2. Style and display the text cleanly ONLY when the accordion is closed */
-    .accordion-section .draw-round:not([open]) .compact-preview {
-      display: block;
-      margin-top: 4px;
-    }
+  /* 2. Style and display the text cleanly ONLY when the accordion is closed */
+  .accordion-section .draw-round:not([open]) .compact-preview {
+    display: block;
+    margin-top: 4px;
   }
 </style>
