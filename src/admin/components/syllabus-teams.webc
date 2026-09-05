@@ -1,26 +1,15 @@
 <details class="accordion-teams-section ui-accordion ui-card">
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
-    <div style="display: flex; flex-direction: column; gap: 4px">
+    <div class="title-wrapper">
       <div class="title-group">
         <span class="summary-title">Teams / Rinks</span>
         <span class="count-pill team-count-badge">0</span>
       </div>
 
       <!-- This line populates dynamically via updateVisualTeamLabels() -->
-      <span
-        class="compact-preview"
-        style="
-          font-size: var(--font-size-0);
-          color: var(--text-2);
-          font-weight: normal;
-        "
-      ></span>
+      <span class="compact-preview"></span>
     </div>
-    <button
-      class="ui-button ui-primary add-team-btn"
-      type="button"
-      style="border: 1px solid var(--color-8)"
-    >
+    <button class="ui-button ui-primary add-team-btn" type="button">
       ＋ Add Team / Rink Row
     </button>
   </summary>
@@ -32,139 +21,214 @@
     aria-labelledby="summary-id"
   ></div>
 </details>
+<div id="player-action-popover" popover>
+  <!-- Populated dynamically via JS -->
+</div>
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
 <style webc:bucket="syllabus">
-  /* Custom summary row using your Open Props setup */
-  .accordion-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* Pushes title-group and button apart */
-    cursor: pointer;
-    padding: var(--size-3, 12px);
-    user-select: none;
-    list-style: none;
-  }
+  :where(.accordion-teams-section) {
+    .player-text-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--size-1, 4px) var(--size-2, 8px);
+      align-items: center;
+      margin-top: 4px;
+    }
 
-  .accordion-header::-webkit-details-marker {
-    display: none;
-  }
+    /* Style the player token as a clean, subtle interactive text button */
+    .player-text-token {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      color: var(--color-11);
+      text-decoration: underline dotted var(--border); /* Subtle underline hints it is clickable */
+      cursor: pointer;
+    }
 
-  /* Custom Marker */
-  .accordion-header::before {
-    content: "▶";
-    font-size: 0.75em;
-    display: inline-block;
-    margin-right: var(--size-2, 8px);
-    transition: transform 0.2s ease;
-    color: var(--color-8);
-  }
+    .player-text-token:hover {
+      color: var(--brand);
+      text-decoration: underline solid var(--brand);
+    }
 
-  .accordion-teams-section[open] .accordion-header::before {
-    transform: rotate(90deg);
-  }
-  .accordion-teams-section[open] .compact-preview {
-    display: none !important;
-  }
+    /* The Magic Trick: Natively inject commas ONLY between sibling player items */
+    .player-text-token:not(:last-of-type)::after {
+      content: ",";
+      color: var(--text-2);
+      display: inline-block;
+      margin-left: 2px;
+      text-decoration: none !important; /* Keep the comma un-underlined */
+    }
+    #player-action-popover:popover-open {
+      display: flex;
+      flex-direction: column;
+      gap: var(--size-2, 4px);
 
-  /* 2. Display the text cleanly ONLY when the accordion is closed */
-  .accordion-teams-section:not([open]) .compact-preview {
-    display: block;
-    margin-top: 4px;
-  }
+      padding: var(--size-2);
+      background: var(--surface-1);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-3);
+      border-radius: 6px;
+    }
+    .menu-action-btn {
+      color: var(--red-6);
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+      text-align: left;
+    }
+    /* Custom summary row using your Open Props setup */
+    .accordion-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between; /* Pushes title-group and button apart */
+      cursor: pointer;
+      padding: var(--size-3, 12px);
+      user-select: none;
+      list-style: none;
+    }
 
-  /* Flex group for text and its counter */
-  .title-group {
-    display: flex;
-    align-items: center;
-    gap: var(--size-2, 8px);
-  }
+    .accordion-header::-webkit-details-marker {
+      display: none;
+    }
 
-  /* Your styled background pill badge */
-  .ui-badge {
-    background-color: var(--color-3); /* Subtle backdrop */
-    color: var(--color-11); /* High contrast text */
-    padding: var(--size-1, 2px) var(--size-2, 8px);
-    border-radius: var(--radius-pill, 1e5px);
-    font-size: var(--font-size-0, 0.85rem);
-    font-weight: var(--font-weight-6, 600);
-  }
-  .count-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    /* Custom Marker */
+    .accordion-header::before {
+      content: "▶";
+      font-size: 0.75em;
+      display: inline-block;
+      margin-top: 4px; /* Tiny adjustment to center the arrow vertically with just the text line */
+      margin-right: var(--size-2, 8px);
+      transition: transform 0.2s ease;
+      color: var(--color-8);
+      flex-shrink: 0; /* Prevents the arrow from squeezing if text wraps */
+    }
 
-    /* Style your pill cleanly using raw Open Props variables */
-    background-color: var(--color-3);
-    color: var(--color-11);
-    padding: 2px 8px;
-    border-radius: 100px; /* Perfect pill shape */
+    &[open] .accordion-header::before {
+      transform: rotate(90deg);
+    }
+    &[open] .compact-preview {
+      display: none !important;
+    }
 
-    font-size: var(--font-size-0, 0.85rem);
-    font-weight: var(--font-weight-6, 600);
-    line-height: 1;
-    min-width: 20px; /* Prevents the pill from distorting on single digits */
-  }
-  /* Pushes your button to the RHS */
-  .add-team-btn {
-    margin-left: auto;
-  }
+    /* 2. Display the text cleanly ONLY when the accordion is closed */
+    &:not([open]) .compact-preview {
+      display: block;
+      font-size: var(--font-size-0);
+      color: var(--text-2);
+      font-weight: normal;
+    }
 
-  /* Optional: Optional badge styling next to title */
-  .ui-badgeX {
-    background: var(--color-2);
-    padding: 2px 8px;
-    border-radius: var(--radius-2, 4px);
-    font-size: var(--font-size-0, 0.8rem);
-  }
-  .teams-input-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
+    /* Flex group for text and its counter */
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: var(--size-2, 8px);
+    }
+    .title-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1; /* Pushes the "Add Team" button out to the far right side */
+    }
 
-  .team-entry-card {
-    border: 1px solid var(--border);
-    padding: var(--size-2);
-    border-radius: var(--radius-1);
-    background: var(--surface-2);
-  }
+    /* Your styled background pill badge */
+    .ui-badge {
+      background-color: var(--color-3); /* Subtle backdrop */
+      color: var(--color-11); /* High contrast text */
+      padding: var(--size-1, 2px) var(--size-2, 8px);
+      border-radius: var(--radius-pill, 1e5px);
+      font-size: var(--font-size-0, 0.85rem);
+      font-weight: var(--font-weight-6, 600);
+    }
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
 
-  .player-chip-field {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-2, 8px);
-    align-items: center;
-  }
+      /* Style your pill cleanly using raw Open Props variables */
+      background-color: var(--color-3);
+      color: var(--color-11);
+      padding: 2px 8px;
+      border-radius: 100px; /* Perfect pill shape */
 
-  .player-chip,
-  .pool-player-chip {
-    background: var(--gray-5);
-    color: #1e293b;
-    padding: 2px 8px;
-    border-radius: 9999px; /* Make it a pill shape */
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.875rem;
-    order: 0;
-  }
-  .chip-text-input,
-  .chip-pool-input {
-    order: -1; /* Negative order shifts this item to the absolute beginning */
-    flex-basis: 100%; /* Forces the input field to take up exactly 100% of the horizontal lane width */
-    width: 100%; /* Keeps browser fallback render safe */
-  }
+      font-size: var(--font-size-0, 0.85rem);
+      font-weight: var(--font-weight-6, 600);
+      line-height: 1;
+      min-width: 20px; /* Prevents the pill from distorting on single digits */
+    }
+    /* Pushes your button to the RHS */
+    .add-team-btn {
+      margin-left: auto;
+      border: 1px solid var(--color-8);
+      /* --- LOCK THE VERTICAL AXIS --- */
+      align-self: flex-start; /* Anchors the button vertically to the top baseline */
+      margin-top: 2px; /* A subtle visual nudge to align it with the title text */
+    }
 
-  .chip-text-input {
-    border: none;
-    outline: none;
-  }
+    /* Optional: Optional badge styling next to title */
+    .ui-badgeX {
+      background: var(--color-2);
+      padding: 2px 8px;
+      border-radius: var(--radius-2, 4px);
+      font-size: var(--font-size-0, 0.8rem);
+    }
+    .teams-input-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
 
-  .remove-chip-btn {
-    background-color: inherit;
-    color: var(--red,);
+    .team-entry-card {
+      border: 1px solid var(--border);
+      padding: var(--size-2);
+      border-radius: var(--radius-1);
+      background: var(--surface-2);
+    }
+
+    .player-chip-field {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--size-2, 8px);
+      align-items: center;
+    }
+
+    .player-chip,
+    .pool-player-chip {
+      background: var(--gray-5);
+      color: #1e293b;
+      padding: 2px 8px;
+      border-radius: 9999px; /* Make it a pill shape */
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      order: 0;
+    }
+    .chip-text-input,
+    .chip-pool-input {
+      order: -1; /* Negative order shifts this item to the absolute beginning */
+      flex-basis: 100%; /* Forces the input field to take up exactly 100% of the horizontal lane width */
+      width: 100%; /* Keeps browser fallback render safe */
+    }
+
+    .chip-text-input {
+      border: none;
+      outline: none;
+    }
+
+    .remove-chip-btn {
+      background-color: inherit;
+      color: var(--red,);
+    }
+
+    .compact-preview {
+      font-size: var(--font-size-0);
+      color: var(--text-2);
+      font-weight: normal;
+    }
   }
 </style>
