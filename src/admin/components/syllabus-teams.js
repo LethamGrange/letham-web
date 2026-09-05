@@ -116,7 +116,7 @@ class SyllabusTeams extends SyllabusBase {
     if (playerToken) {
       event.stopPropagation();
 
-      const popover = this.querySelector('#player-action-popover');
+      const popover = this.querySelector('.player-action-popover');
       const isPool = playerToken.dataset.isPool === 'true';
       const pName = playerToken.querySelector('.player-display-name').textContent;
       const pId = playerToken.dataset.playerId;
@@ -438,7 +438,7 @@ class SyllabusTeams extends SyllabusBase {
 
   onAddTeam() {
     // 1. Locate the container's parent <details> section safely
-    const accordionSection = this.teamsContainer.closest('.accordion-teams-section');
+    const accordionSection = this.teamsContainer.closest('.accordion-section');
 
     // 2. Ensure it has the "open" attribute so the new row is visible
     if (accordionSection && !accordionSection.hasAttribute('open')) {

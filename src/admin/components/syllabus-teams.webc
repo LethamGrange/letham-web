@@ -1,4 +1,4 @@
-<details class="accordion-teams-section ui-accordion ui-card">
+<details class="teams-section accordion-section ui-accordion ui-card">
   <summary id="summary-id" aria-controls="content-id" class="accordion-header">
     <div class="title-wrapper">
       <div class="title-group">
@@ -22,14 +22,14 @@
   ></div>
 </details>
 
-<div id="player-action-popover" popover>
+<div class="player-action-popover" popover>
   <!-- Populated dynamically via JS -->
 </div>
 
 <script type="module" src="/js/syllabus-teams.js" webc:keep></script>
 
 <style webc:bucket="syllabus">
-  :where(.accordion-teams-section) {
+  :where(.teams-section) {
     .player-text-line {
       display: flex;
       flex-wrap: wrap;
@@ -64,55 +64,12 @@
       text-decoration: none !important; /* Keep the comma un-underlined */
     }
 
-    #player-action-popover:popover-open {
-      display: flex;
-      flex-direction: column;
-      gap: var(--size-2, 4px);
-
-      padding: var(--size-2);
-      background: var(--surface-1);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-3);
-      border-radius: 6px;
-    }
-
     .menu-action-btn {
       color: var(--red-6);
       border-top: 1px solid var(--border);
       margin-top: 4px;
       text-align: left;
     }
-
-    &[open] .accordion-header::before {
-      transform: rotate(90deg);
-    }
-
-    &[open] .compact-preview {
-      display: none !important;
-    }
-
-    /* 2. Display the text cleanly ONLY when the accordion is closed */
-    &:not([open]) .compact-preview {
-      display: block;
-      font-size: var(--font-size-0);
-      color: var(--text-2);
-      font-weight: normal;
-    }
-
-    /* Flex group for text and its counter */
-    .title-group {
-      display: flex;
-      align-items: center;
-      gap: var(--size-2, 8px);
-    }
-
-    .title-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex-grow: 1; /* Pushes the "Add Team" button out to the far right side */
-    }
-
     /* Your styled background pill badge */
     .ui-badge {
       background-color: var(--color-3); /* Subtle backdrop */
@@ -147,6 +104,7 @@
       /* --- LOCK THE VERTICAL AXIS --- */
       align-self: flex-start; /* Anchors the button vertically to the top baseline */
       margin-top: 2px; /* A subtle visual nudge to align it with the title text */
+      margin-inline-start: auto;
     }
 
     .teams-input-container {
@@ -205,5 +163,17 @@
       color: var(--text-2);
       font-weight: normal;
     }
+  } /* :where() */
+
+  .player-action-popover:popover-open {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2, 4px);
+
+    padding: var(--size-2);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-3);
+    border-radius: 6px;
   }
 </style>

@@ -1,0 +1,126 @@
+class CompetitionPicker extends HTMLElement {
+  // A static counter guarantees sequential, unique IDs across all instances
+  static instanceCount = 8;
+  // 1. Tell the browser what attributes to watch for changes
+  static get observedAttributes() {
+    return ['competition_name'];
+  }
+  // 2. This callback handles changes, even if it fires BEFORE connectedCallback has run!
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'competition_name' && newValue !== null) {
+      // Fall back to direct selection if connectedCallback hasn't cached this.input yet
+      const inputEl = this.input || this.querySelector('input');
+      if (inputEl) {
+        inputEl.value = newValue.trim();
+      }
+    }
+  }
+
+  get competitionName() {
+    return this.getAttribute('competition_name') || '';
+  }
+  set competitionName(value) {
+    const cleanValue = value ? value.trim() : '';
+
+    // 1. Force-update the internal input right now, regardless of attributes
+    if (this.input) {
+      this.input.value = cleanValue;
+    }
+    // 2. Keep the DOM attribute in sync for markup tracking
+    if (this.competitionName !== cleanValue) {
+      this.setAttribute('competition_name', cleanValue);
+    }
+  }
+
+  connectedCallback() {
+    CompetitionPicker.instanceCount++;
+    const idSuffix = CompetitionPicker.instanceCount;
+    // Your canonical list
+    this.canonicalLeagues = ['Bank of Scotland', "Contractor's Cup", 'Spring League', 'Mixed Doubles'];
+
+    this.input = this.querySelector('input');
+    this.hintContainer = this.querySelector('.typo-hint');
+    const label = this.querySelector('label');
+
+    if (this.input) {
+      this.input.id = `comp-input-${idSuffix}`;
+
+      if (label) {
+        label.setAttribute('for', this.input.id);
+      }
+
+      if (this.hintContainer) {
+        this.hintContainer.id = `comp-hint-${idSuffix}`;
+        // Screen readers will now announce your typo corrections automatically!
+        this.input.setAttribute('aria-describedby', this.hintContainer.id);
+      }
+    }
+
+    this.input.addEventListener('input', () => this.checkForSoftMatch());
+    // NEW: Clean up capitalization when the user finishes typing and leaves the field
+    this.input.addEventListener('blur', () => this.normalizeCaseOnLeave());
+  }
+
+  normalizeCaseOnLeave() {
+    const value = this.input.value.trim();
+    if (value === '') return;
+
+    // Search for a case-insensitive perfect match in your array
+    const perfectCaseInsensitiveMatch = this.canonicalLeagues.find(
+      league => league.toLowerCase() === value.toLowerCase(),
+    );
+
+    // If they typed "spring league", silently swap it to "Spring League"
+    if (perfectCaseInsensitiveMatch && perfectCaseInsensitiveMatch !== value) {
+      this.input.value = perfectCaseInsensitiveMatch;
+
+      // Clean up the typo hint container just in case it was showing
+      this.hintContainer.innerHTML = '';
+    }
+  }
+
+  checkForSoftMatch() {
+    const value = this.input.value.trim().toLowerCase();
+    this.hintContainer.innerHTML = ''; // Clear old hints
+
+    if (value.length < 3) return; // Don't check tiny strings
+
+    // Skip checking if it's already a perfect canonical match
+    const perfectMatch = this.canonicalLeagues.some(l => l.toLowerCase() === value);
+    if (perfectMatch) return;
+
+    // Run a tolerant check: ignore spaces, punctuation, and casing
+    const cleanString = str => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanValue = cleanString(value);
+
+    const closeMatch = this.canonicalLeagues.find(league => {
+      const cleanLeague = cleanString(league);
+      // Catch if they are missing a letter, or typed a partial substring
+      return cleanLeague.includes(cleanValue) || cleanValue.includes(cleanLeague);
+    });
+
+    // If we found a close canonical match, offer a soft correction link
+    if (closeMatch) {
+      this.hintContainer.innerHTML = `
+         <span style="font-size: var(--font-size-0); color: var(--gray-6);">
+           Did you mean <strong>${closeMatch}</strong>?
+           <button type="button" class="ui-button ui-primary">
+             Click to fix
+           </button>
+         </span>
+       `;
+
+      // If they click the hint, update the input seamlessly
+      this.hintContainer.querySelector('button').addEventListener('click', () => {
+        this.input.value = closeMatch;
+        this.hintContainer.innerHTML = '';
+        this.input.focus();
+      });
+    }
+  }
+}
+
+// Register the custom element natively
+if ('customElements' in window) {
+  customElements.define('competition-picker', CompetitionPicker);
+}
