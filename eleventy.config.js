@@ -71,7 +71,14 @@ export default async function (eleventyConfig) {
   //  Only copy global structural assets to the build output
   eleventyConfig.addPassthroughCopy('src/images/icons');
   eleventyConfig.addPassthroughCopy('src/images/logos');
-
+  eleventyConfig.addPassthroughCopy(
+    { 'src/file-resources': 'pdfs' },
+    {
+      filter: [
+        '**/*.pdf', // Only allow files ending in .pdf to cross over
+      ],
+    },
+  );
   eleventyConfig.addPassthroughCopy({
     'src/**/components/**/*.js': 'js/',
   });
