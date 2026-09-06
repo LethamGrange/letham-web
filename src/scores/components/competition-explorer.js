@@ -7,10 +7,10 @@ class CompetitionExplorer extends HTMLElement {
     this.filteredCompetitions = [];
 
     // UI State
-    this.currentSeason = '2026';
+    this.currentSeason = new Date().getFullYear().toString();
     this.searchQuery = '';
     this.currentPage = 1;
-    this.pageSize = 10;
+    this.itemsPerPage = 5; // Clean, readable view height limit
   }
 
   connectedCallback() {
@@ -22,77 +22,132 @@ class CompetitionExplorer extends HTMLElement {
     this.container = document.querySelector('.competitions-list-container');
     this.searchInput = document.querySelector('.search-input');
     this.typeSelect = document.querySelector('.filter-type-select');
+    this.seasonSelect = this.querySelector('.season-select');
+    this.pageText = this.querySelector('.page-indicator-text');
+
+    // Centralised Click Delegation for Page Footer Navigation Channels
+    this.addEventListener('click', e => {
+      if (e.target.closest('.prev-page-btn') && this.currentPage > 1) {
+        this.currentPage--;
+        this.runGlobalExplorerFilter();
+      }
+      if (e.target.closest('.next-page-btn') && this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.runGlobalExplorerFilter();
+      }
+    });
+
+    // Reactive input change loops
+    this.searchInput.addEventListener('input', () => {
+      this.currentPage = 1; // Reset to page 1 during character search typing
+      this.runGlobalExplorerFilter();
+    });
+
+    this.typeSelect.addEventListener('change', () => {
+      this.currentPage = 1;
+      this.runGlobalExplorerFilter();
+    });
+
+    // Fetch new backend data package dynamically when swapping seasons
+    this.seasonSelect.addEventListener('change', () => {
+      this.currentPage = 1;
+      this.loadCompetitionsForSeason(this.seasonSelect.value);
+    });
     // Defensive guard: Prevent redundant fetches if the element
     // is detached and re-attached to the layout tree dynamically
     if (this.allCompetitions.length === 0 && !this.isLoading) {
-      this.loadCompetitions();
+      this.loadCompetitionsForSeason(this.seasonSelect.value);
     }
   } // connectedCallback
 
-  async loadCompetitions() {
-    this.isLoading = true;
-    const apiSrc = '/api/competitions/all';
+  async loadCompetitionsForSeason(seasonYear) {
+    this.container.innerHTML = html`<p style="padding:var(--size-3); color:var(--text-3);">
+      Loading competition index records...
+    </p>`;
 
     try {
-      const response = await fetch(apiSrc);
-      if (!response.ok) throw new Error(`Status: ${response.status}`);
+      const res = await fetch(`/api/competitions/all?season=${seasonYear}`);
+      if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
 
-      const data = await response.json();
-      this.init(data);
-    } catch (error) {
-      console.error('Failed to load competitions selector model:', error);
-    } finally {
-      this.isLoading = false;
+      const competitionsList = await res.json();
+
+      // Store current models array safely on our instance state
+      this.allCompetitions = Array.isArray(competitionsList) ? competitionsList : [competitionsList];
+      this.renderAllCardsUpfront();
+    } catch (err) {
+      this.container.innerHTML = html`<p style="color:var(--red-6); padding:var(--size-3);">
+        ⚠️ Could not sync competitions index layout: ${err.message}
+      </p>`;
     }
   }
 
-  applyFiltersAndRender() {
-    const container = this.container;
-    if (!container) return;
+  renderAllCardsUpfront() {
+    this.container.innerHTML = '';
 
-    // 1. Clear previous session nodes
-    container.innerHTML = '';
+    if (this.allCompetitions.length === 0) {
+      this.container.innerHTML = html`<p style="padding:var(--size-4); color:var(--text-3); text-align:center;">
+        No competition syllabuses found for this season.
+      </p>`;
+      this.updatePaginationControls(0);
+      return;
+    }
 
-    // 2. Loop through your loaded database model array
-    this.allCompetitions.forEach(compData => {
-      // Instantiate your public custom element card natively
+    this.allCompetitions.forEach(comp => {
       const card = document.createElement('competition-card');
-
-      // Mount to the container first so it establishes lifecycle bounds
-      container.appendChild(card);
-
-      // Inject the specific layout data payload instantly!
-      card.hydrate(compData);
+      this.container.appendChild(card);
+      card.hydrate(comp);
     });
 
-    // 3. Run the filter rules immediately to catch default configurations
     this.runGlobalExplorerFilter();
   }
 
-  init(competitions) {
-    this.allCompetitions = Array.isArray(competitions) ? competitions : [competitions];
-    this.applyFiltersAndRender();
-  }
-
   runGlobalExplorerFilter() {
-    const query = this.searchInput.value.trim().toLowerCase();
-    const selectedType = this.typeSelect.value;
-    const cards = this.container.querySelectorAll('public-competition-card');
+    const query = this.searchInput?.value?.trim().toLowerCase() || '';
+    const selectedType = this.typeSelect?.value || 'all';
+    const cards = this.container.querySelectorAll('competition-card');
+
+    let matchingCounter = 0;
 
     cards.forEach(card => {
-      const rawSearchText = card.dataset.raw.toLowerCase();
+      const rawText = card.dataset.raw.toLowerCase();
       const cardType = card.dataset.type;
 
-      // Symmetrical evaluation check
-      const matchesSearch = !query || rawSearchText.includes(query);
+      const matchesSearch = !query || rawText.includes(query);
       const matchesType = selectedType === 'all' || cardType === selectedType;
 
       if (matchesSearch && matchesType) {
-        card.style.display = 'block';
+        // Calculate page slot layout numbers
+        const calculatedItemPage = Math.floor(matchingCounter / this.itemsPerPage) + 1;
+
+        if (calculatedItemPage === this.currentPage) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+
+        matchingCounter++;
       } else {
         card.style.display = 'none';
       }
     });
+
+    this.updatePaginationControls(matchingCounter);
+  }
+
+  updatePaginationControls(totalMatchesFound) {
+    this.totalPages = Math.max(1, Math.ceil(totalMatchesFound / this.itemsPerPage));
+
+    // Safety fallback range check
+    if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
+
+    if (this.pageText) {
+      this.pageText.textContent = html`Page ${this.currentPage} of ${this.totalPages} (${totalMatchesFound} matches
+      found)`;
+    }
+
+    // Toggle raw button state properties to avoid range overflow clicks
+    this.querySelector('.prev-page-btn').disabled = this.currentPage === 1;
+    this.querySelector('.next-page-btn').disabled = this.currentPage === this.totalPages;
   }
 }
 

@@ -1,3 +1,9 @@
 <script src="/js/competition-card.js" type="module" webc:keep></script>
 
-<style></style>
+<style>
+  .tbd-text {
+    color: var(--text-3);
+    font-style: italic;
+    font-weight: var(--font-weight-4, 400);
+  }
+</style>
