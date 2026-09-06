@@ -92,7 +92,13 @@ class CompetitionCard extends HTMLElement {
           <div class="draw-timeline-list" style="display: flex; flex-direction: column; gap: var(--size-2);">
             ${comp.fixtures.map((draw, idx) => {
               const games = (draw.games || [])
-                .map(g => `${g.team_a_name || 'TBD'} v ${g.team_b_name || 'TBD'}`)
+                .map(g => {
+                  // Check if either team name is still flagged as To Be Decided
+                  const teamA = g.team_a_name === 'TBD' ? '<span class="tbd-text">TBD</span>' : g.team_a_name;
+                  const teamB = g.team_b_name === 'TBD' ? '<span class="tbd-text">TBD</span>' : g.team_b_name;
+
+                  return `${teamA} v ${teamB}`;
+                })
                 .join(', ');
               return html`
                 <div style="font-size: var(--font-size-1); display: flex; gap: var(--size-3);">

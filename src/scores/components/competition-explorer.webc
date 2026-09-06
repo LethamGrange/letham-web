@@ -1,19 +1,28 @@
 <div class="competition-explorer">
-  <!-- 1. The Global Filter Control Panel -->
   <div
     class="filter-bar"
     style="
       display: flex;
       gap: var(--size-2, 8px);
+      align-items: center;
       margin-bottom: var(--size-4, 16px);
+      flex-wrap: wrap;
     "
   >
     <input
       type="text"
       class="search-input"
       placeholder="Search competitions, teams, or rinks..."
-      style="flex: 1; padding: var(--size-2)"
+      style="flex: 1; min-width: 200px; padding: var(--size-2)"
     />
+
+    <!-- Dynamic Season Picker Selection Dropdown -->
+    <select class="season-select" style="padding: var(--size-2)">
+      <option value="2026">2026 Season</option>
+      <option value="2025">2025 Season</option>
+      <option value="2024">2024 Season</option>
+    </select>
+
     <select class="filter-type-select" style="padding: var(--size-2)">
       <option value="all">All Styles</option>
       <option value="league">Leagues</option>
@@ -21,12 +30,29 @@
     </select>
   </div>
 
-  <!-- 2. The Dynamic List Container -->
-  <div class="competitions-list-container">
-    <!-- Dynamic <public-competition-card> elements are injected here -->
+  <div class="competitions-list-container"></div>
 
-    <competition-card webc:nokeep></competition-card>
+  <!-- Paging Button Track Footer -->
+  <div
+    class="pagination-footer"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--size-4, 16px);
+      padding-top: var(--size-2);
+      border-top: 1px solid var(--border);
+    "
+  >
+    <button type="button" class="ui-button prev-page-btn">← Previous</button>
+    <span
+      class="page-indicator-text"
+      style="font-size: var(--font-size-1); color: var(--text-2)"
+      >Page 1 of 1</span
+    >
+    <button type="button" class="ui-button next-page-btn">Next →</button>
   </div>
+  <competition-card webc:nokeep></competition-card>
 </div>
 
 <script src="/js/competition-explorer.js" type="module" webc:keep></script>
