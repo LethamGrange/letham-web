@@ -10,7 +10,7 @@ class CompetitionExplorer extends HTMLElement {
     this.currentSeason = new Date().getFullYear().toString();
     this.searchQuery = '';
     this.currentPage = 1;
-    this.itemsPerPage = 5; // Clean, readable view height limit
+    this.itemsPerPage = 10; // Clean, readable view height limit
   }
 
   connectedCallback() {
@@ -24,6 +24,37 @@ class CompetitionExplorer extends HTMLElement {
     this.typeSelect = document.querySelector('.filter-type-select');
     this.seasonSelect = this.querySelector('.season-select');
     this.pageText = this.querySelector('.page-indicator-text');
+
+    this.sizeSelect = this.querySelector('.page-size-select');
+
+    this.sizeSelect?.addEventListener('change', () => {
+      this.itemsPerPage = parseInt(this.sizeSelect.value, 10) || 10;
+      this.currentPage = 1; // Snaps back to page 1 to prevent layout viewport jumps
+
+      // Store the preference immediately for future visits
+      try {
+        localStorage.setItem('explorer_items_per_page', this.itemsPerPage.toString());
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+      }
+
+      this.runGlobalExplorerFilter();
+    });
+
+    // --- 1. SAFELY INITIALISE STICKY USER PREFERENCES ---
+    try {
+      const storedSize = localStorage.getItem('explorer_items_per_page');
+      if (storedSize) {
+        this.itemsPerPage = parseInt(storedSize, 10) || 10;
+      }
+    } catch (e) {
+      console.warn('Storage blocked or unavailable:', e);
+    }
+
+    // Ensure the visual dropdown element matches our active variable state
+    if (this.sizeSelect) {
+      this.sizeSelect.value = this.itemsPerPage.toString();
+    }
 
     // Centralised Click Delegation for Page Footer Navigation Channels
     this.addEventListener('click', e => {
@@ -53,6 +84,7 @@ class CompetitionExplorer extends HTMLElement {
       this.currentPage = 1;
       this.loadCompetitionsForSeason(this.seasonSelect.value);
     });
+
     // Defensive guard: Prevent redundant fetches if the element
     // is detached and re-attached to the layout tree dynamically
     if (this.allCompetitions.length === 0 && !this.isLoading) {

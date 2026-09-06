@@ -52,6 +52,12 @@
     >
     <button type="button" class="ui-button next-page-btn">Next →</button>
   </div>
+  <select class="page-size-select" style="padding: var(--size-2)">
+    <option value="5">5 per page</option>
+    <option value="10">10 per page</option>
+    <option value="20">20 per page</option>
+    <option value="50">50 per page</option>
+  </select>
   <competition-card webc:nokeep></competition-card>
 </div>
 
