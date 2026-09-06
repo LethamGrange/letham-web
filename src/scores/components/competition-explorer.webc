@@ -1,0 +1,34 @@
+<div class="competition-explorer">
+  <!-- 1. The Global Filter Control Panel -->
+  <div
+    class="filter-bar"
+    style="
+      display: flex;
+      gap: var(--size-2, 8px);
+      margin-bottom: var(--size-4, 16px);
+    "
+  >
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search competitions, teams, or rinks..."
+      style="flex: 1; padding: var(--size-2)"
+    />
+    <select class="filter-type-select" style="padding: var(--size-2)">
+      <option value="all">All Styles</option>
+      <option value="league">Leagues</option>
+      <option value="friendly">One-Off Friendlies</option>
+    </select>
+  </div>
+
+  <!-- 2. The Dynamic List Container -->
+  <div class="competitions-list-container">
+    <!-- Dynamic <public-competition-card> elements are injected here -->
+
+    <competition-card webc:nokeep></competition-card>
+  </div>
+</div>
+
+<script src="/js/competition-explorer.js" type="module" webc:keep></script>
+
+<style></style>

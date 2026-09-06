@@ -1,0 +1,12 @@
+---
+title: "Syllabus"
+pagetitle: Syllabus
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
+inContextNav: true
+---
+
+<h2>Registered Competitions</h2>
+
+<competition-explorer></competition-explorer>
