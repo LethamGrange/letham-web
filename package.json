@@ -4,8 +4,8 @@
   "version": "2026.08.01",
   "scripts": {
     "start": "eleventy --serve  --quiet",
-    "serve": "serve -l 8080 _site",
-    "debug": "eleventy --serve ",
+    "serve": "serve -l 8788 _site",
+    "debug": "eleventy --serve --port 8788 ",
     "preview": "eleventy && serve _site",
     "build": "eleventy",
     "fullclean": "del  './_site' './.cache'",
