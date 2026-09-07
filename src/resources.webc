@@ -5,79 +5,78 @@ headerImage: /images/logo-high.png
 headerAlt: Letham Grange logo
 ---
 
-<h1>Resources</h1>
+<h1>Downloads</h1>
 
-<p>Club documentation</p>
+  <div class="download-container">
+    <!-- Root Level Files First (No Accordion) -->
+    <div
+      class="uncategorized-section"
+      webc:if="pdfCategories.uncategorized.length > 0"
+    >
+      <!-- <h2>General Downloads</h2> -->
+      <ul class="download-list">
+        <li webc:for="file of pdfCategories.uncategorized">
+          <a :href="file.url" download @text="file.title"></a>
+          <p webc:if="file.description" @text="file.description"></p>
+        </li>
+      </ul>
+    </div>
 
-<div class="download-container">
-  <!-- Root Level Files First (No Accordion) -->
-  <div
-    class="uncategorized-section"
-    webc:if="pdfCategories.uncategorized.length > 0"
-  >
-    <h2>General Downloads</h2>
-    <ul class="download-list">
-      <li webc:for="file of pdfCategories.uncategorized">
-        <a :href="file.url" download @text="file.title"></a>
-        <p webc:if="file.description" @text="file.description"></p>
-      </li>
-    </ul>
+    <div class="ui-accordion">
+      <!-- 1. The index (i) creates unique IDs for layout nodes -->
+      <details webc:for="(category, i) of pdfCategories.categories">
+        <!-- 2. Clean, native summary without redundant aria-controls -->
+        <summary :id="'header-cat-' + i">
+          <span @text="category.categoryName"></span>
+        </summary>
+
+        <!-- 3. The panel wrapper gets role="region" to anchor the label safely -->
+        <div
+          class="ui-content"
+          role="region"
+          :aria-labelledby="'header-cat-' + i"
+        >
+          <p
+            webc:if="category.description"
+            class="category-desc"
+            @text="category.description"
+          ></p>
+
+          <ul class="download-list">
+            <li webc:for="file of category.files">
+              <a :href="file.url" download class="download-link">
+                <span @text="file.title"></span>
+              </a>
+              <p
+                webc:if="file.description"
+                class="file-desc"
+                @text="file.description"
+              ></p>
+            </li>
+          </ul>
+        </div>
+      </details>
+    </div>
   </div>
-
-  <div class="ui-accordion">
-    <!-- 1. The index (i) creates unique IDs for layout nodes -->
-    <details webc:for="(category, i) of pdfCategories.categories">
-      <!-- 2. Clean, native summary without redundant aria-controls -->
-      <summary :id="'header-cat-' + i">
-        <span @text="category.categoryName"></span>
-      </summary>
-
-      <!-- 3. The panel wrapper gets role="region" to anchor the label safely -->
-      <div
-        class="ui-content"
-        role="region"
-        :aria-labelledby="'header-cat-' + i"
-      >
-        <p
-          webc:if="category.description"
-          class="category-desc"
-          @text="category.description"
-        ></p>
-
-        <ul class="download-list">
-          <li webc:for="file of category.files">
-            <a :href="file.url" download class="download-link">
-              <span @text="file.title"></span>
-            </a>
-            <p
-              webc:if="file.description"
-              class="file-desc"
-              @text="file.description"
-            ></p>
-          </li>
-        </ul>
-      </div>
-    </details>
-  </div>
-</div>
-<style>
-  /* Custom scoped styling for your accordion component */
-  .accordions details {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .download-list {
-    list-style-type: none;
-    padding-left: 1rem;
-  }
-  .download-list li {
-    margin: 0.75rem 0;
-  }
-  .download-list p {
-    margin: 0.25rem 0 0 0;
-    font-size: 0.9rem;
-    color: #555;
-  }
-</style>
+  <style>
+    /* Custom scoped styling for your accordion component */
+    .accordions details {
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .download-list {
+      list-style-type: none;
+      padding-left: 1rem;
+    }
+    .download-list li {
+      margin: 0.75rem 0;
+    }
+    .download-list p {
+      margin: 0.25rem 0 0 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</h1>
