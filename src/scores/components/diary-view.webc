@@ -1,0 +1,73 @@
+<div
+  class="filter-bar"
+  style="
+    display: flex;
+    gap: var(--size-2, 8px);
+    align-items: center;
+    margin-bottom: var(--size-4, 16px);
+    flex-wrap: wrap;
+  "
+>
+  <select class="filter-type-select" style="padding: var(--size-2)">
+    <option value="all">All</option>
+    <option value="7days">This week</option>
+    <option value="14days">Two weeks</option>
+  </select>
+</div>
+
+<div class="diary-table-layout"></div>
+
+<script src="/js/diary-view.js" type="module" webc:keep></script>
+
+<style>
+  .diary-table-layout {
+    display: grid;
+    /* Date, Time, Flexible Main Content, Tiny interaction footprint */
+    grid-template-columns: minmax(100px, auto) minmax(80px, auto) 1fr;
+    width: 100%;
+    align-items: center;
+    border-top: 1px solid var(--border-color, #ccc);
+  }
+
+  .diary-th {
+    font-weight: 700;
+    padding: 0.6rem 0.5rem;
+    border-bottom: 2px solid var(--text-color, #000);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  .diary-td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color, #e5e5e5);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Connects flawlessly with your text-wrap: pretty and font configurations */
+  .diary-td > p {
+    margin: 0;
+  }
+
+  .tick-column {
+    justify-content: center;
+  }
+
+  .tick-column input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+  }
+
+  /* Optional styling hooks matching the colored badges on your paper syllabus sheets */
+  .kind-league {
+    border-left: 4px solid #3b82f6; /* Blue tint bar for League games */
+    padding-left: calc(0.5rem - 4px);
+  }
+  .kind-bonspiel {
+    border-left: 4px solid #eab308; /* Yellow/Gold tint bar for Bonspiels */
+    padding-left: calc(0.5rem - 4px);
+  }
+</style>

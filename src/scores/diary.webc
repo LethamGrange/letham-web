@@ -1,0 +1,12 @@
+---
+title: "Diary"
+pagetitle: Diary
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+headerPosition: center
+inContextNav: true
+---
+
+<h2>Games diary</h2>
+
+<diary-view></diary-view>
