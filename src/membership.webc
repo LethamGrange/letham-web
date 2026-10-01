@@ -1,0 +1,470 @@
+---
+layout: base.webc
+title: "Membership information"
+pagetitle: Letham Grange Curling
+headerImage: /images/logo-high.png
+headerAlt: Letham Grange logo
+---
+
+<centred-content-block class="breakout lgcc-titles">
+  <h2>Letham Grange Curling Club offers you a warm welcome</h2>
+
+  <img src="/images/logo-high.png" width="500" alt="Club main pitch" />
+</centred-content-block>
+<p>
+  The club Committee and coaches would like to welcome you to the club and hope
+  that you enjoy your time with us.
+</p>
+<ol>
+  <li><a href="#lgcc-fees">LGCC Membership fees for 2026-27</a></li>
+  <li><a href="#ice-fees">Ice Fees for 2026-27</a></li>
+  <li><a href="#sc-fees">Scottish curling fees for 2026-27</a></li>
+  <li><a href="#curl-forfar">Curl Forfar information</a></li>
+  <li><a href="#lgcc-info">LGCC Competitions, games and social events</a></li>
+  <li><a href="#volunteers">Volunteers</a></li>
+  <li><a href="#cwp">Child welfare and protection</a></li>
+</ol>
+
+<h3 id="lgcc-fees">LGCC Membership fees 2026-27</h3>
+<div class="fees-grid">
+  <!-- Grid Headers -->
+  <div class="fee-header"><p>Membership Category</p></div>
+  <div class="fee-header numeric"><p>Fee</p></div>
+
+  <!-- Row 1 -->
+  <div class="fee-category"><p>Full Adult Member</p></div>
+  <div class="fee-cost"><p>£50</p></div>
+
+  <!-- Row 2 -->
+  <div class="fee-category">
+    <p>Adult Playing Member whose Mother Club is not Letham Grange (*)</p>
+  </div>
+  <div class="fee-cost"><p>£20</p></div>
+
+  <!-- Row 3 -->
+  <div class="fee-category"><p>Non-playing Adult (N)</p></div>
+  <div class="fee-cost"><p>£15</p></div>
+
+  <!-- Row 4 -->
+  <div class="fee-category"><p>Junior (Y) 18–21 years</p></div>
+  <div class="fee-cost"><p>£15</p></div>
+
+  <!-- Row 5 -->
+  <div class="fee-category"><p>Junior (J) under 18 years</p></div>
+  <div class="fee-cost"><p>£15</p></div>
+
+  <!-- Row 6 -->
+  <div class="fee-category"><p>Gateway Club Members</p></div>
+  <div class="fee-cost"><p>£15</p></div>
+</div>
+<p>
+  Note: If subscription is not received by 1st November, the member will be
+  excluded from playing any further club or club-sponsored games until fees are
+  paid in full.
+</p>
+
+<h3 id="ice-fees">ICE FEES FOR 2026-2027 SEASON</h3>
+
+<div class="ice-fees-grid">
+  <!-- Grid Headers -->
+  <div class="ice-header"><p>Ice Fee Category</p></div>
+  <div class="ice-header numeric"><p>Member</p></div>
+  <div class="ice-header numeric"><p>Non-Member</p></div>
+
+  <!-- Row 1: With descriptive footnote block -->
+  <div class="ice-category">
+    <strong class="fee-title">FCCC Yearly Membership</strong>
+    <p class="fee-description">
+      Alternatively, you can choose to pay an additional £3 per game. The
+      Membership Fee can be paid online through the new
+      <a href="https://fis.scot">fis.scot</a> website.
+    </p>
+  </div>
+  <div class="ice-cost member-cost"><p>£30.00</p></div>
+  <div class="ice-cost non-member-cost"><p>—</p></div>
+
+  <!-- Row 2 -->
+  <div class="ice-category">
+    <strong class="fee-title"
+      >Adult Playing Member (Non-Letham Grange Mother Club) *</strong
+    >
+  </div>
+  <div class="ice-cost member-cost"><p>£20.00</p></div>
+  <div class="ice-cost non-member-cost"><p>—</p></div>
+
+  <!-- Row 3 -->
+  <div class="ice-category">
+    <strong class="fee-title">Weekdays (Daytime)</strong>
+  </div>
+  <div class="ice-cost member-cost"><p>£13.00</p></div>
+  <div class="ice-cost non-member-cost"><p>£15.00</p></div>
+
+  <!-- Row 4 -->
+  <div class="ice-category">
+    <strong class="fee-title">Weekdays (Evening)</strong>
+  </div>
+  <div class="ice-cost member-cost"><p>£17.00</p></div>
+  <div class="ice-cost non-member-cost"><p>£20.00</p></div>
+
+  <!-- Row 5 -->
+  <div class="ice-category">
+    <strong class="fee-title">Weekends – All times</strong>
+  </div>
+  <div class="ice-cost member-cost"><p>£17.00</p></div>
+  <div class="ice-cost non-member-cost"><p>£20.00</p></div>
+
+  <!-- Row 6 -->
+  <div class="ice-category">
+    <strong class="fee-title">Practice Ice</strong>
+  </div>
+  <div class="ice-cost member-cost"><p>£12.00</p></div>
+  <div class="ice-cost non-member-cost"><p>£15.00</p></div>
+
+  <!-- Row 7: With programmatic subsidy information -->
+  <div class="ice-category">
+    <strong class="fee-title">FCCC Junior Fees</strong>
+    <p class="fee-description subsidy-note">
+      LGCC will subsidise Junior Ice by an additional £7.00 per game.
+    </p>
+  </div>
+  <div class="ice-cost member-cost"><p>£12.00</p></div>
+  <div class="ice-cost non-member-cost"><p>—</p></div>
+</div>
+
+<h3 id="sc-fees">Scottish curling fees (2026-27)</h3>
+
+<p>
+  Scottish curling is the governing body of the sport in Scotland and is seeking
+  registration of all players. Membership is compulsory for all club members.
+</p>
+<p>
+  Note: Letham Grange membership fee includes the Scottish Curling fee costs.
+</p>
+<div class="fees-grid">
+  <!-- Grid Headers -->
+  <div class="fee-header"><p>Membership Category</p></div>
+  <div class="fee-header numeric"><p>Fee</p></div>
+
+  <!-- Row 1 -->
+  <div class="fee-category"><p>Adult</p></div>
+  <div class="fee-cost"><p>£34</p></div>
+
+  <!-- Row 2 -->
+  <div class="fee-category">
+    <p>Junior - 21</p>
+  </div>
+  <div class="fee-cost"><p>£17</p></div>
+
+  <!-- Row 3 -->
+  <div class="fee-category"><p>Gateway</p></div>
+  <div class="fee-cost"><p>£17</p></div>
+
+  <!-- Row 4 -->
+  <div class="fee-category"><p>Gateway Junior</p></div>
+  <div class="fee-cost"><p>£8.50</p></div>
+</div>
+
+<h3 id="curl-forfar">Curl Forfar information</h3>
+<!-- Automatically catches your balanced typography layout rules -->
+<p>Forfar Indoor Sports, Carseview Road, Forfar, DD8 3BT. Tel. 01307 468668</p>
+
+<ul class="prose-list">
+  <li>
+    <strong>Email:</strong> <a href="mailto:Admin@fis.scot">Admin@fis.scot</a>
+  </li>
+  <li>
+    <strong>Website:</strong> <a href="https://fis.scot">www.fis.scot</a>. Also
+    on Facebook and Twitter.
+    <span class="list-note"
+      >[Note: FIS App for iPhone/iPad and Android phones now available]</span
+    >
+  </li>
+  <li><strong>Catering:</strong> For bar or meals contact Sandra Ferguson</li>
+  <li>
+    <strong>Session times:</strong> Evening 6.00pm and 8.30pm; Weekend 11.30am,
+    2.00pm and 4.30pm
+  </li>
+  <li><strong>Additional Bookings:</strong> Contact the rink directly</li>
+  <li>
+    <strong>Social events:</strong> See
+    <a href="https://fis.scot">FIS website</a>
+  </li>
+</ul>
+
+<h3 id="lgcc-info">Letham Grange Curling Club information</h3>
+<ul class="prose-list">
+  <li>Club leagues - Bank of Scotland, Contractors Cup, Spring League.</li>
+  <li>
+    Club Bonspiels – Pairs, Doubles, Opening, New Year, Closing, Crichton and
+    Men vs Women.
+  </li>
+  <li>Points – All members and friends welcome</li>
+</ul>
+<p>
+  The club is also heavily involved with the Province, Area and Ice Rink
+  competitions such as;
+</p>
+<ul class="prose-list">
+  <li>Dewar KO; Ferburn League; Points; and Indoor and/or Outdoor Bonspiel.</li>
+  <li>
+    Indoor Bonspiel; Grant Trophy; Crichton Tankard; Inter Province Bonspiel.
+  </li>
+  <li>
+    Super League, Agricar League; Seniors League; Bonspiels for Opening, Closing
+    and Charity; Inter Club matches; Rink Points.
+  </li>
+</ul>
+<p>
+  Province, Area and Ice Rink competition dates and events are in our yearly
+  syllabus.
+</p>
+
+<p>The club also runs many social events such as:-</p>
+<ul class="prose-list">
+  <li>Fun days – Meeting up for a social event like bowling.</li>
+  <li>Away days – Playing at other ice rinks in national competitions</li>
+  <li>
+    Dinners – Attend dinners when visiting tour come to Forfar. Dinner as part
+    of our Prizegiving.
+  </li>
+  <li>Prize ceremonies – Annual presentation of prizes</li>
+</ul>
+<h3 id="volunteers">Volunteers</h3>
+
+<p>
+  Letham Grange Curling Club is self funded and run by the members volunteering
+  to being on the Committee. We are always grateful for assistance in running
+  the club from any of its members and especially from the parents/carers of new
+  junior members. This could involve anything from lifts to competitions , to
+  being on the committee or becoming a coach or official.
+</p>
+<p>
+  If you are interested in volunteering please contact the President or
+  Secretary:-
+</p>
+<ul class="prose-list">
+  <li>President - Dave Piggot Contact- president@lethamgrangecc.org.uk</li>
+  <li>Secretary - Brian McArtney Contact- secretary@lethamgrangecc.org.uk</li>
+</ul>
+<h3 id="cwp">Child wellbeing and protection</h3>
+
+<p>
+  Letham Grange Curling Club adheres to the highest standards of child wellbeing
+  and protection, adhering to the Child wellbeing protection policy set out by
+  Scottish curling . All our coaches and helpers have undergone PVG checks and
+  the club has its own Child wellbeing protection officer:
+</p>
+<p>CWPO - Jane McArtney Contact - wellbeing@lethamgrangecc.org.uk</p>
+
+<style>
+  .prose-list {
+    /* 1. Indent the list horizontally using native logical properties */
+    padding-inline-start: var(--size-4, 1rem);
+
+    /* 2. Re-introduce clean visual bullet markers */
+    list-style-type: disc;
+
+    /* 3. Space out the list box from the paragraph above it */
+    margin-block-start: var(--size-3, 0.75rem);
+
+    /* 4. Use flex column logic to give each item structural space */
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2, 0.5rem);
+  }
+
+  .prose-list li {
+    /* Ensures wrapped text drops down with comfortable line lengths */
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  /* Optional helper text styling matching your Open Props architecture */
+  .list-note {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: inline-block;
+    margin-inline-start: 0.25rem;
+  }
+
+  .prose-list a {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  .fees-grid {
+    display: grid;
+    /* Left column takes maximum room, right column wraps tightly around the price */
+    grid-template-columns: 1fr auto;
+    gap: 0;
+    width: 100%;
+    max-width: var(--max-inline-size, 650px);
+    margin-block-start: 1.5em;
+    border-top: 2px solid var(--text-color, #222);
+  }
+
+  .fee-header {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding-block: 0.75rem;
+    border-bottom: 2px solid var(--text-color, #222);
+  }
+
+  .fee-category,
+  .fee-cost {
+    padding-block: 0.6rem;
+    border-bottom: 1px solid var(--border-color, #e5e5e5);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Right-align numbers for professional accounting look */
+  .numeric,
+  .fee-cost {
+    justify-content: flex-end;
+    text-align: right;
+    font-variant-numeric: tabular-nums; /* Keeps numbers neatly aligned vertically */
+    font-weight: 600;
+    padding-inline-start: 1.5rem; /* Prevents text colliding on small screens */
+  }
+
+  .fee-category > p {
+    margin: 0;
+    text-wrap: pretty; /* Prevents ugly layout breaks on multi-line descriptions */
+  }
+
+  .fee-cost > p {
+    margin: 0;
+  }
+
+  /* Mobile Tweak: Gives more breathing room for the long Mother Club text block */
+  @media (max-width: 480px) {
+    .fees-grid {
+      grid-template-columns: 1fr minmax(60px, auto);
+    }
+  }
+
+  .ice-fees-grid {
+    display: grid;
+    grid-template-columns: 1fr minmax(90px, auto) minmax(110px, auto);
+    width: 100%;
+    max-width: var(--max-inline-size, 700px);
+    margin-block-start: 1.5em;
+    /* Swapped to your custom design tokens */
+    border-top: 2px solid var(--text-primary);
+  }
+
+  .ice-header {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding-block: 0.75rem;
+    /* Connects to global text color and layout border tokens */
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--text-primary);
+  }
+
+  .ice-category {
+    padding-block: 0.75rem;
+    border-bottom: var(--border-width) solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .ice-cost {
+    padding-block: 0.75rem;
+    border-bottom: var(--border-width) solid var(--border-color);
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .numeric,
+  .ice-cost {
+    justify-content: flex-end;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .member-cost {
+    font-weight: 600;
+    padding-inline-start: 1rem;
+    /* Dynamically follows your dark/light text configuration */
+    color: var(--text-primary);
+  }
+
+  .non-member-cost {
+    padding-inline-start: 1.5rem;
+    /* Automatically shifts down to low-contrast grey in both layouts */
+    color: var(--text-muted);
+  }
+
+  .fee-title {
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .fee-description {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  .subsidy-note {
+    font-style: italic;
+    /* Leverages your functional --critical intent token directly
+     instead of using a harsh raw hex code that might wash out */
+    color: var(--critical);
+  }
+
+  /* --- MOBILE RESPONSIVE --- */
+  @media (max-width: 580px) {
+    .ice-fees-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .ice-header {
+      display: none;
+    }
+
+    .ice-category {
+      border-bottom: none;
+      padding-block-start: 1rem;
+      padding-block-end: 0.25rem;
+    }
+
+    .ice-cost {
+      justify-content: flex-start;
+      text-align: left;
+      padding-block: 0.25rem;
+      padding-inline-start: 0;
+      color: var(--text-primary);
+    }
+
+    .member-cost::before {
+      content: "Member Cost: ";
+      font-weight: bold;
+      margin-inline-end: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .non-member-cost::before {
+      content: "Non-Member Cost: ";
+      font-weight: bold;
+      margin-inline-end: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .non-member-cost {
+      border-bottom: var(--border-width) solid var(--border-color);
+      padding-block-end: 1rem;
+    }
+  }
+</style>

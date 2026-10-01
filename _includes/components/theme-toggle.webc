@@ -42,6 +42,9 @@
     return theme;
   };
 
+  // Keep track of the active animation state globally to prevent button click slamming
+  let isTransitioning = false;
+
   document.addEventListener("DOMContentLoaded", () => {
     const btn = document.querySelector("#theme-toggle-btn");
     if (!btn) return;
@@ -50,15 +53,34 @@
     const [theme, nextTheme] = getThemePair(curTheme.value);
     applyThemePair(theme, nextTheme, btn, false);
 
-    btn.addEventListener("click", () => {
-      const [currentTheme, nextTheme] = getThemePair(curTheme.value);
-      const svtFn = () =>
-        (curTheme.value = applyThemePair(nextTheme, currentTheme, btn, true));
+    btn.addEventListener("click", (e) => {
+      // ⚡️ CONCURRENCY GUARD: Abort immediately if a transition is currently running
+      if (isTransitioning) return;
 
-      document.startViewTransition?.(svtFn) ?? svtFn();
+      const [currentTheme, nextTheme] = getThemePair(curTheme.value);
+
+      const svtFn = () => {
+        curTheme.value = applyThemePair(nextTheme, currentTheme, btn, true);
+      };
+
+      if (!document.startViewTransition) {
+        svtFn();
+        return;
+      }
+
+      isTransitioning = true;
+      const transition = document.startViewTransition(svtFn);
+
+      // Clear our guard state once the animation successfully completes or rejects
+      transition.finished
+        .then(() => {
+          isTransitioning = false;
+        })
+        .catch(() => {
+          isTransitioning = false;
+        });
     });
   });
-
   window
     .matchMedia("(prefers-color-scheme: dark)")
     .addEventListener("change", ({ matches: isDark }) => {
