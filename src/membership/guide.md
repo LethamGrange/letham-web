@@ -4,7 +4,7 @@ title: Beginners Guide to Curling
 pagetitle: Letham Grange Curling
 headerImage: /images/logo-high.png
 headerAlt: Letham Grange logo
-
+inContextNav: true
 ---
 
 ## Curling Information sheets

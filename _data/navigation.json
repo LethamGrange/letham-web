@@ -20,12 +20,8 @@
     "includes": true
   },
   {
-    "url": "/guide/",
-    "label": "Beginners Guide"
-  },
-  {
     "url": "/resources/",
-    "label": "Resources"
+    "label": "Files"
   },
   {
     "url": "/scores/",
