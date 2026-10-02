@@ -133,32 +133,32 @@
 
   /* 2. Contractors Cup -> Warm Amber Orange (Hue 75) */
   .diary-td[data-kind="contractors-cup"] {
-    --row-hue: 75;
-    --row-chroma: 0.05;
+    --row-hue: 84.58;
+    --row-chroma: 0.1727;
   }
 
   /* 3. Super League -> Cyan Sea Blue (Hue 195) */
   .diary-td[data-kind="super-league"] {
-    --row-hue: 195;
-    --row-chroma: 0.05;
+    --row-hue: 233.6642;
+    --row-chroma: 0.148581;
   }
 
   /* 4. Province and Area 12 -> Crimson Red (Hue 25) */
   .diary-td[data-kind="province-and-area-12-competitions"] {
-    --row-hue: 25;
-    --row-chroma: 0.05;
+    --row-hue: 29.2339;
+    --row-chroma: 0.244572;
   }
 
   /* 5. Over 50's -> Bright Gold Yellow (Hue 100) */
   .diary-td[data-kind="over-50-s"] {
-    --row-hue: 100;
-    --row-chroma: 0.06;
+    --row-hue: 110;
+    --row-chroma: 0.21;
   }
 
   /* 6. Inter-Club Games -> Muted Slate Blue (Hue 220) */
   .diary-td[data-kind="inter-club-games"] {
-    --row-hue: 220;
-    --row-chroma: 0.02;
+    --row-hue: 229;
+    --row-chroma: 0.0435;
   }
 
   /* 7. FCCC Competitions -> Clean Neutral Gray (Chroma 0) */
@@ -169,8 +169,8 @@
 
   /* 8. Agricar -> Mint Pasture Green (Hue 145) */
   .diary-td[data-kind="agricar"] {
-    --row-hue: 145;
-    --row-chroma: 0.04;
+    --row-hue: 137.39;
+    --row-chroma: 0.0523;
   }
 
   /* 9. LGCC Competitions / Spring League -> Ice Silver Blue (Hue 230) */
@@ -181,8 +181,8 @@
 
   /* 10. Ladies Games -> Lavender Pink (Hue 330) */
   .diary-td[data-kind="ladies-games"] {
-    --row-hue: 330;
-    --row-chroma: 0.04;
+    --row-hue: 330.65;
+    --row-chroma: 0.0572;
   }
 
   /* --- Fallback / Generic Options --- */
