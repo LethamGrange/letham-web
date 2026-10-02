@@ -43,13 +43,17 @@ export default function () {
 
       // Look for a folder-meta json file matching the folder name (e.g. user-manuals/user-manuals.json)
       const folderJsonPath = path.join(categoryPath, `${categoryFolder}.json`);
+
+      let showFor = 'public'; // default
+
       if (fs.existsSync(folderJsonPath)) {
         try {
           const folderMeta = JSON.parse(fs.readFileSync(folderJsonPath, 'utf8'));
           if (folderMeta.categoryName) categoryName = folderMeta.categoryName;
           if (folderMeta.description) categoryDescription = folderMeta.description;
+          if (folderMeta.showFor) showFor = folderMeta.showFor; // "user", "admin", etc.
         } catch (e) {
-          console.error(`Error parsing folder JSON for ${categoryFolder}:`, e);
+          console.error(e);
         }
       }
 
@@ -57,10 +61,10 @@ export default function () {
         .readdirSync(categoryPath)
         .filter(file => path.extname(file).toLowerCase() === '.pdf')
         .map(pdfFile => mapPdfFile(categoryPath, categoryFolder, pdfFile));
-
       return {
         categoryName,
         description: categoryDescription,
+        showFor,
         files,
       };
     })

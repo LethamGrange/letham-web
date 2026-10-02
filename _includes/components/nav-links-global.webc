@@ -108,6 +108,7 @@
 </script>
 <script webc:keep>
   (function () {
+    // 1. Process your existing logout htmx bindings securely
     document.querySelectorAll('a[href="/logout/"]').forEach((anchor) => {
       anchor.setAttribute("hx-post", "/api/logout");
       anchor.setAttribute("hx-trigger", "click");
@@ -115,6 +116,24 @@
         htmx.process(anchor);
       }
     });
+
+    // 2. NEW: Dynamically append the current path onto the login links
+    // Captures the page the user is currently looking at
+    const currentPath = window.location.pathname;
+
+    // Only append if the user isn't already on the login or logout screens
+    if (
+      currentPath !== "/login/" &&
+      currentPath !== "/login" &&
+      currentPath !== "/logout/"
+    ) {
+      document
+        .querySelectorAll('a[href="/login/"], a[href="/login"]')
+        .forEach((anchor) => {
+          // Appends '?next=/resources/' (or whatever the active path is) to the link href
+          anchor.href = `/login/?next=${encodeURIComponent(currentPath)}`;
+        });
+    }
   })();
 </script>
 <style>
