@@ -5,7 +5,48 @@ headerImage: /images/logo-high.png
 headerAlt: Letham Grange logo
 ---
 
-<h1>History of the club</h1>
+<h1 class="ui-h2">About our Club</h1>
+<section class="pass-accreditation">
+  <h2>PASS Accreditation</h2>
+  <editorial-block caption="Angus PASS accreditation " align="left">
+    <p>
+      <strong
+        >Our club is officially PASS accredited by Angus Council, certifying
+        that our coaches meet the highest standards for safety, qualification,
+        and quality.</strong
+      >
+    </p>
+
+    <p>
+      This accreditation allows us to actively invest in our local community by:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Delivering in-school sessions</strong> across Angus to introduce
+        primary pupils to ice curling and Floor Curling.
+      </li>
+      <li>
+        <strong>Partnering with Angus College</strong> to mentor students and
+        facilitate their sports coaching placements in local schools.
+      </li>
+      <li>
+        <strong>Growing the game</strong> by providing safe, fun, and expert-led
+        pathways for the next generation of curlers.
+      </li>
+    </ul>
+    <img
+      slot="image"
+      src="/images/angus-council-pass-certificate.avif"
+      alt="Angus PASS certificate"
+      width="783"
+      height="729"
+      sizes="(min-width: 50rem) 35ch, 90vw"
+    />
+  </editorial-block>
+</section>
+
+<h2>History of the club</h2>
 
 <editorial-block align="right" caption="Club plaque">
   <p>
