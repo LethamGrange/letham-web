@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
       const apiBody = JSON.stringify({
         // The sender must be a verified domain/email identity inside your Brevo Account
         sender: {
-          name: 'Westmuir Contact Form',
+          name: 'LGCC Contact Form',
           email: 'no-reply@westmuir.org.uk',
         },
         // Where you want to receive the notification alerts
@@ -84,7 +84,7 @@ export async function onRequestPost(context) {
         },
         subject: `New Contact Submission: ${queryType}`,
         htmlContent: html`
-          <h3>New Message Received From Westmuir Website</h3>
+          <h3>New Message Received From LGCC Website</h3>
           <p><strong>Name:</strong> ${firstName} ${lastName}</p>
           <p><strong>Email:</strong> ${email}</p>
           <p><strong>Query Type:</strong> ${queryType}</p>
