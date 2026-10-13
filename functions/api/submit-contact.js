@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
         // The sender must be a verified domain/email identity inside your Brevo Account
         sender: {
           name: 'LGCC Contact Form',
-          email: 'no-reply@westmuir.org.uk',
+          email: 'no-reply@lethamgrangecurling.org',
         },
         // Where you want to receive the notification alerts
         to: [
