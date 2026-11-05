@@ -29,12 +29,12 @@ export async function onRequestGet(context) {
       return new Response(JSON.stringify({ success: true, diary: [] }), { status: 200, headers });
     }
 
-    // 2. Extract all unique competition IDs out of the timeline
+    // 2. Extract unique competition IDs out of the timeline (very small array)
     const uniqueCompIds = [...new Set(timeline.map(row => row.compId))];
     const placeholders = uniqueCompIds.map(() => '?').join(',');
 
-    // 3. FETCH THE WHOLE WORLD FLAT IN 5 GLOBAL BATCH QUERIES
-    // This scales beautifully and bypasses the Cloudflare subrequest ceiling entirely!
+    // 3. FETCH THE WHOLE WORLD BATCHED BY UNIQUE COMPETITION ID
+    // By joining parent tables, we bind only uniqueCompIds and completely bypass variable limits!
 
     // Query 2: All relevant competition teams
     const { results: allTeams } = await db
@@ -43,26 +43,32 @@ export async function onRequestGet(context) {
       )
       .bind(...uniqueCompIds)
       .all();
-    const teamIds = allTeams.map(t => t.id);
-    const teamPlaceholders = teamIds.length > 0 ? teamIds.map(() => '?').join(',') : 'NULL';
 
-    // Query 3: All relevant team players
-    const { results: allPlayers } =
-      teamIds.length > 0
-        ? await db
-            .prepare(`SELECT team_id, name, role FROM team_players WHERE team_id IN (${teamPlaceholders})`)
-            .bind(...teamIds)
-            .all()
-        : { results: [] };
+    // Query 3: All relevant team players (Joined against competition_id)
+    const { results: allPlayers } = await db
+      .prepare(
+        `
+        SELECT p.team_id, p.name, p.role
+        FROM team_players p
+        JOIN competition_teams t ON p.team_id = t.id
+        WHERE t.competition_id IN (${placeholders})
+      `,
+      )
+      .bind(...uniqueCompIds)
+      .all();
 
-    // Query 4: All relevant pool substitutes
-    const { results: allPools } =
-      teamIds.length > 0
-        ? await db
-            .prepare(`SELECT team_id, name FROM pool_players WHERE team_id IN (${teamPlaceholders})`)
-            .bind(...teamIds)
-            .all()
-        : { results: [] };
+    // Query 4: All relevant pool substitutes (Joined against competition_id)
+    const { results: allPools } = await db
+      .prepare(
+        `
+        SELECT p.team_id, p.name
+        FROM pool_players p
+        JOIN competition_teams t ON p.team_id = t.id
+        WHERE t.competition_id IN (${placeholders})
+      `,
+      )
+      .bind(...uniqueCompIds)
+      .all();
 
     // Query 5: All relevant fixtures
     const { results: allFixtures } = await db
@@ -71,19 +77,21 @@ export async function onRequestGet(context) {
       )
       .bind(...uniqueCompIds)
       .all();
-    const fixtureIds = allFixtures.map(f => f.id);
-    const fixturePlaceholders = fixtureIds.length > 0 ? fixtureIds.map(() => '?').join(',') : 'NULL';
 
-    // Query 6: All relevant sheet games matchups
-    const { results: allGames } =
-      fixtureIds.length > 0
-        ? await db
-            .prepare(`SELECT id, fixture_id,  team_a, team_b FROM games WHERE fixture_id IN (${fixturePlaceholders})`)
-            .bind(...fixtureIds)
-            .all()
-        : { results: [] };
+    // Query 6: All relevant matchups (Joined against fixtures table to use competition_id, sheet column removed)
+    const { results: allGames } = await db
+      .prepare(
+        `
+        SELECT g.id, g.fixture_id, g.team_a, g.team_b
+        FROM games g
+        JOIN fixtures f ON g.fixture_id = f.id
+        WHERE f.competition_id IN (${placeholders})
+      `,
+      )
+      .bind(...uniqueCompIds)
+      .all();
 
-    // Query 7: All competition reserves
+    // Query 7: All competition pool reserves
     const { results: allReserves } = await db
       .prepare(
         `SELECT competition_id, player_name AS name FROM competition_reserves WHERE competition_id IN (${placeholders})`,
@@ -93,7 +101,6 @@ export async function onRequestGet(context) {
 
     // 4. JAVASCRIPT MEMORY STITCHER: Maps raw rows into nested component trees
     const diaryEntries = timeline.map(row => {
-      // Filter out teams belonging exclusively to this specific competition item
       const compTeams = allTeams
         .filter(t => t.competition_id === row.compId)
         .map(team => ({
@@ -102,7 +109,6 @@ export async function onRequestGet(context) {
           pool_players: allPools.filter(p => p.team_id === team.id),
         }));
 
-      // Filter out fixtures belonging exclusively to this specific competition item
       const compFixtures = allFixtures
         .filter(f => f.competition_id === row.compId)
         .map(fix => ({
@@ -112,7 +118,6 @@ export async function onRequestGet(context) {
 
       const compReserves = allReserves.filter(r => r.competition_id === row.compId);
 
-      // Standard formatting strings
       const formattedDate = new Date(row.rawDate).toLocaleDateString('en-GB', {
         day: 'numeric',
         month: 'short',
