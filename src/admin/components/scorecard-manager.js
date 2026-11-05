@@ -12,7 +12,7 @@ class ScorecardManager extends HTMLElement {
     this.competitionPicker = this.querySelector('competition-picker');
 
     const inputA = form.querySelector('[name="team[a][name]"]');
-    const inputB = form.querySelector('[name="team[b][name]');
+    const inputB = form.querySelector('[name="team[b][name]"]');
 
     this.lineScores = form.querySelector('line-scores');
 
@@ -151,6 +151,7 @@ class ScorecardManager extends HTMLElement {
     }
   }
 
+  // Replace lines 117-156 inside your scorecard-manager script node
   commitCurrentFormToSnapshot(form) {
     const formData = new FormData(form);
 
@@ -162,7 +163,10 @@ class ScorecardManager extends HTMLElement {
     const teamAName = formData.get('team[a][name]')?.trim();
     const teamBName = formData.get('team[b][name]')?.trim();
 
-    // 1. Gather player keys exactly like the backend structure does
+    // ⚡️ GRASSROOTS PENALTY SNAPSHOT ADDITIONS
+    const penaltyA = parseInt(formData.get('penalty_score_a'), 10) || 0;
+    const penaltyB = parseInt(formData.get('penalty_score_b'), 10) || 0;
+
     const teamplayers = {};
     for (let key of ['a', 'b']) {
       for (let player of ['skip', 'third', 'second', 'lead']) {
@@ -170,9 +174,8 @@ class ScorecardManager extends HTMLElement {
       }
     }
 
-    // 2. Parse linescores into a clean, 0-indexed data array matching your layout schema
     const ends = [];
-    const hasExtraEnds = formData.get('match[has_extra_ends]') === 'true' || this.toggleCheckbox?.checked === true;
+    const hasExtraEnds = formData.get('match[has_extra_ends]') === 'true';
     const numberOfEnds = hasExtraEnds ? 12 : 8;
 
     for (let i = 1; i <= numberOfEnds; i++) {
@@ -185,7 +188,7 @@ class ScorecardManager extends HTMLElement {
       });
     }
 
-    // 3. Save the exact structure as the unified new starting model
+    // Save the complete state model
     this.startingModel = {
       date: matchDate,
       time: matchTime,
@@ -197,12 +200,14 @@ class ScorecardManager extends HTMLElement {
       },
       ...teamplayers,
       ends: ends,
-      // Add quick numerical cached value lookups for dirty checker shortcuts
-      finalScoreA: ends.reduce((sum, val) => sum + (parseInt(val.a, 10) || 0), 0),
-      finalScoreB: ends.reduce((sum, val) => sum + (parseInt(val.b, 10) || 0), 0),
+      // ⚡️ Save into baseline memory dictionary tracking parameters
+      penalty_score_a: penaltyA,
+      penalty_score_b: penaltyB,
+      // Accumulate totals including your penalties for the dirty checker shortcuts
+      finalScoreA: penaltyA + ends.reduce((sum, val) => sum + (parseInt(val.a, 10) || 0), 0),
+      finalScoreB: penaltyB + ends.reduce((sum, val) => sum + (parseInt(val.b, 10) || 0), 0),
     };
 
-    // 4. Instantly dismiss the cancel button since state is now clean
     this.setCancelButtonVisibility(false);
   }
 
@@ -271,15 +276,12 @@ class ScorecardManager extends HTMLElement {
   }
 
   hydrateForm(data, form) {
-    // Still keep a shallow copy of the model so we know how to roll back if they click cancel
     this.startingModel = data;
     this.isFormDirty = false;
 
-    // 1. Update the form element attributes to target the edit routing
     form.removeAttribute('hx-post');
-    form.setAttribute('hx-put', '/api/scorecard'); // Adjust your endpoint path here
+    form.setAttribute('hx-put', '/api/scorecard');
 
-    // 1. Hydrate Match Metadata
     if (data.competition_name && this.competitionPicker) {
       this.competitionPicker.competitionName = data.competition_name;
     }
@@ -292,13 +294,17 @@ class ScorecardManager extends HTMLElement {
       if (input) input.value = data[key] || '';
     });
 
+    // ⚡️ HYDRATE GRASSROOTS PENALTY INPUT BLOCKS
+    const penAInput = form.querySelector('[name="penalty_score_a"]');
+    const penBInput = form.querySelector('[name="penalty_score_b"]');
+    if (penAInput) penAInput.value = data.penalty_score_a !== undefined ? data.penalty_score_a : 0;
+    if (penBInput) penBInput.value = data.penalty_score_b !== undefined ? data.penalty_score_b : 0;
+
     // 2. Hydrate Team Data (A and B)
     ['a', 'b'].forEach(side => {
-      // Set Team Names
       const nameInput = form.querySelector(`[name="team[${side}][name]"]`);
       if (nameInput) nameInput.value = data.team?.[side]?.name || '';
 
-      // Set Player Positions
       ['skip', 'third', 'second', 'lead'].forEach(pos => {
         const pInput = form.querySelector(`[name="team[${side}][players][${pos}]"]`);
         if (pInput) pInput.value = data.team?.[side]?.players?.[pos] || '';
@@ -306,19 +312,15 @@ class ScorecardManager extends HTMLElement {
     });
 
     // 3. Hydrate Linescores
-    // Locate your custom <line-scores> element and pass the array straight in!
     const linescoreComponent = this.querySelector('line-scores');
     if (linescoreComponent && data.ends) {
       linescoreComponent.onUpdateLinescores(data);
     }
 
-    // 3. Sync up the view layout states
     this.updateActionButtonsVisibility();
 
-    // Tell HTMX to re-bind its internal event listeners to the fresh hx-put attribute
     if (window.htmx) htmx.process(form);
   }
-
   async onEditScorecard(form) {
     const matchId = event.detail.matchId;
 

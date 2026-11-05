@@ -1,5 +1,5 @@
 
- ⛅️ wrangler 4.124.0 (update available 4.145.0)
+ ⛅️ wrangler 4.124.0 (update available 4.158.0)
 ───────────────────────────────────────────────
 Resource location: local 
 
@@ -51,12 +51,12 @@ Use --remote if you want to access the remote instance.
         "sql": "CREATE TABLE \"pool_players\" (\n    id TEXT PRIMARY KEY,\n    team_id TEXT,\n    name TEXT NOT NULL,\n    FOREIGN KEY(team_id) REFERENCES \"competition_teams\"(id) ON DELETE CASCADE\n)"
       },
       {
-        "sql": "CREATE TABLE \"matches\" (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    match_date TEXT NOT NULL,\n    match_time TEXT NOT NULL,\n    sheet TEXT CHECK(sheet IN ('A', 'B', 'C', 'D', 'E', 'F')) NOT NULL,\n    competition_name TEXT NOT NULL,\n    team_a_id INTEGER,\n    team_b_id INTEGER,\n    team_a_skip TEXT,\n    team_a_third TEXT,\n    team_a_second TEXT,\n    team_a_lead TEXT,\n    team_b_skip TEXT,\n    team_b_third TEXT,\n    team_b_second TEXT,\n    team_b_lead TEXT,\n    final_score_a INTEGER DEFAULT 0,\n    final_score_b INTEGER DEFAULT 0,\n    team_a_ends TEXT,\n    team_b_ends TEXT,\n\n    \n    FOREIGN KEY(team_a_id) REFERENCES clubs_or_rinks(id) ON DELETE SET NULL,\n    FOREIGN KEY(team_b_id) REFERENCES clubs_or_rinks(id) ON DELETE SET NULL\n)"
+        "sql": "CREATE TABLE \"matches\" (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    match_date TEXT NOT NULL,\n    match_time TEXT NOT NULL,\n    sheet TEXT CHECK(sheet IN ('A', 'B', 'C', 'D', 'E', 'F')) NOT NULL,\n    competition_name TEXT NOT NULL,\n    team_a_id INTEGER,\n    team_b_id INTEGER,\n    team_a_skip TEXT,\n    team_a_third TEXT,\n    team_a_second TEXT,\n    team_a_lead TEXT,\n    team_b_skip TEXT,\n    team_b_third TEXT,\n    team_b_second TEXT,\n    team_b_lead TEXT,\n    final_score_a INTEGER DEFAULT 0,\n    final_score_b INTEGER DEFAULT 0,\n    team_a_ends TEXT,\n    team_b_ends TEXT, penalty_score_a INTEGER DEFAULT 0, penalty_score_b INTEGER DEFAULT 0,\n\n    \n    FOREIGN KEY(team_a_id) REFERENCES clubs_or_rinks(id) ON DELETE SET NULL,\n    FOREIGN KEY(team_b_id) REFERENCES clubs_or_rinks(id) ON DELETE SET NULL\n)"
       }
     ],
     "success": true,
     "meta": {
-      "duration": 1
+      "duration": 0
     }
   }
 ]

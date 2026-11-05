@@ -38,7 +38,6 @@ export async function onRequestGet(context) {
     }
 
     let teamAEnds = match.team_a_ends.split(',');
-
     const expectedEnds = teamAEnds.length > 8 ? 12 : 8;
 
     if (teamAEnds.length < expectedEnds)
@@ -52,7 +51,7 @@ export async function onRequestGet(context) {
     let teamARows = '';
     let teamBRows = '';
 
-    for (let i = 2; i <= expectedEnds; i++) {
+    for (let i = 1; i <= expectedEnds; i++) {
       let endLabel = i.toString();
       if (i === 11) endLabel = 'EE';
       if (i === 12) endLabel = 'EEE';
@@ -64,6 +63,42 @@ export async function onRequestGet(context) {
       teamBRows += html`<td style="padding: var(--size-2); font-weight: bold;">${teamBEnds[i - 1] || 'X'}</td>`;
     }
     tableHeaders += html`<th style="padding: var(--size-2);">Total</th>`;
+
+    // ⚡️ CONDITIONAL GRASSROOTS PENALTY ROW RENDER
+    // Only builds and appends this row if an adjustment was actually saved to D1
+    let penaltyRowHtml = '';
+    const penaltyA = match.penalty_score_a || 0;
+    const penaltyB = match.penalty_score_b || 0;
+
+    if (penaltyA !== 0 || penaltyB !== 0) {
+      // Build internal placeholder cells to balance the column layout
+      let penaltyACells = '';
+      let penaltyBCells = '';
+
+      for (let i = 1; i <= expectedEnds; i++) {
+        // Distribute the visual indicators across the row columns evenly
+        if (i === 1) {
+          penaltyACells += `<td style="color: var(--red-6); font-size: var(--font-size-0); font-weight: bold;">Adj: ${penaltyA > 0 ? '+' : ''}${penaltyA}</td>`;
+          penaltyBCells += `<td style="color: var(--red-6); font-size: var(--font-size-0); font-weight: bold;">Adj: ${penaltyB > 0 ? '+' : ''}${penaltyB}</td>`;
+        } else {
+          penaltyACells += `<td></td>`;
+          penaltyBCells += `<td></td>`;
+        }
+      }
+
+      penaltyRowHtml = html`
+        <tr style="background: var(--surface-3); font-style: italic; color: var(--text-3); font-size: var(--font-size-0);">
+          <td style="text-align: left; padding: var(--size-1) var(--size-2);">Shorthanded Penalty</td>
+          <td colspan="${expectedEnds}" style="text-align: left; padding: var(--size-1) var(--size-2);">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <span><strong>${match.team_a_name}:</strong> ${penaltyA > 0 ? '+' : ''}${penaltyA} pts</span>
+              <span><strong>${match.team_b_name}:</strong> ${penaltyB > 0 ? '+' : ''}${penaltyB} pts</span>
+            </div>
+          </td>
+          <td></td>
+        </div>
+      `;
+    }
 
     const adminButtons = isAdmin
       ? html`
@@ -145,6 +180,8 @@ Are you completely sure you want to permanently delete this scorecard?"
                   ${match.final_score_b}
                 </td>
               </tr>
+              <!-- ⚡️ Injects the Penalty Adjustment Notice here dynamically -->
+              ${penaltyRowHtml}
             </tbody>
           </table>
         </div>
