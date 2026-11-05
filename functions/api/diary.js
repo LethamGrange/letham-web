@@ -1,4 +1,3 @@
-// functions/api/diary.js
 export async function onRequestGet(context) {
   const db = context.env.curling_league;
   const headers = {
@@ -7,7 +6,7 @@ export async function onRequestGet(context) {
   };
 
   try {
-    // 1. Fetch the master timeline chronology rows
+    // 1. Fetch the master chronological timeline layout rows (Query 1)
     const { results: timeline } = await db
       .prepare(
         `
@@ -26,95 +25,126 @@ export async function onRequestGet(context) {
       )
       .all();
 
-    // 2. Parallel compilation loop resolves all deep child arrays natively
-    const diaryEntries = await Promise.all(
-      timeline.map(async row => {
-        // A. Resolve Teams alongside their child player arrays
-        const { results: rawTeams } = await db
-          .prepare(
-            `SELECT id, team_name AS name, team_index FROM competition_teams WHERE competition_id = ? ORDER BY team_index ASC`,
-          )
-          .bind(row.compId)
-          .all();
+    if (!timeline || timeline.length === 0) {
+      return new Response(JSON.stringify({ success: true, diary: [] }), { status: 200, headers });
+    }
 
-        const fullyHydratedTeams = await Promise.all(
-          rawTeams.map(async team => {
-            const { results: players } = await db
-              .prepare(`SELECT  name, role FROM team_players WHERE team_id = ?`)
-              .bind(team.id)
-              .all();
-            const { results: pools } = await db
-              .prepare(`SELECT name FROM pool_players WHERE team_id = ?`)
-              .bind(team.id)
-              .all();
-            return {
-              ...team,
-              players: players || [],
-              pool_players: pools || [],
-            };
-          }),
-        );
+    // 2. Extract all unique competition IDs out of the timeline
+    const uniqueCompIds = [...new Set(timeline.map(row => row.compId))];
+    const placeholders = uniqueCompIds.map(() => '?').join(',');
 
-        // B. Resolve Fixtures alongside their specific sheet games allocations
-        const { results: rawFixtures } = await db
-          .prepare(
-            `SELECT id, fixture_date AS date, fixture_time AS time FROM fixtures WHERE competition_id = ? ORDER BY fixture_date ASC`,
-          )
-          .bind(row.compId)
-          .all();
+    // 3. FETCH THE WHOLE WORLD FLAT IN 5 GLOBAL BATCH QUERIES
+    // This scales beautifully and bypasses the Cloudflare subrequest ceiling entirely!
 
-        const fullyHydratedFixtures = await Promise.all(
-          rawFixtures.map(async fix => {
-            const { results: games } = await db
-              .prepare(`SELECT id,  team_a, team_b FROM games WHERE fixture_id = ?`)
-              .bind(fix.id)
-              .all();
-            return {
-              ...fix,
-              games: games || [],
-            };
-          }),
-        );
+    // Query 2: All relevant competition teams
+    const { results: allTeams } = await db
+      .prepare(
+        `SELECT id, competition_id, team_name AS name, team_index FROM competition_teams WHERE competition_id IN (${placeholders}) ORDER BY team_index ASC`,
+      )
+      .bind(...uniqueCompIds)
+      .all();
+    const teamIds = allTeams.map(t => t.id);
+    const teamPlaceholders = teamIds.length > 0 ? teamIds.map(() => '?').join(',') : 'NULL';
 
-        // C. Fetch global competition pool reserves
-        const { results: reserves } = await db
-          .prepare(`SELECT player_name AS name FROM competition_reserves WHERE competition_id = ?`)
-          .bind(row.compId)
-          .all();
+    // Query 3: All relevant team players
+    const { results: allPlayers } =
+      teamIds.length > 0
+        ? await db
+            .prepare(`SELECT team_id, name, role FROM team_players WHERE team_id IN (${teamPlaceholders})`)
+            .bind(...teamIds)
+            .all()
+        : { results: [] };
 
-        const formattedDate = new Date(row.rawDate).toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        });
+    // Query 4: All relevant pool substitutes
+    const { results: allPools } =
+      teamIds.length > 0
+        ? await db
+            .prepare(`SELECT team_id, name FROM pool_players WHERE team_id IN (${teamPlaceholders})`)
+            .bind(...teamIds)
+            .all()
+        : { results: [] };
 
-        let formattedTime = '';
-        if (row.rawTime) {
-          const [hours, minutes] = row.rawTime.split(':');
-          const h = parseInt(hours, 10);
-          const ampm = h >= 12 ? 'pm' : 'am';
-          const displayHours = h % 12 === 0 ? 12 : h % 12;
-          formattedTime = `${displayHours}.${minutes}${ampm}`;
-        }
+    // Query 5: All relevant fixtures
+    const { results: allFixtures } = await db
+      .prepare(
+        `SELECT id, competition_id, fixture_date AS date, fixture_time AS time FROM fixtures WHERE competition_id IN (${placeholders}) ORDER BY fixture_date ASC`,
+      )
+      .bind(...uniqueCompIds)
+      .all();
+    const fixtureIds = allFixtures.map(f => f.id);
+    const fixturePlaceholders = fixtureIds.length > 0 ? fixtureIds.map(() => '?').join(',') : 'NULL';
 
-        return {
-          rawDate: row.rawDate,
-          rawTime: row.rawTime,
-          date: formattedDate,
-          time: formattedTime,
-          game: row.competitionName,
-          kind: row.competitionKind,
-          fullCompData: {
-            id: row.compId,
-            name: row.competitionName,
-            type: row.competitionKind,
-            teams: fullyHydratedTeams,
-            fixtures: fullyHydratedFixtures,
-            reserves: reserves || [],
-          },
-        };
-      }),
-    );
+    // Query 6: All relevant sheet games matchups
+    const { results: allGames } =
+      fixtureIds.length > 0
+        ? await db
+            .prepare(`SELECT id, fixture_id,  team_a, team_b FROM games WHERE fixture_id IN (${fixturePlaceholders})`)
+            .bind(...fixtureIds)
+            .all()
+        : { results: [] };
+
+    // Query 7: All competition reserves
+    const { results: allReserves } = await db
+      .prepare(
+        `SELECT competition_id, player_name AS name FROM competition_reserves WHERE competition_id IN (${placeholders})`,
+      )
+      .bind(...uniqueCompIds)
+      .all();
+
+    // 4. JAVASCRIPT MEMORY STITCHER: Maps raw rows into nested component trees
+    const diaryEntries = timeline.map(row => {
+      // Filter out teams belonging exclusively to this specific competition item
+      const compTeams = allTeams
+        .filter(t => t.competition_id === row.compId)
+        .map(team => ({
+          ...team,
+          players: allPlayers.filter(p => p.team_id === team.id),
+          pool_players: allPools.filter(p => p.team_id === team.id),
+        }));
+
+      // Filter out fixtures belonging exclusively to this specific competition item
+      const compFixtures = allFixtures
+        .filter(f => f.competition_id === row.compId)
+        .map(fix => ({
+          ...fix,
+          games: allGames.filter(g => g.fixture_id === fix.id),
+        }));
+
+      const compReserves = allReserves.filter(r => r.competition_id === row.compId);
+
+      // Standard formatting strings
+      const formattedDate = new Date(row.rawDate).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+
+      let formattedTime = '';
+      if (row.rawTime) {
+        const [hours, minutes] = row.rawTime.split(':');
+        const h = parseInt(hours, 10);
+        const ampm = h >= 12 ? 'pm' : 'am';
+        const displayHours = h % 12 === 0 ? 12 : h % 12;
+        formattedTime = `${displayHours}.${minutes}${ampm}`;
+      }
+
+      return {
+        rawDate: row.rawDate,
+        rawTime: row.rawTime,
+        date: formattedDate,
+        time: formattedTime,
+        game: row.competitionName,
+        kind: row.competitionKind,
+        fullCompData: {
+          id: row.compId,
+          name: row.competitionName,
+          type: row.competitionKind,
+          teams: compTeams,
+          fixtures: compFixtures,
+          reserves: compReserves,
+        },
+      };
+    });
 
     return new Response(JSON.stringify({ success: true, diary: diaryEntries }), {
       status: 200,
