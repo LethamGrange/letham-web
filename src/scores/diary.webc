@@ -10,3 +10,37 @@ inContextNav: true
 <h2>Games diary</h2>
 
 <diary-view></diary-view>
+
+<!-- Inside diary.webc -> Update your style definitions block -->
+<style>
+  .diary-table-layout competition-card {
+    display: block;
+    width: 100%;
+  }
+
+  /* ⚡️ CLEAN INHERITANCE: Strips out default borders and shadows when cards load in the Diary matrix */
+  .diary-table-layout .public-card {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100%;
+  }
+
+  .diary-table-layout .card-summary-header {
+    border: none !important;
+    background: transparent !important;
+    padding: var(--size-2) var(--size-1) !important;
+  }
+
+  /* Keeps the expanded collapsible drawer looking like a distinct, readable paper extension */
+  .diary-table-layout .card-expanded-details {
+    border-radius: var(--radius-2);
+    margin-top: var(--size-2);
+    margin-bottom: var(--size-2);
+    box-shadow: inset var(--shadow-1);
+  }
+</style>
+
+<!-- Add the direct nokeep dependency hook at the very bottom of diary.webc -->
+<competition-card webc:nokeep></competition-card>

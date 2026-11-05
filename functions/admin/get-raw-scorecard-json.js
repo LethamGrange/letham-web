@@ -36,6 +36,8 @@ export async function onRequestGet(context) {
       sheet: match.sheet,
       competition_name: match.competition_name,
       team: {},
+      penalty_score_a: match.penalty_score_a,
+      penalty_score_b: match.penalty_score_b,
     };
 
     for (let key of ['a', 'b']) {
@@ -44,8 +46,8 @@ export async function onRequestGet(context) {
         players: {
           skip: match[`team_${key}_skip`] ?? '',
           third: match[`team_${key}_third`] ?? '',
-          second: match[`team_${key}_third`] ?? '',
-          lead: match[`team_${key}_lead}`] ?? '',
+          second: match[`team_${key}_second`] ?? '',
+          lead: match[`team_${key}_lead`] ?? '',
         },
       };
     }

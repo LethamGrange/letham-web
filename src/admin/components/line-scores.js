@@ -4,6 +4,8 @@ class LineScores extends HTMLElement {
   totalBEl;
   labelA;
   labelB;
+  penaltyAInput; // Cached reference
+  penaltyBInput; // Cached reference
 
   // 1. Tell the browser what attributes to watch for changes
   static get observedAttributes() {
@@ -42,6 +44,10 @@ class LineScores extends HTMLElement {
 
     this.totalAEl = this.querySelector('.running-total-a');
     this.totalBEl = this.querySelector('.running-total-b');
+
+    // 1. Cache your dynamic penalty elements into fast class parameters
+    this.penaltyAInput = this.querySelector('[name="penalty_score_a"]');
+    this.penaltyBInput = this.querySelector('[name="penalty_score_b"]');
 
     // 2. Cache references to all 12 end rows in one clean pass
     this.cachedEnds = [];
@@ -233,12 +239,12 @@ class LineScores extends HTMLElement {
   }
 
   // Helper function to calculate math for all 12 ends dynamically
+
   updateRunningTotals() {
-    let totalA = 0;
-    let totalB = 0;
+    let totalA = parseInt(this.penaltyAInput?.value, 10) || 0;
+    let totalB = parseInt(this.penaltyBInput?.value, 10) || 0;
 
     this.cachedEnds.forEach(row => {
-      // Only add up the scores if the inputs are active and enabled!
       if (row.inputA && !row.inputA.disabled) {
         totalA += parseInt(row.inputA.value, 10) || 0;
       }
@@ -246,9 +252,9 @@ class LineScores extends HTMLElement {
         totalB += parseInt(row.inputB.value, 10) || 0;
       }
     });
-    // Push the fresh values straight into the UI text nodes
-    this.totalAEl.textContent = totalA;
-    this.totalBEl.textContent = totalB;
+
+    if (this.totalAEl) this.totalAEl.textContent = totalA;
+    if (this.totalBEl) this.totalBEl.textContent = totalB;
   }
 
   focusFirstInvalid() {
@@ -275,43 +281,23 @@ class LineScores extends HTMLElement {
   }
 
   onUpdateLinescores(data) {
-    Object.keys(data).forEach(key => {
-      const input = this.scorecard.querySelector(`[name="${key}"]`);
-      if (input) {
-        if (input.type === 'checkbox') {
-          input.checked = !!data[key];
-        } else {
-          input.value = data[key] !== null ? data[key] : '';
-        }
-      }
-    });
+    const hasExtraEnds = data.ends?.length > 8;
 
-    this.updateRunningTotals();
-    this.validateAllScores(true);
-    // alert('test');
-  }
-
-  onUpdateLinescores(data) {
-    const hasExtraEnds = data.ends.length > 8;
-
-    // 1. First handle top-level toggles if present in the data object
     if (this.toggleCheckbox) {
       this.toggleCheckbox.checked = hasExtraEnds;
       this.handleExtraEndsToggle();
     }
 
-    // If you pass clean 0-indexed arrays instead:
+    // Explicitly inject the raw database penalties back into the input selectors
+    if (this.penaltyAInput) this.penaltyAInput.value = data.penalty_score_a ?? 0;
+    if (this.penaltyBInput) this.penaltyBInput.value = data.penalty_score_b ?? 0;
+
     this.cachedEnds.forEach(row => {
       const vals = data.ends?.[row.end - 1] ?? { a: '', b: '' };
-
-      const valA = vals.a ?? '';
-      const valB = vals.b ?? '';
-
-      if (row.inputA) row.inputA.value = valA;
-      if (row.inputB) row.inputB.value = valB;
+      if (row.inputA) row.inputA.value = vals.a ?? '';
+      if (row.inputB) row.inputB.value = vals.b ?? '';
     });
 
-    // 3. Re-run structural calculations after everything is safely populated
     this.updateRunningTotals();
     this.validateAllScores({ checkGaps: true });
   }

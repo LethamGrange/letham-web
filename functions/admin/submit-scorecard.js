@@ -25,6 +25,8 @@ export async function onRequestPost(context) {
       team_b_lead,
       teamAEndsString,
       teamBEndsString,
+      penaltyA,
+      penaltyB,
       finalScoreA,
       finalScoreB,
     } = await parseAndValidateScorecard(formData, db);
@@ -36,9 +38,9 @@ export async function onRequestPost(context) {
           match_date, match_time, sheet, competition_name, team_a_id, team_b_id,
           team_a_skip, team_a_third, team_a_second, team_a_lead,
           team_b_skip, team_b_third, team_b_second, team_b_lead,
-          team_a_ends , team_b_ends,
+          team_a_ends , team_b_ends,penalty_score_a, penalty_score_b,
           final_score_a, final_score_b
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
       `,
       )
@@ -59,6 +61,8 @@ export async function onRequestPost(context) {
         team_b_lead,
         teamAEndsString,
         teamBEndsString,
+        penaltyA,
+        penaltyB,
         finalScoreA,
         finalScoreB,
       )
@@ -100,6 +104,8 @@ export async function onRequestPut(context) {
       team_b_lead,
       teamAEndsString,
       teamBEndsString,
+      penaltyA,
+      penaltyB,
       finalScoreA,
       finalScoreB,
     } = await parseAndValidateScorecard(formData, db);
@@ -110,7 +116,7 @@ export async function onRequestPut(context) {
           match_date = ?, match_time = ?, sheet = ?, competition_name = ?, team_a_id = ?, team_b_id = ?,
           team_a_skip = ?, team_a_third = ?, team_a_second = ?, team_a_lead = ?,
           team_b_skip = ?, team_b_third = ?, team_b_second = ?, team_b_lead = ?,
-          team_a_ends = ?, team_b_ends = ?,
+          team_a_ends = ?, team_b_ends = ?,penalty_score_a = ?, penalty_score_b = ?,
           final_score_a = ?, final_score_b = ?
         WHERE id = ?
       `,
@@ -132,6 +138,8 @@ export async function onRequestPut(context) {
         team_b_lead,
         teamAEndsString,
         teamBEndsString,
+        penaltyA,
+        penaltyB,
         finalScoreA,
         finalScoreB,
         matchId, // Appended perfectly at the end for the WHERE clause)
@@ -174,6 +182,9 @@ async function parseAndValidateScorecard(formData, db) {
     const scoresA = [];
     const scoresB = [];
 
+    const penaltyA = parseInt(formData.get('penalty_score_a')) || 0;
+    const penaltyB = parseInt(formData.get('penalty_score_b')) || 0;
+
     const hasExtraEnds = formData.get('match[has_extra_ends]') === 'true';
 
     const numberOfEnds = hasExtraEnds ? 12 : 8;
@@ -212,8 +223,10 @@ async function parseAndValidateScorecard(formData, db) {
 
       teamAEndsString,
       teamBEndsString,
-      finalScoreA: scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
-      finalScoreB: scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+      penaltyA,
+      penaltyB,
+      finalScoreA: penaltyA + scoresA.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
+      finalScoreB: penaltyB + scoresB.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0),
     };
   } catch (e) {
     console.log(e.toString());

@@ -9,9 +9,15 @@ inContextNav: true
 <h2>League Standings</h2>
 
 <!-- Tab Navigation Menu -->
+
+<!-- Tab Navigation Menu with Real-Time Class Swapping -->
 <div
   class="tabs-menu"
   style="display: flex; gap: var(--size-2); margin-bottom: var(--size-3)"
+  hx-on:click="
+    this.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    event.target.closest('button').classList.add('active');
+  "
 >
   <button
     hx-get="/api/get-league-table?league=Bank of Scotland"

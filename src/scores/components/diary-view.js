@@ -118,6 +118,9 @@ class DiaryView extends HTMLElement {
 
     return 'default';
   }
+
+  // Replace the renderAllCardsUpfront method inside js/diary-view.js
+
   renderAllCardsUpfront(entries) {
     this.container.innerHTML = '';
 
@@ -130,23 +133,58 @@ class DiaryView extends HTMLElement {
       return;
     }
 
-    let diaryHtml = html`
-      <div class="diary-th">Date</div>
-      <div class="diary-th">Time</div>
-      <div class="diary-th">Competition / Game</div>
-    `;
+    // 1. Append headers cleanly onto our grid layout matrix
+    const headerDate = document.createElement('div');
+    headerDate.className = 'diary-th';
+    headerDate.textContent = 'Date';
+    const headerTime = document.createElement('div');
+    headerTime.className = 'diary-th';
+    headerTime.textContent = 'Time';
+    const headerGame = document.createElement('div');
+    headerGame.className = 'diary-th';
+    headerGame.textContent = 'Competition / Game';
 
+    this.container.appendChild(headerDate);
+    this.container.appendChild(headerTime);
+    this.container.appendChild(headerGame);
+
+    // 2. Loop entries and build true DOM nodes instead of a single long text string
     entries.forEach(comp => {
-      // Pass the raw parameters directly into our table-driven matching dictionary
       const cssToken = this.getNormalizedDesignToken(comp.game, comp.kind);
 
-      diaryHtml += html`
-        <div class="diary-td date-column" data-kind="${cssToken}"><p>${comp.date}</p></div>
-        <div class="diary-td time-column" data-kind="${cssToken}"><p>${comp.time}</p></div>
-        <div class="diary-td game-column" data-kind="${cssToken}"><p>${comp.game}</p></div>
-      `;
+      // A. Create Date Cell Node
+      const dateCell = document.createElement('div');
+      dateCell.className = 'diary-td date-column';
+      dateCell.setAttribute('data-kind', cssToken);
+      dateCell.innerHTML = `<p>${comp.date}</p>`;
+
+      // B. Create Time Cell Node
+      const timeCell = document.createElement('div');
+      timeCell.className = 'diary-td time-column';
+      timeCell.setAttribute('data-kind', cssToken);
+      timeCell.innerHTML = `<p>${comp.time}</p>`;
+
+      // C. Create Interactive Game Cell Node
+      const gameCell = document.createElement('div');
+      gameCell.className = 'diary-td game-column';
+      gameCell.setAttribute('data-kind', cssToken);
+      gameCell.style.padding = '0'; // Removes padded padding so the card fills the slot perfectly
+
+      // D. INSTANTIATE AND HYDRATE YOUR CUSTOM EMBEDDED ELEMENT
+      const card = document.createElement('competition-card');
+
+      // Inject your nested database objects straight down into your card handler loop!
+      if (comp.fullCompData) {
+        card.hydrate(comp.fullCompData);
+      }
+
+      // Append everything step-by-step into the live document grid tree hierarchy
+      gameCell.appendChild(card);
+
+      this.container.appendChild(dateCell);
+      this.container.appendChild(timeCell);
+      this.container.appendChild(gameCell);
     });
-    this.container.innerHTML = diaryHtml;
   }
   runGlobalExplorerFilter() {
     const selectedType = this.typeSelect?.value || 'all';
