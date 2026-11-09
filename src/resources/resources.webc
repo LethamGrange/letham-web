@@ -73,7 +73,8 @@
 </div>
 <style>
   /* Custom scoped styling for your accordion component */
-  .accordions details {
+  .ui-accordion details {
+    background-color: var(--surface-tonal);
     margin-bottom: 1rem;
     padding: 0.5rem;
     border: 1px solid #ccc;
@@ -89,6 +90,6 @@
   .download-list p {
     margin: 0.25rem 0 0 0;
     font-size: 0.9rem;
-    color: #555;
+    color: light-dark(#444, #aaa);
   }
 </style>
